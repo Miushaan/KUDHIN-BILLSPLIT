@@ -3,6 +3,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Squad Split</title>
+<meta name="apple-mobile-web-app-title" content="Squad Split">
+<link rel="apple-touch-icon" href="icon.png">
 <meta name="theme-color" content="#f2f2f7">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>💸</text></svg>">
 <style>
@@ -77,6 +79,8 @@ body{position:fixed;top:0;left:0;right:0;bottom:0;padding-bottom:0;-webkit-user-
 input,select,textarea{-webkit-user-select:text;user-select:text}
 .w{height:100%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-top:calc(8px + env(safe-area-inset-top,0px));padding-bottom:calc(100px + env(safe-area-inset-bottom,0px));scrollbar-width:none;-ms-overflow-style:none}
 .w::-webkit-scrollbar,.sheet::-webkit-scrollbar,::-webkit-scrollbar{display:none;width:0;height:0}.sheet{scrollbar-width:none}
+.tile{background:var(--card);border-radius:12px;padding:14px}.tile small{color:var(--mu);font-size:13px}.tile b{display:block;font-size:22px;margin-top:2px}
+.tabs button{position:relative}.bg{position:absolute;top:0;left:55%;background:var(--red);color:#fff;font-style:normal;font-size:11px;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
 </style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div>
 <script>
 const P=["Appal","Uly","Miu","Raya","Aslan","Reesha"],CP=["Appal & Uly","Miu & Raya","Aslan & Reesha"],COL=["#ff9500","#af52de","#30b0c7"],GST=8;
@@ -84,7 +88,7 @@ function sc2(n){const e=document.querySelector(".w");if(e)e.scrollTop=n}
 function ldate(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 const cpOf=i=>i>>1,mate=i=>i^1,f=n=>n.toFixed(2),sum=a=>a.reduce((x,y)=>x+y,0),cl=o=>JSON.parse(JSON.stringify(o));
 let ob=null;
-let S={bills:[],cpays:[]},tab="dash",who=0,trip="All",live=false,ME=null,memb={},ready=false,sheet=null,inflight=0,lg=null,slipCache={},mon=ldate().slice(0,7);
+let S={bills:[],cpays:[]},tab="dash",who=0,trip="All",live=false,ME=null,memb={},ready=false,sheet=null,inflight=0,hq="",fails=0,lockUntil=0,lastSync=null,lg=null,slipCache={},mon=ldate().slice(0,7);
 try{const r=JSON.parse(localStorage.getItem("squad3")||"null");if(r){S=r}}catch(e){}
 S.cpays=S.cpays||[];
 const save=()=>{try{localStorage.setItem("squad3",JSON.stringify(S))}catch(e){}};
@@ -106,7 +110,7 @@ async function pull(force){
   const[b,c,m]=await Promise.all([fget("bills"),fget("cpays"),fget("members")]);
   const nb=Object.values(b||{}).map(normB).sort((x,y)=>y.id-x.id),nc=Object.values(c||{}).map(normP).sort((x,y)=>x.id-y.id);
   const ch=JSON.stringify([nb,nc,m||{}])!==JSON.stringify([S.bills,S.cpays,memb]);
-  S.bills=nb;S.cpays=nc;memb=m||{};save();
+  S.bills=nb;S.cpays=nc;memb=m||{};lastSync=new Date();save();
   const was=live;live=true;ready=true;
   if(ch||!was)uiRefresh();
  }catch(e){const was=live;live=false;ready=true;if(was||!ready)uiRefresh();else if(!document.getElementById("v").innerHTML)render()}
@@ -142,6 +146,7 @@ function calc(b){
  return sub.map((s,i)=>{const sc=SC*wt[i]/W,ot=((+b.other||0)+(+b.tip||0))*wt[i]/W,gs=b.v2?(+b.gstAmt||0)*wt[i]/W:(gOn?s*GST/100:0);
   let tot=s+sc+gs+ot;if(b.round)tot=Math.ceil(tot-1e-9);return{sub:s,sc,gst:gs,ot,tot}});
 }
+const pendMe=()=>ME===null?0:S.cpays.filter(p=>p.status==="pending"&&canC(p.to)).length;
 const fb=()=>S.bills.filter(b=>trip=="All"||b.trip==trip);
 const cTot=b=>{const c=calc(b);return[0,1,2].map(k=>c[2*k].tot+c[2*k+1].tot)};
 function dues(all){
@@ -171,6 +176,7 @@ function dash(){
  const net=[0,1,2].map(c=>sum(d.map(r=>r[c]))-sum(d[c]));
  let h=head("Overview",`Hi ${P[ME]} · ${live?"Live":"Offline"}`);
  h+=`<div class="l"><div class="li"><span>Trip</span><select onchange="trip=this.value;render()"><option>All</option>${trips.map(t=>`<option ${t==trip?"selected":""}>${esc(t)}</option>`).join("")}</select></div></div>`;
+ {const mc=cpOf(ME),owe=sum(d[mc]),got=sum(d.map(r=>r[mc]));h+=`<div class="row2" style="margin-top:12px"><div class="tile"><small>${CP[mc]} owe</small><b class="${owe>0.005?"neg":""}">${mh(owe)}</b></div><div class="tile"><small>${CP[mc]} are owed</small><b class="${got>0.005?"pos":""}">${mh(got)}</b></div></div>`}
  h+=`<div class="sh">Couple balances</div><div class="l">${CP.map((c,k)=>`<div class="li"><span><b>${c}</b>${cpOf(ME)==k?'<span class="cp">you</span>':""}<br><small>${net[k]>0.005?"gets back":net[k]<-0.005?"needs to pay":"settled"}</small></span><b class="${net[k]>0.005?"pos":net[k]<-0.005?"neg":""}">${net[k]<0?"−":net[k]>0?"+":""}${mh(Math.abs(net[k]))}</b></div>`).join("")}</div>`;
  let rows="";
  for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(d[a][b]>0.005)rows+=`<div class="li"><span><b>${CP[a]}</b> owe <b>${CP[b]}</b><br><span class="neg">${mh(d[a][b])}</span>${pd[a][b]?` <small>· ${mh(pd[a][b])} awaiting confirmation</small>`:""}</span>${canC(a)&&rm[a][b]>0.005?`<button class="pill" onclick="openPay(${a},${b})">Pay</button>`:""}</div>`;
@@ -220,7 +226,7 @@ function sheetHtml(){
 function newBill(){
  const trips=[...new Set(S.bills.map(b=>b.trip).filter(Boolean))];
  const num=(k,l)=>`<div class="li"><span>${l}</span><input type="number" inputmode="decimal" step="any" value="${D[k]||""}" placeholder="0" oninput="D.${k}=+this.value;prev()"></div>`;
- let h=head("New Bill","Add what everyone had");
+ let h=head(D.editId?"Edit Bill":"New Bill",D.editId?"Changing a saved bill. Payments already made stay as they are.":"Add what everyone had");
  h+=` <div class="sh">Details</div><div class="l">
  <div class="li"><span>Place</span><input list="pl" autocomplete="off" value="${esc(D.title)}" placeholder="Search or type a place" oninput="D.title=this.value"><datalist id="pl">${pastPlaces().map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
  ${pastPlaces().length?`<div class="li col"><div class="mu">Recent places</div><div class="chips">${pastPlaces().slice(0,8).map((x,i)=>`<button class="pill" onclick="setPlace(${i})">${esc(x)}</button>`).join("")}</div></div>`:""}
@@ -228,7 +234,7 @@ function newBill(){
  <div class="li"><span>Date</span><input type="date" value="${D.date}" oninput="D.date=this.value"></div>
  <div class="li col"><div class="mu">Who paid the bill?</div>${picker([D.payer],i=>`D.payer=${i};D.touched=1;render()`)}</div></div>
  <div class="sh">Charges</div><div class="l">
- ${num("scAmt","Service charge")}${num("gstAmt","GST")}${num("other","Other charges")}
+ ${num("scAmt","Service charge")}${num("gstAmt","GST")}${num("other","Other charges")}${num("recTotal","Receipt total (optional check)")}
  <div class="li"><span>Round up to whole numbers</span>${sw(D.round,"D.round=this.checked;prev()")}</div></div>
  <div class="mu" style="margin:6px 12px">Type the amounts from the bill. Each one is shared equally among the people who ordered.</div>
  <div class="sh">Items</div><datalist id="itl">${pastItems().map(x=>`<option value="${esc(x.n)}">`).join("")}</datalist>`;
@@ -237,7 +243,7 @@ function newBill(){
  ${picker(sel,i=>`tg(${k},${i})`,`((c)=>tc(${k},c))`)}
  </div>`}).join("");
  h+=`<button class="btn sec" onclick="addItem()">+ Add item</button>
- <div class="sh">Preview</div><div class="l" id="pv"></div><div style="margin-top:16px"><button class="btn" onclick="saveBill()">Save bill</button></div>`;
+ <div class="sh">Preview</div><div class="l" id="pv"></div><div style="margin-top:16px"><button class="btn" onclick="saveBill()">${D.editId?"Save changes":"Save bill"}</button>${D.editId?`<button class="btn sec" style="margin-top:8px" onclick="D=blank();tab=\'hist\';render()">Cancel</button>`:""}</div>`;
  return h;
 }
 function pastItems(){const seen={},o=[];S.bills.forEach(b=>b.items.forEach(it=>{const n=(it.n||"").trim(),k=n.toLowerCase();if(n&&!seen[k]){seen[k]=1;o.push({n,p:+it.p||0})}}));return o}
@@ -253,13 +259,28 @@ function sv(k,i,val){const it=D.items[k];it.v=it.v||{};it.v[i]=+val;if(it.m=="am
 function prev(){
  const e=document.getElementById("pv");if(!e)return;const c=calc(D),T=sum(c.map(x=>x.tot)),sub=sum(c.map(x=>x.sub));
  let warn="";D.items.forEach(it=>{if(it.m=="pct"&&it.w.length&&Math.abs(sum(it.w.map(i=>+(it.v||{})[i]||0))-100)>0.01)warn+=`<div class="li neg">⚠ "${esc(it.n||"Item")}" percentages must add up to 100</div>`});
- e.innerHTML=warn+`<div class="li"><span>Items total</span><b>${mh(sub)}</b></div>`+(+D.scAmt?`<div class="li"><span>Service charge</span><b>${mh(+D.scAmt)}</b></div>`:"")+(+D.gstAmt?`<div class="li"><span>GST</span><b>${mh(+D.gstAmt)}</b></div>`:"")+(+D.other?`<div class="li"><span>Other charges</span><b>${mh(+D.other)}</b></div>`:"")+c.map((x,i)=>x.tot>0?`<div class="li"><span style="display:flex;gap:10px;align-items:center">${dot(i)}<span>${P[i]}<br><small>Items ${f(x.sub)} · Service ${f(x.sc)} · GST ${f(x.gst)}${x.ot?` · Other ${f(x.ot)}`:""}</small></span></span><b>${f(x.tot)}</b></div>`:"").join("")+`<div class="li"><b>Total</b><b>${mh(T)}</b></div>`;
+ e.innerHTML=warn+`<div class="li"><span>Items total</span><b>${mh(sub)}</b></div>`+(+D.scAmt?`<div class="li"><span>Service charge</span><b>${mh(+D.scAmt)}</b></div>`:"")+(+D.gstAmt?`<div class="li"><span>GST</span><b>${mh(+D.gstAmt)}</b></div>`:"")+(+D.other?`<div class="li"><span>Other charges</span><b>${mh(+D.other)}</b></div>`:"")+c.map((x,i)=>x.tot>0?`<div class="li"><span style="display:flex;gap:10px;align-items:center">${dot(i)}<span>${P[i]}<br><small>Items ${f(x.sub)} · Service ${f(x.sc)} · GST ${f(x.gst)}${x.ot?` · Other ${f(x.ot)}`:""}</small></span></span><b>${f(x.tot)}</b></div>`:"").join("")+`<div class="li"><b>Total</b><b>${mh(T)}</b></div>`+(+D.recTotal>0?(Math.abs(T-D.recTotal)<=(D.round?0.5:0.011)?`<div class="li"><span>Receipt total</span><b class="pos">Matches ✓</b></div>`:`<div class="li"><span>Receipt total ${f(+D.recTotal)}</span><b class="neg">${T>D.recTotal?"+":"−"}${f(Math.abs(T-D.recTotal))} difference</b></div>`):"");
+}
+function editBill(id){
+ const x=S.bills.find(b=>b.id==id);if(!x)return;const c=calc(x);
+ D=cl(x);D.editId=id;D.touched=1;
+ if(!x.v2){D.v2=true;D.scAmt=+sum(c.map(y=>y.sc)).toFixed(2);D.gstAmt=+sum(c.map(y=>y.gst)).toFixed(2);D.other=+((+x.other||0)+(+x.tip||0)).toFixed(2);delete D.tip}
+ D.items=D.items.map(it=>it.m&&it.m!="eq"?{...it,m:"eq"}:it);
+ ob=null;tab="new";render();sc2(0);
+}
+function useTemplate(id){
+ const x=S.bills.find(b=>b.id==id);if(!x)return;
+ D=blank();D.title=x.title;D.trip=x.trip||"";D.payer=x.payer;D.touched=1;D.items=cl(x.items).map(it=>({...it,m:"eq"}));
+ if(x.v2){D.scAmt=x.scAmt;D.gstAmt=x.gstAmt;D.other=x.other}
+ ob=null;tab="new";render();sc2(0);
 }
 function saveBill(){
  if(!D.items.some(i=>+i.p>0))return alert("Add at least one item with a price.");
  if(D.items.some(i=>+i.p>0&&!i.w.length))return alert("Pick at least one person for every item.");
- const b={...cl(D),title:D.title||"Untitled bill",id:Date.now(),by:ME};delete b.touched;
- S.bills.unshift(b);save();rw("bills",b.id,b);D=blank();tab="dash";render();
+ const ed=D.editId,old=ed?S.bills.find(x=>x.id==ed):null;
+ const b={...cl(D),title:D.title||"Untitled bill",id:ed||Date.now(),by:old?old.by:ME};delete b.touched;delete b.editId;
+ if(ed)S.bills=S.bills.map(x=>x.id==ed?b:x);else S.bills.unshift(b);
+ save();rw("bills",b.id,b);D=blank();if(ed){tab="hist";ob=b.id}else tab="dash";render();sc2(0);
 }
 /* ---- monthly ---- */
 const mkey=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
@@ -297,32 +318,46 @@ function billDetail(id){
  h+=`<div class="sh">Each person pays</div><div class="l">${c.map((y,i)=>y.tot>0?`<div class="li"><span><b>${P[i]}</b><br><small>Items ${f(y.sub)} · Service ${f(y.sc)} · GST ${f(y.gst)}${y.ot?` · Other ${f(y.ot)}`:""}</small></span><b>${mh(y.tot)}</b></div>`:"").join("")}</div>`;
  h+=`<div class="sh">Each couple pays</div><div class="l">${CP.map((n,k)=>`<div class="li"><span>${n}</span><b>${mh(c[2*k].tot+c[2*k+1].tot)}</b></div>`).join("")}</div>`;
  h+=duesPays(x);
- if(canAct(x.payer)||x.by===ME)h+=`<div style="margin-top:18px"><button class="btn sec" style="color:var(--red)" onclick="delBill(${x.id})">Delete bill</button></div>`;
+ h+=`<div class="row2" style="margin-top:18px"><button class="btn sec" onclick="useTemplate(${x.id})">Use as template</button>${canAct(x.payer)||x.by===ME?`<button class="btn sec" onclick="editBill(${x.id})">Edit bill</button>`:""}</div>`;
+ if(canAct(x.payer)||x.by===ME)h+=`<div style="margin-top:10px"><button class="btn sec" style="color:var(--red)" onclick="delBill(${x.id})">Delete bill</button></div>`;
  return h;
 }
+function exportCsv(){
+ const rows=[["Date","Place","Trip","Paid by","Person","Items","Service charge","GST","Other","Total"].join(",")];
+ S.bills.slice().reverse().forEach(b=>calc(b).forEach((x,i)=>{if(x.tot>0)rows.push([b.date,b.title,b.trip||"",P[b.payer]].map(v=>'"'+String(v).replace(/"/g,'""')+'"').concat([P[i],x.sub,x.sc,x.gst,x.ot,x.tot].map(v=>typeof v=="number"?v.toFixed(2):v)).join(","))}));
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([rows.join("\n")],{type:"text/csv"}));a.download="squad-split.csv";document.body.appendChild(a);a.click();a.remove();
+}
+function startChg(){lg={i:ME,mode:"chg0",pin:"",first:"",err:""};render()}
+async function refreshNow(){await pull(true);render()}
 function account(){
- return head("Account",`Signed in as ${P[ME]}`)+`<div class="l"><div class="li"><span>Name</span><b>${P[ME]}</b></div><div class="li"><span>Couple</span><b>${CP[cpOf(ME)]}</b></div><div class="li"><span>Data</span><b>${live?"Live":"Offline"}</b></div></div>
+ const t=lastSync?lastSync.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"–";
+ return head("Account",`Signed in as ${P[ME]}`)+`<div class="l"><div class="li"><span>Name</span><b>${P[ME]}</b></div><div class="li"><span>Couple</span><b>${CP[cpOf(ME)]}</b></div><div class="li"><span>Data</span><b>${live?"Live":"Offline"}</b></div><div class="li"><span>Last updated</span><b>${t}</b></div></div>
+ <div class="sh">Tools</div><div class="l"><div class="li" onclick="refreshNow()" style="cursor:pointer"><span>Refresh now</span><span class="mu">›</span></div><div class="li" onclick="startChg()" style="cursor:pointer"><span>Change PIN</span><span class="mu">›</span></div><div class="li" onclick="exportCsv()" style="cursor:pointer"><span>Export all bills (CSV)</span><span class="mu">›</span></div></div>
  <div style="margin-top:18px"><button class="btn sec" style="color:var(--red)" onclick="logout()">Sign out</button></div>`;
 }
+const fbills=()=>{const q=hq.trim().toLowerCase();return q?S.bills.filter(b=>[b.title,b.trip,P[b.payer],...(b.items||[]).map(i=>i.n)].join(" ").toLowerCase().includes(q)):S.bills};
 function hist(){
  if(ob)return billDetail(ob);
+ return head("History",`${S.bills.length} bill${S.bills.length==1?"":"s"}`)+`<div class="l"><div class="li"><input type="search" placeholder="Search place, item or person" value="${esc(hq)}" oninput="hq=this.value;document.getElementById('hl').innerHTML=histBody()" style="text-align:left"></div></div><div id="hl">${histBody()}</div>`;
+}
+function histBody(){
  const tt={};S.bills.forEach(b=>{const k=b.trip||"No trip";tt[k]=(tt[k]||0)+sum(calc(b).map(x=>x.tot))});
- let h=head("History",`${S.bills.length} bill${S.bills.length==1?"":"s"}`);
- if(Object.keys(tt).length)h+=`<div class="sh">Trip totals</div><div class="l">${Object.entries(tt).map(([k,v])=>`<div class="li"><span>${esc(k)}</span><b>${mh(v)}</b></div>`).join("")}</div><div class="sh">Bills</div>`;
+ let h="";
+ if(!hq&&Object.keys(tt).length)h+=`<div class="sh">Trip totals</div><div class="l">${Object.entries(tt).map(([k,v])=>`<div class="li"><span>${esc(k)}</span><b>${mh(v)}</b></div>`).join("")}</div><div class="sh">Bills</div>`;
  const all=dues(true);
- h+=S.bills.map(x=>{const c=calc(x),g=x.gstOn!==undefined?x.gstOn:+x.gst>0,so=x.scOn!==undefined?x.scOn:+x.sc>0,rs=all.filter(r=>r.b.id==x.id),ps=S.cpays.filter(p=>p.items.some(i=>i.b==x.id));
+ h+=fbills().map(x=>{const c=calc(x),g=x.gstOn!==undefined?x.gstOn:+x.gst>0,so=x.scOn!==undefined?x.scOn:+x.sc>0,rs=all.filter(r=>r.b.id==x.id),ps=S.cpays.filter(p=>p.items.some(i=>i.b==x.id));
  return `<div class="item"><div class="t" style="cursor:pointer" onclick="openB(${x.id})"><div style="flex:1"><b>${esc(x.title)}</b>${x.trip?`<span class="cp">${esc(x.trip)}</span>`:""}<div class="mu">${x.date} · paid by ${P[x.payer]} · ${x.v2?`SC ${f(+x.scAmt||0)} · GST ${f(+x.gstAmt||0)}`:`SC ${so?x.sc+"%":"off"} · GST ${g?GST+"%":"off"}`}</div></div><b>${mh(sum(c.map(y=>y.tot)))}</b><span class="mu">›</span></div>
  <div class="chips">${c.map((y,i)=>y.tot>0?`<span class="chip">${P[i]} ${f(y.tot)}</span>`:"").join("")}</div>
  ${rs.length?`<div class="sh" style="margin:14px 0 6px">Couple dues</div><div class="l" style="background:var(--bg)">${rs.map(r=>{const left=r.owed-r.paid;return `<div class="li"><span><b>${CP[r.from]}</b><br><small>owe ${CP[r.to]}</small></span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${left<0.005?'<span class="bd ok">Paid</span>':`<b class="neg">${mh(left)}</b>`}${r.pend>0.005?'<span class="bd">Pending</span>':""}${canC(r.from)&&r.rem>0.005?`<button class="pill" onclick="openPay(${r.from},${r.to},${x.id})">Pay</button>`:""}</span></div>`}).join("")}</div>`:""}
  ${ps.length?`<div class="sh" style="margin:14px 0 6px">Payments</div><div class="l" style="background:var(--bg)">${ps.map(p=>payRow(p,x.id)).join("")}</div>`:""}</div>`}).join("");
- if(!S.bills.length)h+='<div class="l"><div class="li mu">No bills yet</div></div>';
+ if(!fbills().length)h+='<div class="l"><div class="li mu">'+(hq?'No matching bills':'No bills yet')+'</div></div>';
  return h;
 }
 function delBill(id){if(confirm("Delete this bill?")){ob=null;S.bills=S.bills.filter(b=>b.id!=id);save();rd("bills",id);render()}}
 
 function loginScreen(){
  if(!lg||lg.i===undefined)return head("Squad Split","Who are you? Pick your name to sign in.")+`<div class="l"><div class="li col">${picker([],i=>`pickMe(${i})`)}</div></div>`+(live?"":'<div class="mu" style="margin:10px 12px">Offline. Check your connection.</div>');
- const t=lg.mode=="new"?(lg.first?"Confirm your PIN":"Create a 4-digit PIN"):"Enter your PIN";
+ const t={new:lg.first?"Confirm your PIN":"Create a 4-digit PIN",enter:"Enter your PIN",chg0:"Enter your current PIN",chg1:"Enter a new PIN",chg2:"Confirm your new PIN"}[lg.mode];
  return `<button class="pill" onclick="lg=null;render()" style="margin-top:6px">‹ Back</button>`+head(P[lg.i],t)+`<div class="dots">${[0,1,2,3].map(k=>`<i class="${k<lg.pin.length?"on":""}"></i>`).join("")}</div><div class="mu" style="text-align:center;min-height:20px">${lg.err||""}</div>
  <div class="kp">${[1,2,3,4,5,6,7,8,9,"",0,"⌫"].map(k=>k===""?"<span></span>":`<button onclick="key('${k}')">${k}</button>`).join("")}</div>`;
 }
@@ -333,26 +368,29 @@ async function pickMe(i){
 }
 async function key(k){
  if(!lg)return;
+ if(Date.now()<lockUntil){lg.err="Too many tries. Wait "+Math.ceil((lockUntil-Date.now())/1000)+"s";return render()}
  if(k=="⌫"){lg.pin=lg.pin.slice(0,-1);lg.err="";return render()}
  if(lg.pin.length>=4)return;lg.pin+=k;render();
  if(lg.pin.length<4)return;
  const h=await hp(lg.i,lg.pin);
- if(lg.mode=="new"){
+ const bad=msg=>{fails++;if(fails>=5){fails=0;lockUntil=Date.now()+30000;msg="Too many tries. Wait 30s"}lg.pin="";lg.err=msg;render()};
+ const check=async()=>{let m=null;try{m=await fget("members/"+lg.i)}catch(e){lg.pin="";lg.err="Offline. Check your connection.";render();return false}if(!m||m.pin!==h){bad("Wrong PIN. Try again.");return false}fails=0;return true};
+ if(lg.mode=="chg0"){if(await check()){lg.mode="chg1";lg.pin="";lg.err="";render()}return}
+ if(lg.mode=="chg1"){lg.first=lg.pin;lg.pin="";lg.mode="chg2";return render()}
+ if(lg.mode=="chg2"||lg.mode=="new"){
   if(!lg.first){lg.first=lg.pin;lg.pin="";return render()}
-  if(lg.first!==lg.pin){lg.first="";lg.pin="";lg.err="PINs did not match. Try again.";return render()}
+  if(lg.first!==lg.pin){lg.first="";lg.pin="";lg.err="PINs did not match. Try again.";if(lg.mode=="chg2")lg.mode="chg1";return render()}
   await wr("PUT","members/"+lg.i,{pin:h});
- }else{
-  let m=null;try{m=await fget("members/"+lg.i)}catch(e){lg.pin="";lg.err="Offline. Check your connection.";return render()}
-  if(!m||m.pin!==h){lg.pin="";lg.err="Wrong PIN. Try again.";return render()}
- }
+  if(lg.mode=="chg2"){lg=null;alert("PIN changed.");return render()}
+ }else if(!(await check()))return;
  try{localStorage.setItem("squadme",lg.i)}catch(e){}
  ME=lg.i;who=ME;D.payer=ME;lg=null;tab="dash";render();
 }
 function render(){
  const y=(document.querySelector(".w")||{}).scrollTop||0;
  if(!ready){v.innerHTML=head("Squad Split","Loading…");nav.innerHTML="";ovl.innerHTML="";return}
- if(ME===null){v.innerHTML=loginScreen();nav.innerHTML="";ovl.innerHTML="";return}
- nav.innerHTML=[["dash",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>`,"Overview"],["new",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>`,"New Bill"],["mon",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20v-6M12 20V5M19 20v-9"/></svg>`,"Monthly"],["hist",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2z"/><path d="M9 9h6M9 13h6"/></svg>`,"History"],["acc",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`,"Account"]].map(([k,i,l])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')"><span>${i}</span>${l}</button>`).join("");
+ if(ME===null||lg&&lg.mode&&lg.mode.startsWith("chg")){v.innerHTML=loginScreen();nav.innerHTML="";ovl.innerHTML="";return}
+ nav.innerHTML=[["dash",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>`,"Overview"],["new",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>`,"New Bill"],["mon",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20v-6M12 20V5M19 20v-9"/></svg>`,"Monthly"],["hist",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2z"/><path d="M9 9h6M9 13h6"/></svg>`,"History"],["acc",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`,"Account"]].map(([k,i,l])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')"><span>${i}</span>${l}${k=="dash"&&pendMe()?`<em class="bg">${pendMe()}</em>`:""}</button>`).join("");
  v.innerHTML=tab=="dash"?dash():tab=="new"?newBill():tab=="mon"?monthly():tab=="acc"?account():hist();
  ovl.innerHTML=sheetHtml();
  if(tab=="new")prev();
