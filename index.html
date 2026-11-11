@@ -81,7 +81,17 @@ input,select,textarea{-webkit-user-select:text;user-select:text}
 .w::-webkit-scrollbar,.sheet::-webkit-scrollbar,::-webkit-scrollbar{display:none;width:0;height:0}.sheet{scrollbar-width:none}
 .tile{background:var(--card);border-radius:12px;padding:14px}.tile small{color:var(--mu);font-size:13px}.tile b{display:block;font-size:22px;margin-top:2px}
 .tabs button{position:relative}.bg{position:absolute;top:0;left:55%;background:var(--red);color:#fff;font-style:normal;font-size:11px;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px}
-</style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div>
+#chatov{display:none;position:fixed;top:0;left:0;right:0;bottom:0;z-index:40;background:var(--bg)}
+.chat{display:flex;flex-direction:column;height:100%;max-width:560px;margin:0 auto}
+.ch-h{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;border-bottom:.5px solid var(--bd);background:var(--card)}
+.ch-m{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:4px;scrollbar-width:none;overscroll-behavior:contain}
+.ch-i{display:flex;gap:8px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:.5px solid var(--bd);align-items:center}
+.ch-i input{background:var(--bg);border-radius:20px;padding:10px 14px;text-align:left;flex:1}
+.b{align-self:flex-start;max-width:78%;background:var(--card);border-radius:18px;padding:8px 12px;overflow-wrap:anywhere;white-space:pre-wrap;-webkit-user-select:text;user-select:text}.b small{display:block;font-size:10px;color:var(--mu);margin-top:2px}
+.b.me{align-self:flex-end;background:var(--ac);color:#fff}.b.me small{color:rgba(255,255,255,.75)}
+.cn{font-size:11px;color:var(--mu);margin:6px 6px 0}
+.od{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--bd);margin-right:8px}.od.on{background:var(--grn)}
+</style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div>
 <script>
 const P=["Appal","Uly","Miu","Raya","Aslan","Reesha"],CP=["Appal & Uly","Miu & Raya","Aslan & Reesha"],COL=["#ff9500","#af52de","#30b0c7"],GST=8;
 function sc2(n){const e=document.querySelector(".w");if(e)e.scrollTop=n}
@@ -91,11 +101,12 @@ let ob=null;
 let S={bills:[],cpays:[]},tab="dash",who=0,trip="All",live=false,ME=null,memb={},ready=false,sheet=null,inflight=0,hq="",fails=0,lockUntil=0,lastSync=null,lg=null,slipCache={},mon=ldate().slice(0,7);
 try{const r=JSON.parse(localStorage.getItem("squad3")||"null");if(r){S=r}}catch(e){}
 S.cpays=S.cpays||[];
+let off=0,pres={},chatMsgs=[],pendingMsgs=[],chatOpen=false,lastOn="",lastRead=0;try{lastRead=+localStorage.getItem("squadread")||0}catch(e){}
 const save=()=>{try{localStorage.setItem("squad3",JSON.stringify(S))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const mh=x=>`<span class="rf"></span>${f(x)}`,mt=x=>`MVR ${f(x)}`,today=()=>ldate();
 const newItem=()=>({n:"",p:0,m:"eq",w:[],v:{}});
-const blank=()=>({title:"",date:today(),payer:ME??0,trip:trip=="All"?"":trip,scAmt:0,gstAmt:0,other:0,v2:true,round:false,items:[newItem()]});
+const blank=()=>({title:"",date:today(),payer:ME??0,trip:trip=="All"?"":trip,scAmt:0,gstAmt:0,other:0,v2:true,round:false,items:[]});
 let D=blank();
 
 /* ---- Firebase Realtime Database (REST) ---- */
@@ -103,18 +114,54 @@ const DBU="https://kudhinbillsplit-default-rtdb.asia-southeast1.firebasedatabase
 const arr=o=>o?(Array.isArray(o)?o:Object.values(o)).filter(x=>x!==null&&x!==undefined):[];
 const normB=b=>{b.items=arr(b.items).map(it=>({...it,w:arr(it.w),v:it.v||{}}));return b};
 const normP=p=>{p.items=arr(p.items);return p};
-async function fget(path){const r=await fetch(`${DBU}/${path}.json`,{cache:"no-store"});if(!r.ok)throw new Error(r.status);return r.json()}
+const CHQ="orderBy=%22%24key%22&limitToLast=80";
+async function fget(path,q){const r=await fetch(`${DBU}/${path}.json${q?"?"+q:""}`,{cache:"no-store"});if(!r.ok)throw new Error(r.status);return r.json()}
 async function pull(force){
  if(inflight>0&&!force)return;
  try{
-  const[b,c,m]=await Promise.all([fget("bills"),fget("cpays"),fget("members")]);
+  const[b,c,m,pr,cht]=await Promise.all([fget("bills"),fget("cpays"),fget("members"),fget("presence"),fget("chat",CHQ)]);
   const nb=Object.values(b||{}).map(normB).sort((x,y)=>y.id-x.id),nc=Object.values(c||{}).map(normP).sort((x,y)=>x.id-y.id);
   const ch=JSON.stringify([nb,nc,m||{}])!==JSON.stringify([S.bills,S.cpays,memb]);
   S.bills=nb;S.cpays=nc;memb=m||{};lastSync=new Date();save();
+  pres=pr||{};const pc=setChat(cht),on=P.map((_,i)=>isOn(i)?1:0).join(""),oc=on!==lastOn;lastOn=on;
   const was=live;live=true;ready=true;
-  if(ch||!was)uiRefresh();
+  if(chatOpen&&(pc||oc))updateChat();if(ch||pc||oc||!was)uiRefresh();
  }catch(e){const was=live;live=false;ready=true;if(was||!ready)uiRefresh();else if(!document.getElementById("v").innerHTML)render()}
 }
+const isOn=i=>pres[i]&&pres[i].t&&snow()-pres[i].t<45000;
+const snow=()=>Date.now()+off;
+function setChat(c){
+ const sv=Object.values(c||{}).filter(x=>x&&x.text).sort((a,b)=>a.id-b.id);
+ const merged=[...sv,...pendingMsgs.filter(p=>!sv.some(x=>x.id===p.id))].sort((a,b)=>a.id-b.id);
+ const ch=JSON.stringify(merged)!==JSON.stringify(chatMsgs);chatMsgs=merged;return ch;
+}
+async function beat(){
+ if(ME===null||document.hidden)return;
+ try{await fetch(`${DBU}/presence/${ME}.json`,{method:"PUT",body:JSON.stringify({t:{".sv":"timestamp"}})});const r=await fget("presence/"+ME);if(r&&r.t)off=r.t-Date.now()}catch(e){}
+}
+async function pullChat(){try{const[pr,c]=await Promise.all([fget("presence"),fget("chat",CHQ)]);pres=pr||{};setChat(c);updateChat()}catch(e){}}
+const unread=()=>chatMsgs.filter(m=>m.from!==ME&&m.id>lastRead).length;
+function markRead(){const l=chatMsgs.length?chatMsgs[chatMsgs.length-1].id:0;if(l>lastRead){lastRead=l;try{localStorage.setItem("squadread",l)}catch(e){}}}
+function openChat(){
+ chatOpen=true;chatov.style.display="block";
+ chatov.innerHTML=`<div class="chat"><div class="ch-h"><button class="pill" onclick="closeChat()">‹ Back</button><div style="text-align:center;flex:1"><b>Group chat</b><br><small class="mu" id="chon"></small></div><span style="width:62px"></span></div><div class="ch-m" id="cm"></div><div class="ch-i"><input id="ci" autocomplete="off" placeholder="Message" enterkeyhint="send" onkeydown="if(event.key==='Enter')sendChat()"><button class="btn" style="width:auto;padding:10px 16px" onclick="sendChat()">Send</button></div></div>`;
+ updateChat(true);pullChat();
+}
+function closeChat(){chatOpen=false;chatov.style.display="none";chatov.innerHTML="";render()}
+function updateChat(force){
+ const m=document.getElementById("cm");if(!m||!chatOpen)return;
+ const near=force||m.scrollHeight-m.scrollTop-m.clientHeight<80;let last=-1;
+ m.innerHTML=chatMsgs.length?chatMsgs.map(x=>{const mine=x.from===ME,d=new Date(x.id-off),t=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"),nm=!mine&&x.from!==last?`<div class="cn">${P[x.from]}</div>`:"";last=x.from;return `${nm}<div class="b ${mine?"me":""}">${esc(x.text)}<small>${t}</small></div>`}).join(""):'<div class="mu" style="text-align:center;margin-top:30px">No messages yet. Say hi!</div>';
+ const o=document.getElementById("chon");if(o){const on=P.filter((_,i)=>isOn(i));o.textContent=on.length?on.join(", ")+" online":"Nobody online"}
+ if(near)m.scrollTop=m.scrollHeight;markRead();
+}
+async function sendChat(){
+ const e=document.getElementById("ci"),t=((e&&e.value)||"").trim();if(!t)return;e.value="";
+ const id=snow(),msg={id,from:ME,text:t.slice(0,500)};pendingMsgs.push(msg);chatMsgs.push(msg);updateChat(true);
+ try{const r=await fetch(`${DBU}/chat/${id}.json`,{method:"PUT",body:JSON.stringify(msg)});if(!r.ok)throw 0}catch(x){alert("Message not sent. Check your connection.")}
+ pendingMsgs=pendingMsgs.filter(p=>p.id!==id);if(e)e.focus();
+}
+const ago=t=>{if(!t)return"Not seen yet";const m=Math.floor((snow()-t)/60000);return m<1?"Just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+" h ago":new Date(t-off).toLocaleDateString([],{day:"numeric",month:"short"})};
 function uiRefresh(){if(tab=="new"&&ME!==null)return;if(sheet)return;render()}
 function wr(method,path,body){
  inflight++;
@@ -174,7 +221,7 @@ const head=(t,s)=>`<h1>${t}</h1><div class="sub">${s}</div>`;
 function dash(){
  const{d,pd,rm}=pairs(),trips=[...new Set(S.bills.map(b=>b.trip).filter(Boolean))];
  const net=[0,1,2].map(c=>sum(d.map(r=>r[c]))-sum(d[c]));
- let h=head("Overview",`Hi ${P[ME]} · ${live?"Live":"Offline"}`);
+ let h=head("Overview",`Hi ${P[ME]} · ${live?"Live":"Offline"} · ${P.filter((_,i)=>isOn(i)||i===ME).length} online`);
  h+=`<div class="l"><div class="li"><span>Trip</span><select onchange="trip=this.value;render()"><option>All</option>${trips.map(t=>`<option ${t==trip?"selected":""}>${esc(t)}</option>`).join("")}</select></div></div>`;
  {const mc=cpOf(ME),owe=sum(d[mc]),got=sum(d.map(r=>r[mc]));h+=`<div class="row2" style="margin-top:12px"><div class="tile"><small>${CP[mc]} owe</small><b class="${owe>0.005?"neg":""}">${mh(owe)}</b></div><div class="tile"><small>${CP[mc]} are owed</small><b class="${got>0.005?"pos":""}">${mh(got)}</b></div></div>`}
  h+=`<div class="sh">Couple balances</div><div class="l">${CP.map((c,k)=>`<div class="li"><span><b>${c}</b>${cpOf(ME)==k?'<span class="cp">you</span>':""}<br><small>${net[k]>0.005?"gets back":net[k]<-0.005?"needs to pay":"settled"}</small></span><b class="${net[k]>0.005?"pos":net[k]<-0.005?"neg":""}">${net[k]<0?"−":net[k]>0?"+":""}${mh(Math.abs(net[k]))}</b></div>`).join("")}</div>`;
@@ -211,8 +258,40 @@ function sendPay(){
  const items=rows.map(r=>({b:r.b.id,a:+r.rem.toFixed(2)})),p={id:Date.now(),from:sheet.from,to:sheet.to,items,amt:+sum(items.map(i=>i.a)).toFixed(2),date:today(),status:"pending",slip:!!sheet.slip,by:ME};
  S.cpays.push(p);save();if(sheet.slip){slipCache[p.id]=sheet.slip;wr("PUT","slips/"+p.id,sheet.slip)}rw("cpays",p.id,p);sheet=null;render();
 }
+function itemSheet(k){
+ const it=k>=0?D.items[k]:null;
+ sheet={t:"item",k,n:it?it.n:"",u:it?String(+((+it.p||0)/(it.q||1)).toFixed(2)):"",q:it?(it.q||1):1,w:it?[...it.w]:[]};
+ render();if(k<0)setTimeout(()=>{const e=document.getElementById("isn");if(e)e.focus()},60);
+}
+function itemTot(){const t=(+sheet.u||0)*sheet.q,n=sheet.w.length,a=document.getElementById("itot"),b=document.getElementById("iteach");if(a)a.innerHTML=mh(t);if(b)b.innerHTML=n?`· ${mh(t/n)} each`:""}
+const stgl=i=>{const w=sheet.w,x=w.indexOf(i);x<0?w.push(i):w.splice(x,1);render()};
+const sboth=c=>{const w=sheet.w,a=2*c,b=a+1;if(w.includes(a)&&w.includes(b))sheet.w=w.filter(i=>i!=a&&i!=b);else[a,b].forEach(i=>{if(!w.includes(i))w.push(i)});render()};
+function pickRecent(i){const x=pastItems()[i];if(!x)return;sheet.n=x.n;sheet.u=String(x.p);render()}
+function closeItem(){sheet=null;render()}
+function saveItem(next){
+ const p=+((+sheet.u||0)*sheet.q).toFixed(2);
+ if(!(p>0))return alert("Enter the item price.");
+ if(!sheet.w.length)return alert("Pick who had it.");
+ const it={n:(sheet.n||"").trim()||"Item",p,q:sheet.q,m:"eq",w:[...sheet.w].sort((a,b)=>a-b),v:{}};
+ if(sheet.k<0)D.items.push(it);else D.items[sheet.k]=it;
+ if(next){sheet={t:"item",k:-1,n:"",u:"",q:1,w:[]};render();setTimeout(()=>{const e=document.getElementById("isn");if(e)e.focus()},60)}else{sheet=null;render()}
+}
+function delItem(){D.items.splice(sheet.k,1);sheet=null;render()}
 function sheetHtml(){
  if(!sheet)return "";
+ if(sheet.t=="item"){
+  const lastIt=sheet.k<0&&D.items.length?D.items[D.items.length-1]:null,rec=pastItems().slice(0,8),tot=(+sheet.u||0)*sheet.q,n=sheet.w.length;
+  return `<div class="ov" onclick="closeItem()"><div class="sheet" onclick="event.stopPropagation()"><h2 style="margin:0 0 10px">${sheet.k<0?"Add item":"Edit item"}</h2>
+  <div class="l"><div class="li"><span>Item</span><input id="isn" autocomplete="off" placeholder="e.g. Grilled fish" value="${esc(sheet.n)}" oninput="sheet.n=this.value"></div>
+  <div class="li"><span>Price</span><input type="number" inputmode="decimal" step="any" placeholder="0" value="${sheet.u}" oninput="sheet.u=this.value;itemTot()"></div>
+  <div class="li"><span>Quantity</span><span style="display:flex;gap:14px;align-items:center"><button class="pill" onclick="sheet.q=Math.max(1,sheet.q-1);render()">−</button><b>${sheet.q}</b><button class="pill" onclick="sheet.q++;render()">+</button></span></div></div>
+  ${rec.length&&sheet.k<0?`<div class="mu" style="margin:10px 4px 4px">Recent items</div><div class="chips">${rec.map((x,i)=>`<button class="pill" onclick="pickRecent(${i})">${esc(x.n)}</button>`).join("")}</div>`:""}
+  <div class="sh">Who had it?</div>
+  <div class="chips" style="margin:0 0 4px"><button class="pill" onclick="sheet.w=[0,1,2,3,4,5];render()">Everyone</button>${lastIt?`<button class="pill" onclick="sheet.w=[${lastIt.w.join(",")}];render()">Same as last</button>`:""}<button class="pill r" onclick="sheet.w=[];render()">Clear</button></div>
+  ${picker(sheet.w,i=>`stgl(${i})`,"sboth")}
+  <div class="l" style="margin-top:12px"><div class="li"><span>Total <small id="iteach">${n?`· ${mh(tot/n)} each`:""}</small></span><b id="itot">${mh(tot)}</b></div></div>
+  <div class="row2"><button class="btn sec" onclick="closeItem()">Cancel</button>${sheet.k<0?`<button class="btn sec" onclick="saveItem(true)">Add &amp; next</button>`:`<button class="btn sec" style="color:var(--red)" onclick="delItem()">Delete</button>`}<button class="btn" onclick="saveItem(false)">${sheet.k<0?"Add":"Save"}</button></div></div></div>`;
+ }
  if(sheet.t=="img")return `<div class="ov" onclick="sheet=null;render()"><div class="sheet" onclick="event.stopPropagation()"><img class="big" src="${sheet.src}"><div style="margin-top:12px"><button class="btn sec" onclick="sheet=null;render()">Close</button></div></div></div>`;
  const rows=dues(true).filter(r=>r.from==sheet.from&&r.to==sheet.to&&r.rem>0.005),tot=sum(rows.filter(r=>sheet.sel[r.b.id]).map(r=>r.rem));
  return `<div class="ov" onclick="sheet=null;render()"><div class="sheet" onclick="event.stopPropagation()"><h2 style="margin:0 0 4px">Pay ${CP[sheet.to]}</h2><div class="mu">${CP[sheet.from]} pay together. ${CP[sheet.to]} will confirm.</div>
@@ -238,11 +317,8 @@ function newBill(){
  <div class="li"><span>Round up to whole numbers</span>${sw(D.round,"D.round=this.checked;prev()")}</div></div>
  <div class="mu" style="margin:6px 12px">Type the amounts from the bill. Each one is shared equally among the people who ordered.</div>
  <div class="sh">Items</div><datalist id="itl">${pastItems().map(x=>`<option value="${esc(x.n)}">`).join("")}</datalist>`;
- h+=D.items.map((it,k)=>{const sel=it.w;return `<div class="item"><div class="t"><input class="nm" list="itl" autocomplete="off" placeholder="Item name" value="${esc(it.n)}" oninput="D.items[${k}].n=this.value" onchange="autoP(${k})">${it.m=="amt"?`<b id="pt${k}">${f(+it.p||0)}</b>`:`<input class="pr" type="number" inputmode="decimal" step="any" placeholder="Price" value="${it.p||""}" oninput="D.items[${k}].p=+this.value;prev()">`}<button class="x" onclick="D.items.splice(${k},1);if(!D.items.length)D.items=[newItem()];render()">×</button></div>
- <div class="row2" style="align-items:center;margin-top:10px"><span class="mu">Shared by ${sel.length} of 6</span><button class="pill" style="flex:none" onclick="D.items[${k}].w=${sel.length==6?"[]":"[0,1,2,3,4,5]"};render()">${sel.length==6?"Clear":"Everyone"}</button></div>
- ${picker(sel,i=>`tg(${k},${i})`,`((c)=>tc(${k},c))`)}
- </div>`}).join("");
- h+=`<button class="btn sec" onclick="addItem()">+ Add item</button>
+ h+=`<div class="l">${D.items.length?D.items.map((it,k)=>`<div class="li" onclick="itemSheet(${k})" style="cursor:pointer"><span>${esc(it.n||"Item")}${(it.q||1)>1?` <small>×${it.q}</small>`:""}<br><small>${it.w.length==6?"Everyone":it.w.map(i=>P[i]).join(", ")||"Nobody selected"}</small></span><span style="display:flex;gap:8px;align-items:center"><b>${mh(+it.p||0)}</b><span class="mu">›</span></span></div>`).join(""):'<div class="li mu">No items yet. Tap Add item below.</div>'}</div>
+ <div style="margin-top:10px"><button class="btn" onclick="itemSheet(-1)">+ Add item</button></div>
  <div class="sh">Preview</div><div class="l" id="pv"></div><div style="margin-top:16px"><button class="btn" onclick="saveBill()">${D.editId?"Save changes":"Save bill"}</button>${D.editId?`<button class="btn sec" style="margin-top:8px" onclick="D=blank();tab=\'hist\';render()">Cancel</button>`:""}</div>`;
  return h;
 }
@@ -332,6 +408,8 @@ async function refreshNow(){await pull(true);render()}
 function account(){
  const t=lastSync?lastSync.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"–";
  return head("Account",`Signed in as ${P[ME]}`)+`<div class="l"><div class="li"><span>Name</span><b>${P[ME]}</b></div><div class="li"><span>Couple</span><b>${CP[cpOf(ME)]}</b></div><div class="li"><span>Data</span><b>${live?"Live":"Offline"}</b></div><div class="li"><span>Last updated</span><b>${t}</b></div></div>
+ <div class="sh">Chat</div><div class="l"><div class="li" onclick="openChat()" style="cursor:pointer"><span>Group chat</span><span style="display:flex;gap:8px;align-items:center">${unread()?`<span class="bd no">${unread()}</span>`:""}<span class="mu">›</span></span></div></div>
+ <div class="sh">Who is online</div><div class="l">${P.map((p,i)=>`<div class="li"><span><span class="od ${isOn(i)||i===ME?"on":""}"></span>${p}${i===ME?'<span class="cp">you</span>':""}</span><span class="mu">${i===ME||isOn(i)?"Online":ago(pres[i]&&pres[i].t)}</span></div>`).join("")}</div>
  <div class="sh">Tools</div><div class="l"><div class="li" onclick="refreshNow()" style="cursor:pointer"><span>Refresh now</span><span class="mu">›</span></div><div class="li" onclick="startChg()" style="cursor:pointer"><span>Change PIN</span><span class="mu">›</span></div><div class="li" onclick="exportCsv()" style="cursor:pointer"><span>Export all bills (CSV)</span><span class="mu">›</span></div></div>
  <div style="margin-top:18px"><button class="btn sec" style="color:var(--red)" onclick="logout()">Sign out</button></div>`;
 }
@@ -384,13 +462,13 @@ async function key(k){
   if(lg.mode=="chg2"){lg=null;alert("PIN changed.");return render()}
  }else if(!(await check()))return;
  try{localStorage.setItem("squadme",lg.i)}catch(e){}
- ME=lg.i;who=ME;D.payer=ME;lg=null;tab="dash";render();
+ ME=lg.i;who=ME;D.payer=ME;lg=null;tab="dash";render();beat();
 }
 function render(){
  const y=(document.querySelector(".w")||{}).scrollTop||0;
  if(!ready){v.innerHTML=head("Squad Split","Loading…");nav.innerHTML="";ovl.innerHTML="";return}
  if(ME===null||lg&&lg.mode&&lg.mode.startsWith("chg")){v.innerHTML=loginScreen();nav.innerHTML="";ovl.innerHTML="";return}
- nav.innerHTML=[["dash",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>`,"Overview"],["new",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>`,"New Bill"],["mon",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20v-6M12 20V5M19 20v-9"/></svg>`,"Monthly"],["hist",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2z"/><path d="M9 9h6M9 13h6"/></svg>`,"History"],["acc",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`,"Account"]].map(([k,i,l])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')"><span>${i}</span>${l}${k=="dash"&&pendMe()?`<em class="bg">${pendMe()}</em>`:""}</button>`).join("");
+ nav.innerHTML=[["dash",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>`,"Overview"],["new",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>`,"New Bill"],["mon",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20v-6M12 20V5M19 20v-9"/></svg>`,"Monthly"],["hist",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2z"/><path d="M9 9h6M9 13h6"/></svg>`,"History"],["acc",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`,"Account"]].map(([k,i,l])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')"><span>${i}</span>${l}${k=="dash"&&pendMe()?`<em class="bg">${pendMe()}</em>`:k=="acc"&&unread()?`<em class="bg">${unread()}</em>`:""}</button>`).join("");
  v.innerHTML=tab=="dash"?dash():tab=="new"?newBill():tab=="mon"?monthly():tab=="acc"?account():hist();
  ovl.innerHTML=sheetHtml();
  if(tab=="new")prev();
@@ -399,5 +477,6 @@ function render(){
 function go(k){tab=k;ob=null;render();sc2(0)}
 ["gesturestart","gesturechange","gestureend"].forEach(e=>document.addEventListener(e,ev=>ev.preventDefault()));
 document.addEventListener("touchmove",ev=>{if(ev.touches.length>1)ev.preventDefault()},{passive:false});
-resolveMe();render();pull();setInterval(pull,5000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)pull()});
+resolveMe();render();pull();beat();setInterval(pull,5000);setInterval(beat,20000);setInterval(()=>{if(chatOpen)pullChat()},2500);
+document.addEventListener("visibilitychange",()=>{if(document.hidden){if(ME!==null)fetch(`${DBU}/presence/${ME}.json`,{method:"PUT",body:JSON.stringify({t:0}),keepalive:true}).catch(()=>{})}else{pull();beat()}});
 </script></body></html>
