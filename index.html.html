@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Squad Split</title>
+<style>
+:root{--rf:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAzCAYAAAAAcY9ZAAAFh0lEQVR42u2bW4gcRRSGv+6Zddc1XmJATRC8IEEIKioaNC6igkaRjQhqiJCI9ydRvIEKoi8SRFBfBJ+CouKFmBfNi4igQSNENz7EqMTgBhUjZl1N1p3p6R4f+pQey+rumskk6Z6ZA8V0b9//+uuc/5yqhaG5LADqan8B8DDwHdAAdgM3D2FyW01tHw3cC3wNtK3WBFYM4XIDNwLcCexUgMVAItuR/H48hC0FLlBD91ZguwKuJeDZDEyEhQNroTRjNwJbPYAz4LWA+UEFTg/Xa4CPPIEzQ7kp2y9VGYS6ajWLTT7ArQDes4DJAy5Rvq8NvAqMVRW8PKs7/JoG7nzgTQu4VgHj9PFp4Hatd6oGXgIsAa4HzgT2AzvE8e9ygNmS7bOAR4Hb5O+GVbWMZ8WCj+mwaeBlGbb75O/tKjLvBuA3B1MawDZgvQxPc/5i4FngT8vPZTHOPrYVuAs4PkPyVAa8ADgdmFNCNpLmAmRK2LLXAifJAU4f2wRc7WB0UEW/Z9KqxxR4LicfC6BJATjtnOCxEbgkRytWOkt4wxEN85x/lANc2zq2GbgsJ2r3RZq10cOH+TaTmn0KLFfPOqoT4GoVAjABLgUulu2wR/fep1KyHxW7a1WLsj4dPaF8YNIDFroCzwMq4laCYIHKSwMPGfNij0Fz+crdwCpP4X5EgatlsC1LLphofAcwKx+dHAIwzf5kERPDIwieeeE6cKpovHErdaopCVFTWcWJUrNr91hehFb28jwwKp0UlIl5kJbJnwG+BQ5IJrEHeAtYKxmEbSeL3PBhU6tA/xU1c92FZfKHxt8dK/Ih7wNmgLeBm+T85cD3/Lci7JuOdQOmOX+yTACal1gvLzmv9Fiihq8NwB6VwkUFPixWqdg74itdfi4uANTc56qyAGiG7jjwk2f9zQYzxi+reFI9dwmwBnhddJ6LaZHVkWZ/VvxtKSpXoSorRY6P9ska8sCLpaxlCgAjDtYcJ8efA770cAX3l2n4hioQ7O+xBDFD/3Hxl/qZoYrmtp0txdENwFfAr8Av4p/XlVEHmpfZ4hkMummzUnS43OE+AqUzXXaCVfcrXQXGsOCKDN/VCybq/deAhTlgGN1X8xT5pQJxFfCzh3/rRr/p4LNNWBV6MCooe91P9+p5wDcqALQPQZuX3xcqVn1y9qzxO6PA04p1CQcXgYuujSUwLCirX+uEdRMypNoeUTixNGA32YQ5tyG5dqmrKy4HbV52oSTm7S5SsS/4/yycL5imk2YKgkmpy1RrpL7W9vB3er7jAHCf3OMU0tVSm0VDulIzF6AN+X2/Cj7QXpR4gVU5ifCXIJ8A52Qw5jTSedpNInyzshKz/xfpaoSgzMNX9+xiqRpH+C3W0axrAk+o+9WtzrEBWARcSzpxvsUa6pFkFBNl9n0auHHgIYl4PisA7OOfAxdZZa+8oqfr+CJh/gSwtASFYy8fVyNdb7LT6v3Ek3UR8JQk/+SkWXnvkrdiIDycoJimJ3kCxYi6dc0tSpYUrQBwse4z0mnKXn1soIoHh411nT6oDqyWIee7KNHWdXOkyzTq6p6VXDphXvoYYJlkCU2RCr+TrmhqyAeeBFwH3A2cK9fFntEtVsP+A+BBKR8ZdidU2K7k37kG3eYkIPwgldz5Dhlnl9j3AvdYTO4L22WBkhT4Lx/g7AVAr5BOXdoZSl9YVnagJ3o6qR7rIDEFrOxH1mlr9Kh0pCPwDOly2lEldQL61KYPsjJsL8LeAJyRIbb70t51lI66Ae5DlTZVWpp0aqspnnPNA26KdPWAZlzIANkY6X8j5rEwcUTgHVJiGslI8QbKVjpkSoJ79cB2AW5skPycT0XlkZxh+4f4yklHISFgaP+Ask6EdVOyEJN2LXXkw0PggL8BAzsrUkjS0GIAAAAASUVORK5CYII=);--bg:#f2f2f7;--card:#fff;--tx:#000;--mu:#8e8e93;--ac:#007aff;--ac2:#e5f1ff;--bd:#e5e5ea;--red:#ff3b30;--grn:#34c759;--bar:rgba(249,249,249,.85);box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#000;--card:#1c1c1e;--tx:#fff;--mu:#98989f;--ac:#0a84ff;--ac2:#10273f;--bd:#38383a;--red:#ff453a;--grn:#30d158;--bar:rgba(30,30,30,.85)}}
+:root[data-theme="dark"]{--bg:#000;--card:#1c1c1e;--tx:#fff;--mu:#98989f;--ac:#0a84ff;--ac2:#10273f;--bd:#38383a;--red:#ff453a;--grn:#30d158;--bar:rgba(30,30,30,.85)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);-webkit-text-size-adjust:100%}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--tx);font:17px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;padding-bottom:calc(90px + env(safe-area-inset-bottom,0px))}
+.rf{display:inline-block;width:.95em;height:.6em;background:currentColor;-webkit-mask:var(--rf) center/contain no-repeat;mask:var(--rf) center/contain no-repeat;margin-right:.18em}
+.w{max-width:560px;margin:0 auto;padding:8px 16px}
+h1{font-size:34px;font-weight:800;letter-spacing:-.5px;margin:10px 0 2px}
+.sub{color:var(--mu);font-size:14px;margin-bottom:14px}
+.sh{font-size:13px;text-transform:uppercase;color:var(--mu);margin:20px 12px 6px;letter-spacing:.3px}
+.l{background:var(--card);border-radius:14px;overflow:hidden}
+.li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;min-height:48px;border-bottom:.5px solid var(--bd)}.li:last-child{border:0}
+.li.col{display:block}
+.li small,.mu{color:var(--mu);font-size:13px}
+input,select{font:inherit;font-size:16px;color:var(--tx);background:transparent;border:0;outline:0;text-align:right;min-width:0;width:100%;-webkit-appearance:none;appearance:none}
+.li>input,.li>select{flex:1}.li>span:first-child{flex:none}
+.pos{color:var(--grn);font-weight:700}.neg{color:var(--red);font-weight:700}
+.btn{display:block;width:100%;text-align:center;background:var(--ac);color:#fff;border:0;border-radius:14px;padding:15px;font:inherit;font-weight:600;text-decoration:none;cursor:pointer}
+.btn.sec{background:var(--ac2);color:var(--ac)}
+.pill{background:var(--ac2);color:var(--ac);border:0;border-radius:99px;padding:6px 12px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
+.pill.g{background:var(--grn);color:#fff}.pill.r{background:none;color:var(--red)}
+.x{background:none;border:0;color:var(--red);font-size:22px;padding:0 4px;cursor:pointer}
+.sw{position:relative;width:51px;height:31px;flex:none;display:inline-block}.sw input{opacity:0;width:0;height:0;position:absolute}
+.sw i{position:absolute;inset:0;background:var(--bd);border-radius:99px;transition:.2s}.sw i:before{content:"";position:absolute;width:27px;height:27px;left:2px;top:2px;background:#fff;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,.3);transition:.2s}
+.sw input:checked+i{background:var(--grn)}.sw input:checked+i:before{transform:translateX(20px)}
+.seg{display:flex;background:var(--bg);border-radius:10px;padding:2px;gap:2px}.seg button{flex:1;border:0;background:none;color:var(--tx);padding:7px 4px;border-radius:8px;font:inherit;font-size:14px;font-weight:500;cursor:pointer}.seg button.on{background:var(--card);font-weight:700;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.pk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.pg{background:var(--bg);border-radius:14px;padding:8px 4px 4px;text-align:center}
+.pg .r{display:flex;justify-content:center;gap:4px}
+.av{background:none;border:0;padding:2px;font:inherit;color:var(--tx);cursor:pointer;width:50px}
+.av span{display:flex;align-items:center;justify-content:center;width:44px;height:44px;margin:0 auto;border-radius:50%;background:var(--card);border:2px solid var(--bd);color:var(--mu);font-weight:700;font-size:18px;transition:.15s}
+.av.on span{background:var(--c);border-color:var(--c);color:#fff;transform:scale(1.06)}
+.av small{display:block;font-size:11px;margin-top:3px;color:var(--mu)}.av.on small{color:var(--tx);font-weight:600}
+.bt{border:0;background:none;color:var(--ac);font:inherit;font-size:12px;font-weight:600;padding:4px;cursor:pointer}
+.dot{width:36px;height:36px;border-radius:50%;background:var(--c);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.bal{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.bal div{background:var(--card);border-radius:14px;padding:10px;text-align:center}.bal b{display:block;font-size:16px;margin-top:4px}.bal small{color:var(--mu);font-size:11px}
+.item{background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.item .t{display:flex;gap:8px;align-items:center}.item .t input{text-align:left}.item .t input.pr{text-align:right;max-width:100px;background:var(--bg);border-radius:10px;padding:9px 10px}
+.sp{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:10px}.sp label{font-size:12px;color:var(--mu)}.sp input{background:var(--bg);border-radius:10px;padding:8px 10px;text-align:left;margin-top:2px}
+.tabs{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--bar);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-top:.5px solid var(--bd);padding:6px 8px calc(6px + env(safe-area-inset-bottom,0px));z-index:10}
+.tabs button{flex:1;background:none;border:0;color:var(--mu);font:inherit;font-size:11px;font-weight:600;padding:2px;cursor:pointer}.tabs button span{display:block;font-size:24px;line-height:1.2}.tabs button.on{color:var(--ac)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.chip{background:var(--bg);border-radius:99px;padding:3px 10px;font-size:13px}
+.cp{background:var(--ac2);color:var(--ac);font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;margin-left:6px}
+.row2{display:flex;gap:8px;margin-top:10px}.row2>*{flex:1}
+.bars{display:flex;gap:8px;align-items:flex-end;height:120px;padding:14px 14px 10px}.mb{flex:1;height:100%;background:none;border:0;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:4px;color:var(--mu);font:inherit;font-size:11px;cursor:pointer}
+.mb i{display:block;width:100%;min-height:3px;background:var(--bd);border-radius:6px}.mb.on i{background:var(--ac)}.mb.on{color:var(--tx);font-weight:700}
+.pb{height:6px;border-radius:3px;background:var(--bg);margin-top:8px;overflow:hidden}.pb i{display:block;height:100%;background:var(--c,var(--ac));border-radius:3px}
+.bd{font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--ac2);color:var(--ac)}.bd.ok{background:var(--grn);color:#fff}.bd.no{background:var(--red);color:#fff}
+.th{width:44px;height:44px;border-radius:8px;object-fit:cover;cursor:pointer;flex:none}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--bg);width:100%;max-width:560px;border-radius:20px 20px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom,0px));max-height:90%;overflow:auto}
+.sheet img.big{width:100%;border-radius:12px}
+.dis{opacity:.35}
+
+.pg{background:none;padding:0;border-radius:0}.pn{display:flex;flex-direction:column;gap:6px}
+.nb{height:42px;border:0;border-radius:10px;background:var(--bg);color:var(--tx);font:inherit;font-size:15px;font-weight:600;cursor:pointer;padding:0 4px}
+.nb.on{background:var(--c);color:#fff}
+.seg button.on,.sw i:before,.av.on span{box-shadow:none}
+.l,.item,.sheet{box-shadow:none}.l{border-radius:12px}.item{border-radius:12px}
+.tabs button span{display:flex;justify-content:center;margin-bottom:2px}
+.tabs{border-top:.5px solid var(--bd)}
+.pill{border-radius:8px}.btn{border-radius:12px}
+</style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div>
+<script>
+const P=["Appal","Uly","Miu","Raya","Aslan","Reesha"],CP=["Appal & Uly","Miu & Raya","Aslan & Reesha"],COL=["#ff9500","#af52de","#30b0c7"],GST=8;
+const cpOf=i=>i>>1,mate=i=>i^1,f=n=>n.toFixed(2),sum=a=>a.reduce((x,y)=>x+y,0),cl=o=>JSON.parse(JSON.stringify(o));
+let ob=null;
+let S={bills:[],cpays:[]},tab="dash",who=0,trip="All",DB=null,live=false,ME=null,UID=null,memb=[],ready=false,sheet=null,mon=new Date().toISOString().slice(0,7);
+try{const r=JSON.parse(localStorage.getItem("squad3")||"null");if(r){S=r}}catch(e){}
+S.cpays=S.cpays||[];
+const save=()=>{try{localStorage.setItem("squad3",JSON.stringify(S))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const mh=x=>`<span class="rf"></span>${f(x)}`,mt=x=>`MVR ${f(x)}`,today=()=>new Date().toISOString().slice(0,10);
+const newItem=()=>({n:"",p:0,m:"eq",w:[],v:{}});
+const blank=()=>({title:"",date:today(),payer:ME??0,trip:trip=="All"?"":trip,scOn:true,sc:10,gstOn:true,other:0,tip:0,mode:"all",round:false,items:[newItem()]});
+let D=blank();
+
+/* ---- shared data + login ---- */
+function resolveMe(){
+ if(live&&UID){const x=memb.find(x=>x.uid==UID);ME=x?x.person:null}
+ else{try{const r=localStorage.getItem("squadme");ME=r===null?null:+r}catch(e){ME=null}}
+ if(ME!==null&&!D.touched)D.payer=ME;
+}
+async function initDb(){
+ try{
+  if(!window.claude||!claude.use)return;
+  const db=await claude.use("db");if(!db)return;
+  const u=await claude.use("user");UID=u?await u.id():null;DB=db;
+  db.collection("bills").onSnapshot(s=>{S.bills=s.docs.map(d=>d.data()).sort((a,b)=>b.id-a.id);save();if(tab!="new")render()},()=>{});
+  db.collection("cpays").onSnapshot(s=>{S.cpays=s.docs.map(d=>d.data()).sort((a,b)=>a.id-b.id);save();if(tab!="new"&&!sheet)render()},()=>{});
+  db.collection("members").onSnapshot(s=>{memb=s.docs.map(d=>d.data());resolveMe();ready=true;if(tab!="new"&&!sheet)render()},()=>{ready=true;render()});
+  live=true;
+ }catch(e){}finally{if(!DB){ready=true;resolveMe();render()}}
+}
+const rw=(c,id,d)=>{if(DB)DB.collection(c).doc(String(id)).set(cl(d)).catch(()=>{})};
+const rd=(c,id)=>{if(DB)DB.collection(c).doc(String(id)).delete().catch(()=>{})};
+function login(i){
+ if(live&&UID){const t=memb.find(x=>x.person==i&&x.uid!=UID);if(t)return alert(P[i]+" is already signed in on another phone.");DB.collection("members").doc(UID).set({person:i,uid:UID}).catch(()=>{});memb=memb.filter(x=>x.uid!=UID).concat([{person:i,uid:UID}])}
+ else{try{localStorage.setItem("squadme",i)}catch(e){}}
+ ME=i;who=i;D.payer=i;render();
+}
+function logout(){if(!confirm("Sign out of "+P[ME]+"?"))return;if(live&&UID){rd("members",UID);memb=memb.filter(x=>x.uid!=UID)}else{try{localStorage.removeItem("squadme")}catch(e){}}ME=null;render()}
+const canAct=(a)=>ME!==null&&cpOf(ME)==cpOf(a),canC=c=>ME!==null&&cpOf(ME)==c;
+
+/* ---- maths: service charge = % of total (before GST), shared; GST 8% on items only ---- */
+function calc(b){
+ const sub=P.map(()=>0);
+ b.items.forEach(it=>{const k=it.w||[],p=+it.p||0,v=it.v||{};
+  if(it.m=="pct")k.forEach(i=>sub[i]+=p*(+v[i]||0)/100);
+  else if(it.m=="amt")k.forEach(i=>sub[i]+=+v[i]||0);
+  else if(k.length)k.forEach(i=>sub[i]+=p/k.length)});
+ const gOn=b.gstOn!==undefined?b.gstOn:(+b.gst>0),scOn=b.scOn!==undefined?b.scOn:(+b.sc>0);
+ const SC=scOn?sum(sub)*(+b.sc||0)/100:0;
+ let wt=sub.map(s=>b.mode=="ord"||b.mode=="prop"?(b.mode=="prop"?s:(s>0?1:0)):1);if(!sum(wt))wt=P.map(()=>1);const W=sum(wt);
+ return sub.map((s,i)=>{const sc=SC*wt[i]/W,ot=((+b.other||0)+(+b.tip||0))*wt[i]/W,gs=gOn?s*GST/100:0;
+  let tot=s+sc+gs+ot;if(b.round)tot=Math.ceil(tot-1e-9);return{sub:s,sc,gst:gs,ot,tot}});
+}
+const fb=()=>S.bills.filter(b=>trip=="All"||b.trip==trip);
+const cTot=b=>{const c=calc(b);return[0,1,2].map(k=>c[2*k].tot+c[2*k+1].tot)};
+function dues(all){
+ const rows=[];
+ (all?S.bills:fb()).forEach(b=>{const t=cTot(b),pc=cpOf(b.payer);
+  t.forEach((o,c)=>{if(c==pc||o<0.005)return;let paid=0,pend=0;
+   S.cpays.forEach(p=>{if(p.from!=c||p.status==="rejected")return;p.items.forEach(it=>{if(it.b==b.id){if(p.status==="confirmed")paid+=it.a;else pend+=it.a}})});
+   rows.push({b,from:c,to:pc,owed:o,paid,pend,rem:Math.max(0,o-paid-pend)})})});
+ return rows;
+}
+function pairs(){
+ const d=[[0,0,0],[0,0,0],[0,0,0]],pd=[[0,0,0],[0,0,0],[0,0,0]],rm=[[0,0,0],[0,0,0],[0,0,0]];
+ dues().forEach(r=>{d[r.from][r.to]+=Math.max(0,r.owed-r.paid);pd[r.from][r.to]+=r.pend;rm[r.from][r.to]+=r.rem});
+ return{d,pd,rm};
+}
+/* ---- ui helpers ---- */
+const dot=()=>"";
+const nb=(i,on,fn)=>`<button class="nb ${on?"on":""}" style="--c:${COL[cpOf(i)]}" onclick="${fn(i)}">${P[i]}</button>`;
+const picker=(sel,fn,both)=>`<div class="pk">${[0,1,2].map(c=>`<div class="pg"><div class="pn">${nb(2*c,sel.includes(2*c),fn)}${nb(2*c+1,sel.includes(2*c+1),fn)}</div>${both?`<button class="bt" onclick="${both}(${c})">${sel.includes(2*c)&&sel.includes(2*c+1)?"none":"both"}</button>`:""}</div>`).join("")}</div>`;
+const sw=(on,fn)=>`<label class="sw"><input type="checkbox" ${on?"checked":""} onchange="${fn}"><i></i></label>`;
+const seg=(opts,cur,fn)=>`<div class="seg">${opts.map(([k,l])=>`<button class="${cur==k?"on":""}" onclick="${fn}('${k}')">${l}</button>`).join("")}</div>`;
+const head=(t,s)=>`<h1>${t}</h1><div class="sub">${s}</div>`;
+
+/* ---- dashboard ---- */
+function dash(){
+ const{d,pd,rm}=pairs(),trips=[...new Set(S.bills.map(b=>b.trip).filter(Boolean))];
+ const net=[0,1,2].map(c=>sum(d.map(r=>r[c]))-sum(d[c]));
+ let h=head("Overview",`Hi ${P[ME]} · ${live?"Live shared":"This device only"}`);
+ h+=`<div class="l"><div class="li"><span>Trip</span><select onchange="trip=this.value;render()"><option>All</option>${trips.map(t=>`<option ${t==trip?"selected":""}>${esc(t)}</option>`).join("")}</select></div></div>`;
+ h+=`<div class="sh">Couple balances</div><div class="l">${CP.map((c,k)=>`<div class="li"><span><b>${c}</b>${cpOf(ME)==k?'<span class="cp">you</span>':""}<br><small>${net[k]>0.005?"gets back":net[k]<-0.005?"needs to pay":"settled"}</small></span><b class="${net[k]>0.005?"pos":net[k]<-0.005?"neg":""}">${net[k]<0?"−":net[k]>0?"+":""}${mh(Math.abs(net[k]))}</b></div>`).join("")}</div>`;
+ let rows="";
+ for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(d[a][b]>0.005)rows+=`<div class="li"><span><b>${CP[a]}</b> owe <b>${CP[b]}</b><br><span class="neg">${mh(d[a][b])}</span>${pd[a][b]?` <small>· ${mh(pd[a][b])} awaiting confirmation</small>`:""}</span>${canC(a)&&rm[a][b]>0.005?`<button class="pill" onclick="openPay(${a},${b})">Pay</button>`:""}</div>`;
+ h+=`<div class="sh">Who owes whom</div><div class="l">${rows||'<div class="li mu">All clear</div>'}</div><div class="mu" style="margin:6px 12px">Couples pay each other together, bill by bill. Open History to see each bill.</div>`;
+ const pl=S.cpays.filter(p=>p.status==="pending");
+ if(pl.length)h+=`<div class="sh">Waiting for confirmation</div><div class="l">${pl.map(p=>payRow(p)).join("")}</div>`;
+ return h;
+}
+function payRow(p,bid){
+ const st=p.status==="confirmed"?'<span class="bd ok">Confirmed</span>':p.status==="rejected"?'<span class="bd no">Rejected</span>':'<span class="bd">Pending</span>';
+ let act="";
+ if(p.status==="pending"){
+  if(canC(p.to))act=`<button class="pill g" onclick="setPay(${p.id},'confirmed')">Confirm</button><button class="pill r" onclick="setPay(${p.id},'rejected')">Reject</button>`;
+  else if(canC(p.from))act=`<button class="pill r" onclick="delPay(${p.id})">Cancel</button>`;
+ }
+ const it=bid?p.items.find(i=>i.b==bid):null,amt=it?it.a:p.amt;
+ const sub=bid&&p.items.length>1?`part of ${mt(p.amt)} payment`:`${p.items.length} bill${p.items.length==1?"":"s"} · ${p.date}`;
+ return `<div class="li"><span style="display:flex;gap:10px;align-items:center">${p.slip?`<img class="th" src="${p.slip}" onclick="sheet={t:'img',src:this.src};render()">`:""}<span>${CP[p.from]} → ${CP[p.to]}<br><b>${mh(amt)}</b> <small>${sub}</small></span></span><span style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${st}${act}</span></div>`;
+}
+function setPay(id,s){const p=S.cpays.find(x=>x.id==id);if(!p)return;p.status=s;p.by2=ME;save();rw("cpays",id,p);render()}
+function delPay(id){S.cpays=S.cpays.filter(b=>b.id!=id);save();rd("cpays",id);render()}
+function openPay(a,b,bid){const sel={};dues(true).filter(r=>r.from==a&&r.to==b&&r.rem>0.005&&(!bid||r.b.id==bid)).forEach(r=>sel[r.b.id]=true);sheet={t:"pay",from:a,to:b,sel,slip:""};render()}
+async function pickSlip(inp){
+ const file=inp.files[0];if(!file)return;
+ const img=new Image(),url=URL.createObjectURL(file);
+ img.onload=()=>{let w=900,q=.6,s;do{const k=Math.min(1,w/img.width),c=document.createElement("canvas");c.width=img.width*k;c.height=img.height*k;c.getContext("2d").drawImage(img,0,0,c.width,c.height);s=c.toDataURL("image/jpeg",q);w-=150;q-=.07}while(s.length>170000&&w>300);sheet.slip=s;render()};
+ img.onerror=()=>alert("Could not read that image.");img.src=url;
+}
+function sendPay(){
+ const rows=dues(true).filter(r=>r.from==sheet.from&&r.to==sheet.to&&r.rem>0.005&&sheet.sel[r.b.id]);
+ if(!rows.length)return alert("Select at least one bill to pay.");
+ const items=rows.map(r=>({b:r.b.id,a:+r.rem.toFixed(2)})),p={id:Date.now(),from:sheet.from,to:sheet.to,items,amt:+sum(items.map(i=>i.a)).toFixed(2),date:today(),status:"pending",slip:sheet.slip,by:ME};
+ S.cpays.push(p);save();rw("cpays",p.id,p);sheet=null;render();
+}
+function sheetHtml(){
+ if(!sheet)return "";
+ if(sheet.t=="img")return `<div class="ov" onclick="sheet=null;render()"><div class="sheet" onclick="event.stopPropagation()"><img class="big" src="${sheet.src}"><div style="margin-top:12px"><button class="btn sec" onclick="sheet=null;render()">Close</button></div></div></div>`;
+ const rows=dues(true).filter(r=>r.from==sheet.from&&r.to==sheet.to&&r.rem>0.005),tot=sum(rows.filter(r=>sheet.sel[r.b.id]).map(r=>r.rem));
+ return `<div class="ov" onclick="sheet=null;render()"><div class="sheet" onclick="event.stopPropagation()"><h2 style="margin:0 0 4px">Pay ${CP[sheet.to]}</h2><div class="mu">${CP[sheet.from]} pay together. ${CP[sheet.to]} will confirm.</div>
+ <div class="sh">Bills</div><div class="l">${rows.map(r=>`<div class="li"><span>${esc(r.b.title)}<br><small>${r.b.date}</small></span><span style="display:flex;gap:10px;align-items:center"><b>${mh(r.rem)}</b>${sw(sheet.sel[r.b.id],`sheet.sel[${r.b.id}]=this.checked;render()`)}</span></div>`).join("")||'<div class="li mu">Nothing left to pay</div>'}<div class="li"><b>Total</b><b>${mh(tot)}</b></div></div>
+ <div class="sh">Payment slip</div>${sheet.slip?`<img class="big" src="${sheet.slip}">`:""}
+ <label class="btn sec" style="margin-top:8px"><input type="file" accept="image/*" hidden onchange="pickSlip(this)">${sheet.slip?"Change slip":"Upload slip"}</label>
+ <div class="row2"><button class="btn sec" onclick="sheet=null;render()">Cancel</button><button class="btn" onclick="sendPay()">Send</button></div></div></div>`;
+}
+
+/* ---- new bill ---- */
+function newBill(){
+ const trips=[...new Set(S.bills.map(b=>b.trip).filter(Boolean))];
+ const num=(k,l)=>`<div class="li"><span>${l}</span><input type="number" inputmode="decimal" step="any" value="${D[k]||""}" placeholder="0" oninput="D.${k}=+this.value;prev()"></div>`;
+ let h=head("New Bill","Add what everyone had");
+ h+=` <div class="sh">Details</div><div class="l">
+ <div class="li"><span>Place</span><input list="pl" autocomplete="off" value="${esc(D.title)}" placeholder="Search or type a place" oninput="D.title=this.value"><datalist id="pl">${pastPlaces().map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
+ ${pastPlaces().length?`<div class="li col"><div class="mu">Recent places</div><div class="chips">${pastPlaces().slice(0,8).map((x,i)=>`<button class="pill" onclick="setPlace(${i})">${esc(x)}</button>`).join("")}</div></div>`:""}
+ <div class="li"><span>Trip</span><input list="tl" value="${esc(D.trip)}" placeholder="Optional" oninput="D.trip=this.value"><datalist id="tl">${trips.map(t=>`<option value="${esc(t)}">`).join("")}</datalist></div>
+ <div class="li"><span>Date</span><input type="date" value="${D.date}" oninput="D.date=this.value"></div>
+ <div class="li col"><div class="mu">Who paid the bill?</div>${picker([D.payer],i=>`D.payer=${i};D.touched=1;render()`)}</div></div>
+ <div class="sh">Charges</div><div class="l">
+ <div class="li"><span>GST (${GST}%)</span>${sw(D.gstOn,"D.gstOn=this.checked;prev()")}</div>
+ <div class="li"><span>Service charge</span>${sw(D.scOn,"D.scOn=this.checked;render()")}</div>
+ ${D.scOn?num("sc","Service charge % of total"):""}${num("tip","Tip")}${num("other","Other charges")}
+ <div class="li col"><div class="mu" style="margin-bottom:6px">Share service charge, tip &amp; other charges</div>${seg([["all","Equally, all 6"],["ord","Equally, who ordered"]],D.mode=="prop"?"ord":D.mode,"setMode")}</div>
+ <div class="li"><span>Round up to whole numbers</span>${sw(D.round,"D.round=this.checked;prev()")}</div></div>
+ <div class="mu" style="margin:6px 12px">Service charge is a % of the whole bill before GST, divided equally. GST applies to items only.</div>
+ <div class="sh">Items</div><datalist id="itl">${pastItems().map(x=>`<option value="${esc(x.n)}">`).join("")}</datalist>`;
+ h+=D.items.map((it,k)=>{const sel=it.w;return `<div class="item"><div class="t"><input class="nm" list="itl" autocomplete="off" placeholder="Item name" value="${esc(it.n)}" oninput="D.items[${k}].n=this.value" onchange="autoP(${k})">${it.m=="amt"?`<b id="pt${k}">${f(+it.p||0)}</b>`:`<input class="pr" type="number" inputmode="decimal" step="any" placeholder="Price" value="${it.p||""}" oninput="D.items[${k}].p=+this.value;prev()">`}<button class="x" onclick="D.items.splice(${k},1);if(!D.items.length)D.items=[newItem()];render()">×</button></div>
+ <div class="row2" style="align-items:center;margin-top:10px"><span class="mu">Shared by ${sel.length} of 6</span><button class="pill" style="flex:none" onclick="D.items[${k}].w=${sel.length==6?"[]":"[0,1,2,3,4,5]"};render()">${sel.length==6?"Clear":"Everyone"}</button></div>
+ ${picker(sel,i=>`tg(${k},${i})`,`((c)=>tc(${k},c))`)}
+ </div>`}).join("");
+ h+=`<button class="btn sec" onclick="addItem()">+ Add item</button>
+ <div class="sh">Preview</div><div class="l" id="pv"></div><div style="margin-top:16px"><button class="btn" onclick="saveBill()">Save bill</button></div>`;
+ return h;
+}
+function pastItems(){const seen={},o=[];S.bills.forEach(b=>b.items.forEach(it=>{const n=(it.n||"").trim(),k=n.toLowerCase();if(n&&!seen[k]){seen[k]=1;o.push({n,p:+it.p||0})}}));return o}
+function autoP(k){const it=D.items[k],x=pastItems().find(y=>y.n.toLowerCase()==(it.n||"").trim().toLowerCase());if(x&&!(+it.p)){it.p=x.p;render()}}
+function addItem(){D.items.push(newItem());render();const e=[...document.querySelectorAll(".nm")].pop();if(e){e.focus();e.scrollIntoView({block:"center",behavior:"smooth"})}}
+function pastPlaces(){const seen={},o=[];S.bills.forEach(b=>{const n=(b.title||"").trim(),k=n.toLowerCase();if(n&&n!=="Untitled bill"&&!seen[k]){seen[k]=1;o.push(n)}});return o}
+function setPlace(i){D.title=pastPlaces()[i];render()}
+const setMode=k=>{D.mode=k;render()};
+const setM=(k,v)=>{D.items[k].m=v;render()};
+function tg(k,i){const w=D.items[k].w,x=w.indexOf(i);x<0?w.push(i):w.splice(x,1);render()}
+function tc(k,c){const w=D.items[k].w,a=2*c,b=2*c+1;if(w.includes(a)&&w.includes(b))D.items[k].w=w.filter(i=>i!=a&&i!=b);else[a,b].forEach(i=>{if(!w.includes(i))w.push(i)});render()}
+function sv(k,i,val){const it=D.items[k];it.v=it.v||{};it.v[i]=+val;if(it.m=="amt"){it.p=sum(Object.values(it.v));const e=document.getElementById("pt"+k);if(e)e.textContent=f(it.p)}prev()}
+function prev(){
+ const e=document.getElementById("pv");if(!e)return;const c=calc(D),T=sum(c.map(x=>x.tot)),sub=sum(c.map(x=>x.sub));
+ let warn="";D.items.forEach(it=>{if(it.m=="pct"&&it.w.length&&Math.abs(sum(it.w.map(i=>+(it.v||{})[i]||0))-100)>0.01)warn+=`<div class="li neg">⚠ "${esc(it.n||"Item")}" percentages must add up to 100</div>`});
+ e.innerHTML=warn+`<div class="li"><span>Items total</span><b>${mh(sub)}</b></div>`+(D.scOn?`<div class="li"><span>Service charge ${D.sc||0}% of ${f(sub)}</span><b>${mh(sum(c.map(x=>x.sc)))}</b></div>`:"")+c.map((x,i)=>x.tot>0?`<div class="li"><span style="display:flex;gap:10px;align-items:center">${dot(i)}<span>${P[i]}<br><small>Items ${f(x.sub)} · Service ${f(x.sc)} · GST ${f(x.gst)}${x.ot?` · Other ${f(x.ot)}`:""}</small></span></span><b>${f(x.tot)}</b></div>`:"").join("")+`<div class="li"><b>Total</b><b>${mh(T)}</b></div>`;
+}
+function saveBill(){
+ if(!D.items.some(i=>+i.p>0))return alert("Add at least one item with a price.");
+ if(D.items.some(i=>+i.p>0&&!i.w.length))return alert("Pick at least one person for every item.");
+ const b={...cl(D),title:D.title||"Untitled bill",id:Date.now(),by:ME};delete b.touched;
+ S.bills.unshift(b);save();rw("bills",b.id,b);D=blank();tab="dash";render();
+}
+/* ---- monthly ---- */
+const mkey=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0");
+const shiftMon=n=>{const[y,m]=mon.split("-").map(Number);mon=mkey(new Date(y,m-1+n,1));render()};
+const mname=(k,s)=>{const[y,m]=k.split("-").map(Number);return new Date(y,m-1,1).toLocaleString("en",s?{month:"short"}:{month:"long",year:"numeric"})};
+function monthly(){
+ const by={};S.bills.forEach(b=>{const k=(b.date||"").slice(0,7);if(!k)return;by[k]=by[k]||{t:P.map(()=>0),n:0};calc(b).forEach((x,i)=>by[k].t[i]+=x.tot);by[k].n++});
+ const[y,mm]=mon.split("-").map(Number),keys=[5,4,3,2,1,0].map(n=>mkey(new Date(y,mm-1-n,1)));
+ const tots=keys.map(k=>by[k]?sum(by[k].t):0),mx=Math.max(...tots,1),cur=by[mon]||{t:P.map(()=>0),n:0},T=sum(cur.t),pm=Math.max(...cur.t,1);
+ let h=head("Monthly",`What everyone spent, month by month`);
+ h+=`<div class="row2" style="align-items:center;margin:0 0 10px"><button class="pill" style="flex:none" onclick="shiftMon(-1)">‹</button><b style="text-align:center">${mname(mon)}</b><button class="pill" style="flex:none" onclick="shiftMon(1)">›</button></div>
+ <div class="l"><div class="bars">${keys.map((k,i)=>`<button class="mb ${k==mon?"on":""}" onclick="mon='${k}';render()"><i style="height:${Math.max(3,tots[i]/mx*85)}%"></i>${mname(k,1)}</button>`).join("")}</div></div>
+ <div class="sh">${mname(mon)} total</div><div class="l"><div class="li"><span>${cur.n} bill${cur.n==1?"":"s"}</span><b style="font-size:22px">${mh(T)}</b></div></div>`;
+ h+=`<div class="sh">Per person</div><div class="l">${P.map((p,i)=>`<div class="li col"><div style="display:flex;justify-content:space-between;align-items:center"><span style="display:flex;gap:10px;align-items:center">${dot(i)}<b>${p}</b>${i==ME?'<span class="cp">you</span>':""}</span><b>${mh(cur.t[i])}</b></div><div class="pb" style="--c:${COL[cpOf(i)]}"><i style="width:${cur.t[i]/pm*100}%"></i></div></div>`).join("")}</div>`;
+ h+=`<div class="sh">Per couple</div><div class="l">${CP.map((c,k)=>`<div class="li"><span>${c}${cpOf(ME??0)==k?'<span class="cp">yours</span>':""}</span><b>${mh(cur.t[2*k]+cur.t[2*k+1])}</b></div>`).join("")}</div>`;
+ return h;
+}
+
+/* ---- history ---- */
+const openB=id=>{ob=id;render();window.scrollTo(0,0)};
+function duesPays(x){
+ const rs=dues(true).filter(r=>r.b.id==x.id),ps=S.cpays.filter(p=>p.items.some(i=>i.b==x.id));
+ return (rs.length?`<div class="sh">Couple dues</div><div class="l">${rs.map(r=>{const left=r.owed-r.paid;return `<div class="li"><span><b>${CP[r.from]}</b><br><small>owe ${CP[r.to]}</small></span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${left<0.005?'<span class="bd ok">Paid</span>':`<b class="neg">${mh(left)}</b>`}${r.pend>0.005?'<span class="bd">Pending</span>':""}${canC(r.from)&&r.rem>0.005?`<button class="pill" onclick="openPay(${r.from},${r.to},${x.id})">Pay</button>`:""}</span></div>`}).join("")}</div>`:"")
+ +(ps.length?`<div class="sh">Payments</div><div class="l">${ps.map(p=>payRow(p,x.id)).join("")}</div>`:"");
+}
+function billDetail(id){
+ const x=S.bills.find(b=>b.id==id);if(!x){ob=null;return hist()}
+ const c=calc(x),T=sum(c.map(y=>y.tot)),sub=sum(c.map(y=>y.sub)),sc=sum(c.map(y=>y.sc)),gs=sum(c.map(y=>y.gst)),ot=sum(c.map(y=>y.ot)),rnd=T-(sub+sc+gs+ot);
+ const g=x.gstOn!==undefined?x.gstOn:+x.gst>0,so=x.scOn!==undefined?x.scOn:+x.sc>0;
+ const row=(a,b)=>`<div class="li"><span>${a}</span><b>${b}</b></div>`;
+ let h=`<button class="pill" onclick="ob=null;render();window.scrollTo(0,0)" style="margin-top:6px">‹ History</button>`+head(esc(x.title),`${x.date} · paid by ${P[x.payer]}${x.trip?" · "+esc(x.trip):""}`);
+ h+=`<div class="l">${row("Items total",mh(sub))}${row("Service charge"+(so?` (${x.sc}% of items total)`:""),so?mh(sc):"Off")}${row("GST"+(g?` (${GST}% on items)`:""),g?mh(gs):"Off")}${+x.tip?row("Tip",mh(+x.tip)):""}${+x.other?row("Other charges",mh(+x.other)):""}${rnd>0.005?row("Rounding",mh(rnd)):""}${row("Total",mh(T))}</div>`;
+ if(so||+x.tip||+x.other)h+=`<div class="mu" style="margin:6px 12px">Service charge, tip and other charges are shared ${x.mode=="ord"?"equally among those who ordered":x.mode=="prop"?"in proportion to orders":"equally among all 6"}.</div>`;
+ h+=`<div class="sh">Items</div><div class="l">${x.items.filter(it=>+it.p>0||it.n).map(it=>{const k=it.w||[];return `<div class="li"><span>${esc(it.n||"Item")}<br><small>${k.length==6?"Everyone":k.map(i=>P[i]).join(", ")||"Nobody"}</small></span><b>${mh(+it.p||0)}</b></div>`}).join("")}</div>`;
+ h+=`<div class="sh">Each person pays</div><div class="l">${c.map((y,i)=>y.tot>0?`<div class="li"><span><b>${P[i]}</b><br><small>Items ${f(y.sub)} · Service ${f(y.sc)} · GST ${f(y.gst)}${y.ot?` · Other ${f(y.ot)}`:""}</small></span><b>${mh(y.tot)}</b></div>`:"").join("")}</div>`;
+ h+=`<div class="sh">Each couple pays</div><div class="l">${CP.map((n,k)=>`<div class="li"><span>${n}</span><b>${mh(c[2*k].tot+c[2*k+1].tot)}</b></div>`).join("")}</div>`;
+ h+=duesPays(x);
+ if(canAct(x.payer)||x.by===ME)h+=`<div style="margin-top:18px"><button class="btn sec" style="color:var(--red)" onclick="delBill(${x.id})">Delete bill</button></div>`;
+ return h;
+}
+function account(){
+ return head("Account",`Signed in as ${P[ME]}`)+`<div class="l"><div class="li"><span>Name</span><b>${P[ME]}</b></div><div class="li"><span>Couple</span><b>${CP[cpOf(ME)]}</b></div><div class="li"><span>Data</span><b>${live?"Live shared":"This device only"}</b></div></div>
+ <div style="margin-top:18px"><button class="btn sec" style="color:var(--red)" onclick="logout()">Sign out</button></div>`;
+}
+function hist(){
+ if(ob)return billDetail(ob);
+ const tt={};S.bills.forEach(b=>{const k=b.trip||"No trip";tt[k]=(tt[k]||0)+sum(calc(b).map(x=>x.tot))});
+ let h=head("History",`${S.bills.length} bill${S.bills.length==1?"":"s"}`);
+ if(Object.keys(tt).length)h+=`<div class="sh">Trip totals</div><div class="l">${Object.entries(tt).map(([k,v])=>`<div class="li"><span>${esc(k)}</span><b>${mh(v)}</b></div>`).join("")}</div><div class="sh">Bills</div>`;
+ const all=dues(true);
+ h+=S.bills.map(x=>{const c=calc(x),g=x.gstOn!==undefined?x.gstOn:+x.gst>0,so=x.scOn!==undefined?x.scOn:+x.sc>0,rs=all.filter(r=>r.b.id==x.id),ps=S.cpays.filter(p=>p.items.some(i=>i.b==x.id));
+ return `<div class="item"><div class="t" style="cursor:pointer" onclick="openB(${x.id})"><div style="flex:1"><b>${esc(x.title)}</b>${x.trip?`<span class="cp">${esc(x.trip)}</span>`:""}<div class="mu">${x.date} · paid by ${P[x.payer]} · SC ${so?x.sc+"%":"off"} · GST ${g?GST+"%":"off"}</div></div><b>${mh(sum(c.map(y=>y.tot)))}</b><span class="mu">›</span></div>
+ <div class="chips">${c.map((y,i)=>y.tot>0?`<span class="chip">${P[i]} ${f(y.tot)}</span>`:"").join("")}</div>
+ ${rs.length?`<div class="sh" style="margin:14px 0 6px">Couple dues</div><div class="l" style="background:var(--bg)">${rs.map(r=>{const left=r.owed-r.paid;return `<div class="li"><span><b>${CP[r.from]}</b><br><small>owe ${CP[r.to]}</small></span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${left<0.005?'<span class="bd ok">Paid</span>':`<b class="neg">${mh(left)}</b>`}${r.pend>0.005?'<span class="bd">Pending</span>':""}${canC(r.from)&&r.rem>0.005?`<button class="pill" onclick="openPay(${r.from},${r.to},${x.id})">Pay</button>`:""}</span></div>`}).join("")}</div>`:""}
+ ${ps.length?`<div class="sh" style="margin:14px 0 6px">Payments</div><div class="l" style="background:var(--bg)">${ps.map(p=>payRow(p,x.id)).join("")}</div>`:""}</div>`}).join("");
+ if(!S.bills.length)h+='<div class="l"><div class="li mu">No bills yet</div></div>';
+ return h;
+}
+function delBill(id){if(confirm("Delete this bill?")){ob=null;S.bills=S.bills.filter(b=>b.id!=id);save();rd("bills",id);render()}}
+
+function loginScreen(){
+ const taken=live&&UID?memb.filter(x=>x.uid!=UID).map(x=>x.person):[];
+ return head("Squad Split","Who are you? Pick your name to sign in.")+`<div class="l"><div class="li col">${picker([],i=>taken.includes(i)?`alert('${P[i]} is already signed in on another phone')`:`login(${i})`)}</div></div>`+(taken.length?`<div class="mu" style="margin:10px 12px">🔒 ${taken.map(i=>P[i]).join(", ")} already signed in on another phone.</div>`:"");
+}
+function render(){
+ const y=window.scrollY;
+ if(!ready){v.innerHTML=head("Squad Split","Loading…");nav.innerHTML="";ovl.innerHTML="";return}
+ if(ME===null){v.innerHTML=loginScreen();nav.innerHTML="";ovl.innerHTML="";return}
+ nav.innerHTML=[["dash",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>`,"Overview"],["new",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>`,"New Bill"],["mon",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20v-6M12 20V5M19 20v-9"/></svg>`,"Monthly"],["hist",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2z"/><path d="M9 9h6M9 13h6"/></svg>`,"History"],["acc",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`,"Account"]].map(([k,i,l])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')"><span>${i}</span>${l}</button>`).join("");
+ v.innerHTML=tab=="dash"?dash():tab=="new"?newBill():tab=="mon"?monthly():tab=="acc"?account():hist();
+ ovl.innerHTML=sheetHtml();
+ if(tab=="new")prev();
+ window.scrollTo(0,y);
+}
+function go(k){tab=k;ob=null;render();window.scrollTo(0,0)}
+setTimeout(()=>{if(!ready){ready=true;resolveMe();render()}},4000);
+render();initDb();
+</script></body></html>
