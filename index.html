@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Squad Split</title>
 <meta name="theme-color" content="#f2f2f7">
@@ -71,9 +71,16 @@ input,select{font:inherit;font-size:16px;color:var(--tx);background:transparent;
 .pill{border-radius:8px}.btn{border-radius:12px}
 .dots{display:flex;justify-content:center;gap:16px;margin:24px 0 8px}.dots i{width:14px;height:14px;border-radius:50%;border:2px solid var(--mu)}.dots i.on{background:var(--tx);border-color:var(--tx)}
 .kp{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:16px auto}.kp button{height:64px;border:0;border-radius:14px;background:var(--card);color:var(--tx);font:inherit;font-size:26px;font-weight:500;cursor:pointer}.kp button:active{background:var(--ac2)}
+html,body{height:100%;overflow:hidden;overscroll-behavior:none;touch-action:manipulation}
+:root{padding-top:0}
+body{position:fixed;top:0;left:0;right:0;bottom:0;padding-bottom:0;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,select,textarea{-webkit-user-select:text;user-select:text}
+.w{height:100%;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-top:calc(8px + env(safe-area-inset-top,0px));padding-bottom:calc(100px + env(safe-area-inset-bottom,0px));scrollbar-width:none;-ms-overflow-style:none}
+.w::-webkit-scrollbar,.sheet::-webkit-scrollbar,::-webkit-scrollbar{display:none;width:0;height:0}.sheet{scrollbar-width:none}
 </style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div>
 <script>
 const P=["Appal","Uly","Miu","Raya","Aslan","Reesha"],CP=["Appal & Uly","Miu & Raya","Aslan & Reesha"],COL=["#ff9500","#af52de","#30b0c7"],GST=8;
+function sc2(n){const e=document.querySelector(".w");if(e)e.scrollTop=n}
 function ldate(){const d=new Date();return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0")}
 const cpOf=i=>i>>1,mate=i=>i^1,f=n=>n.toFixed(2),sum=a=>a.reduce((x,y)=>x+y,0),cl=o=>JSON.parse(JSON.stringify(o));
 let ob=null;
@@ -84,7 +91,7 @@ const save=()=>{try{localStorage.setItem("squad3",JSON.stringify(S))}catch(e){}}
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const mh=x=>`<span class="rf"></span>${f(x)}`,mt=x=>`MVR ${f(x)}`,today=()=>ldate();
 const newItem=()=>({n:"",p:0,m:"eq",w:[],v:{}});
-const blank=()=>({title:"",date:today(),payer:ME??0,trip:trip=="All"?"":trip,scOn:true,sc:10,gstOn:true,other:0,tip:0,mode:"all",round:false,items:[newItem()]});
+const blank=()=>({title:"",date:today(),payer:ME??0,trip:trip=="All"?"":trip,scAmt:0,gstAmt:0,other:0,v2:true,round:false,items:[newItem()]});
 let D=blank();
 
 /* ---- Firebase Realtime Database (REST) ---- */
@@ -126,10 +133,13 @@ function calc(b){
   if(it.m=="pct")k.forEach(i=>sub[i]+=p*(+v[i]||0)/100);
   else if(it.m=="amt")k.forEach(i=>sub[i]+=+v[i]||0);
   else if(k.length)k.forEach(i=>sub[i]+=p/k.length)});
+
  const gOn=b.gstOn!==undefined?b.gstOn:(+b.gst>0),scOn=b.scOn!==undefined?b.scOn:(+b.sc>0);
- const SC=scOn?sum(sub)*(+b.sc||0)/100:0;
- let wt=sub.map(s=>b.mode=="ord"||b.mode=="prop"?(b.mode=="prop"?s:(s>0?1:0)):1);if(!sum(wt))wt=P.map(()=>1);const W=sum(wt);
- return sub.map((s,i)=>{const sc=SC*wt[i]/W,ot=((+b.other||0)+(+b.tip||0))*wt[i]/W,gs=gOn?s*GST/100:0;
+ let wt=sub.map(s=>s>0?1:0);
+ if(!b.v2)wt=sub.map(s=>b.mode=="ord"||b.mode=="prop"?(b.mode=="prop"?s:(s>0?1:0)):1);
+ if(!sum(wt))wt=P.map(()=>1);const W=sum(wt);
+ const SC=b.v2?(+b.scAmt||0):(scOn?sum(sub)*(+b.sc||0)/100:0);
+ return sub.map((s,i)=>{const sc=SC*wt[i]/W,ot=((+b.other||0)+(+b.tip||0))*wt[i]/W,gs=b.v2?(+b.gstAmt||0)*wt[i]/W:(gOn?s*GST/100:0);
   let tot=s+sc+gs+ot;if(b.round)tot=Math.ceil(tot-1e-9);return{sub:s,sc,gst:gs,ot,tot}});
 }
 const fb=()=>S.bills.filter(b=>trip=="All"||b.trip==trip);
@@ -218,12 +228,9 @@ function newBill(){
  <div class="li"><span>Date</span><input type="date" value="${D.date}" oninput="D.date=this.value"></div>
  <div class="li col"><div class="mu">Who paid the bill?</div>${picker([D.payer],i=>`D.payer=${i};D.touched=1;render()`)}</div></div>
  <div class="sh">Charges</div><div class="l">
- <div class="li"><span>GST (${GST}%)</span>${sw(D.gstOn,"D.gstOn=this.checked;prev()")}</div>
- <div class="li"><span>Service charge</span>${sw(D.scOn,"D.scOn=this.checked;render()")}</div>
- ${D.scOn?num("sc","Service charge % of total"):""}${num("tip","Tip")}${num("other","Other charges")}
- <div class="li col"><div class="mu" style="margin-bottom:6px">Share service charge, tip &amp; other charges</div>${seg([["all","Equally, all 6"],["ord","Equally, who ordered"]],D.mode=="prop"?"ord":D.mode,"setMode")}</div>
+ ${num("scAmt","Service charge")}${num("gstAmt","GST")}${num("other","Other charges")}
  <div class="li"><span>Round up to whole numbers</span>${sw(D.round,"D.round=this.checked;prev()")}</div></div>
- <div class="mu" style="margin:6px 12px">Service charge is a % of the whole bill before GST, divided equally. GST applies to items only.</div>
+ <div class="mu" style="margin:6px 12px">Type the amounts from the bill. Each one is shared equally among the people who ordered.</div>
  <div class="sh">Items</div><datalist id="itl">${pastItems().map(x=>`<option value="${esc(x.n)}">`).join("")}</datalist>`;
  h+=D.items.map((it,k)=>{const sel=it.w;return `<div class="item"><div class="t"><input class="nm" list="itl" autocomplete="off" placeholder="Item name" value="${esc(it.n)}" oninput="D.items[${k}].n=this.value" onchange="autoP(${k})">${it.m=="amt"?`<b id="pt${k}">${f(+it.p||0)}</b>`:`<input class="pr" type="number" inputmode="decimal" step="any" placeholder="Price" value="${it.p||""}" oninput="D.items[${k}].p=+this.value;prev()">`}<button class="x" onclick="D.items.splice(${k},1);if(!D.items.length)D.items=[newItem()];render()">×</button></div>
  <div class="row2" style="align-items:center;margin-top:10px"><span class="mu">Shared by ${sel.length} of 6</span><button class="pill" style="flex:none" onclick="D.items[${k}].w=${sel.length==6?"[]":"[0,1,2,3,4,5]"};render()">${sel.length==6?"Clear":"Everyone"}</button></div>
@@ -246,7 +253,7 @@ function sv(k,i,val){const it=D.items[k];it.v=it.v||{};it.v[i]=+val;if(it.m=="am
 function prev(){
  const e=document.getElementById("pv");if(!e)return;const c=calc(D),T=sum(c.map(x=>x.tot)),sub=sum(c.map(x=>x.sub));
  let warn="";D.items.forEach(it=>{if(it.m=="pct"&&it.w.length&&Math.abs(sum(it.w.map(i=>+(it.v||{})[i]||0))-100)>0.01)warn+=`<div class="li neg">⚠ "${esc(it.n||"Item")}" percentages must add up to 100</div>`});
- e.innerHTML=warn+`<div class="li"><span>Items total</span><b>${mh(sub)}</b></div>`+(D.scOn?`<div class="li"><span>Service charge ${D.sc||0}% of ${f(sub)}</span><b>${mh(sum(c.map(x=>x.sc)))}</b></div>`:"")+c.map((x,i)=>x.tot>0?`<div class="li"><span style="display:flex;gap:10px;align-items:center">${dot(i)}<span>${P[i]}<br><small>Items ${f(x.sub)} · Service ${f(x.sc)} · GST ${f(x.gst)}${x.ot?` · Other ${f(x.ot)}`:""}</small></span></span><b>${f(x.tot)}</b></div>`:"").join("")+`<div class="li"><b>Total</b><b>${mh(T)}</b></div>`;
+ e.innerHTML=warn+`<div class="li"><span>Items total</span><b>${mh(sub)}</b></div>`+(+D.scAmt?`<div class="li"><span>Service charge</span><b>${mh(+D.scAmt)}</b></div>`:"")+(+D.gstAmt?`<div class="li"><span>GST</span><b>${mh(+D.gstAmt)}</b></div>`:"")+(+D.other?`<div class="li"><span>Other charges</span><b>${mh(+D.other)}</b></div>`:"")+c.map((x,i)=>x.tot>0?`<div class="li"><span style="display:flex;gap:10px;align-items:center">${dot(i)}<span>${P[i]}<br><small>Items ${f(x.sub)} · Service ${f(x.sc)} · GST ${f(x.gst)}${x.ot?` · Other ${f(x.ot)}`:""}</small></span></span><b>${f(x.tot)}</b></div>`:"").join("")+`<div class="li"><b>Total</b><b>${mh(T)}</b></div>`;
 }
 function saveBill(){
  if(!D.items.some(i=>+i.p>0))return alert("Add at least one item with a price.");
@@ -272,7 +279,7 @@ function monthly(){
 }
 
 /* ---- history ---- */
-const openB=id=>{ob=id;render();window.scrollTo(0,0)};
+const openB=id=>{ob=id;render();sc2(0)};
 function duesPays(x){
  const rs=dues(true).filter(r=>r.b.id==x.id),ps=S.cpays.filter(p=>p.items.some(i=>i.b==x.id));
  return (rs.length?`<div class="sh">Couple dues</div><div class="l">${rs.map(r=>{const left=r.owed-r.paid;return `<div class="li"><span><b>${CP[r.from]}</b><br><small>owe ${CP[r.to]}</small></span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${left<0.005?'<span class="bd ok">Paid</span>':`<b class="neg">${mh(left)}</b>`}${r.pend>0.005?'<span class="bd">Pending</span>':""}${canC(r.from)&&r.rem>0.005?`<button class="pill" onclick="openPay(${r.from},${r.to},${x.id})">Pay</button>`:""}</span></div>`}).join("")}</div>`:"")
@@ -283,9 +290,9 @@ function billDetail(id){
  const c=calc(x),T=sum(c.map(y=>y.tot)),sub=sum(c.map(y=>y.sub)),sc=sum(c.map(y=>y.sc)),gs=sum(c.map(y=>y.gst)),ot=sum(c.map(y=>y.ot)),rnd=T-(sub+sc+gs+ot);
  const g=x.gstOn!==undefined?x.gstOn:+x.gst>0,so=x.scOn!==undefined?x.scOn:+x.sc>0;
  const row=(a,b)=>`<div class="li"><span>${a}</span><b>${b}</b></div>`;
- let h=`<button class="pill" onclick="ob=null;render();window.scrollTo(0,0)" style="margin-top:6px">‹ History</button>`+head(esc(x.title),`${x.date} · paid by ${P[x.payer]}${x.trip?" · "+esc(x.trip):""}`);
- h+=`<div class="l">${row("Items total",mh(sub))}${row("Service charge"+(so?` (${x.sc}% of items total)`:""),so?mh(sc):"Off")}${row("GST"+(g?` (${GST}% on items)`:""),g?mh(gs):"Off")}${+x.tip?row("Tip",mh(+x.tip)):""}${+x.other?row("Other charges",mh(+x.other)):""}${rnd>0.005?row("Rounding",mh(rnd)):""}${row("Total",mh(T))}</div>`;
- if(so||+x.tip||+x.other)h+=`<div class="mu" style="margin:6px 12px">Service charge, tip and other charges are shared ${x.mode=="ord"?"equally among those who ordered":x.mode=="prop"?"in proportion to orders":"equally among all 6"}.</div>`;
+ let h=`<button class="pill" onclick="ob=null;render();sc2(0)" style="margin-top:6px">‹ History</button>`+head(esc(x.title),`${x.date} · paid by ${P[x.payer]}${x.trip?" · "+esc(x.trip):""}`);
+ h+=`<div class="l">${row("Items total",mh(sub))}${x.v2?(sc>0.005?row("Service charge",mh(sc)):"")+(gs>0.005?row("GST",mh(gs)):""):row("Service charge"+(so?` (${x.sc}% of items total)`:""),so?mh(sc):"Off")+row("GST"+(g?` (${GST}% on items)`:""),g?mh(gs):"Off")}${+x.tip?row("Tip",mh(+x.tip)):""}${+x.other?row("Other charges",mh(+x.other)):""}${rnd>0.005?row("Rounding",mh(rnd)):""}${row("Total",mh(T))}</div>`;
+ if(x.v2?(sc>0.005||gs>0.005||+x.other):(so||+x.tip||+x.other))h+=`<div class="mu" style="margin:6px 12px">Service charge, GST and other charges are shared ${x.v2||x.mode=="ord"?"equally among those who ordered":x.mode=="prop"?"in proportion to orders":"equally among all 6"}.</div>`;
  h+=`<div class="sh">Items</div><div class="l">${x.items.filter(it=>+it.p>0||it.n).map(it=>{const k=it.w||[];return `<div class="li"><span>${esc(it.n||"Item")}<br><small>${k.length==6?"Everyone":k.map(i=>P[i]).join(", ")||"Nobody"}</small></span><b>${mh(+it.p||0)}</b></div>`}).join("")}</div>`;
  h+=`<div class="sh">Each person pays</div><div class="l">${c.map((y,i)=>y.tot>0?`<div class="li"><span><b>${P[i]}</b><br><small>Items ${f(y.sub)} · Service ${f(y.sc)} · GST ${f(y.gst)}${y.ot?` · Other ${f(y.ot)}`:""}</small></span><b>${mh(y.tot)}</b></div>`:"").join("")}</div>`;
  h+=`<div class="sh">Each couple pays</div><div class="l">${CP.map((n,k)=>`<div class="li"><span>${n}</span><b>${mh(c[2*k].tot+c[2*k+1].tot)}</b></div>`).join("")}</div>`;
@@ -304,7 +311,7 @@ function hist(){
  if(Object.keys(tt).length)h+=`<div class="sh">Trip totals</div><div class="l">${Object.entries(tt).map(([k,v])=>`<div class="li"><span>${esc(k)}</span><b>${mh(v)}</b></div>`).join("")}</div><div class="sh">Bills</div>`;
  const all=dues(true);
  h+=S.bills.map(x=>{const c=calc(x),g=x.gstOn!==undefined?x.gstOn:+x.gst>0,so=x.scOn!==undefined?x.scOn:+x.sc>0,rs=all.filter(r=>r.b.id==x.id),ps=S.cpays.filter(p=>p.items.some(i=>i.b==x.id));
- return `<div class="item"><div class="t" style="cursor:pointer" onclick="openB(${x.id})"><div style="flex:1"><b>${esc(x.title)}</b>${x.trip?`<span class="cp">${esc(x.trip)}</span>`:""}<div class="mu">${x.date} · paid by ${P[x.payer]} · SC ${so?x.sc+"%":"off"} · GST ${g?GST+"%":"off"}</div></div><b>${mh(sum(c.map(y=>y.tot)))}</b><span class="mu">›</span></div>
+ return `<div class="item"><div class="t" style="cursor:pointer" onclick="openB(${x.id})"><div style="flex:1"><b>${esc(x.title)}</b>${x.trip?`<span class="cp">${esc(x.trip)}</span>`:""}<div class="mu">${x.date} · paid by ${P[x.payer]} · ${x.v2?`SC ${f(+x.scAmt||0)} · GST ${f(+x.gstAmt||0)}`:`SC ${so?x.sc+"%":"off"} · GST ${g?GST+"%":"off"}`}</div></div><b>${mh(sum(c.map(y=>y.tot)))}</b><span class="mu">›</span></div>
  <div class="chips">${c.map((y,i)=>y.tot>0?`<span class="chip">${P[i]} ${f(y.tot)}</span>`:"").join("")}</div>
  ${rs.length?`<div class="sh" style="margin:14px 0 6px">Couple dues</div><div class="l" style="background:var(--bg)">${rs.map(r=>{const left=r.owed-r.paid;return `<div class="li"><span><b>${CP[r.from]}</b><br><small>owe ${CP[r.to]}</small></span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${left<0.005?'<span class="bd ok">Paid</span>':`<b class="neg">${mh(left)}</b>`}${r.pend>0.005?'<span class="bd">Pending</span>':""}${canC(r.from)&&r.rem>0.005?`<button class="pill" onclick="openPay(${r.from},${r.to},${x.id})">Pay</button>`:""}</span></div>`}).join("")}</div>`:""}
  ${ps.length?`<div class="sh" style="margin:14px 0 6px">Payments</div><div class="l" style="background:var(--bg)">${ps.map(p=>payRow(p,x.id)).join("")}</div>`:""}</div>`}).join("");
@@ -342,15 +349,17 @@ async function key(k){
  ME=lg.i;who=ME;D.payer=ME;lg=null;tab="dash";render();
 }
 function render(){
- const y=window.scrollY;
+ const y=(document.querySelector(".w")||{}).scrollTop||0;
  if(!ready){v.innerHTML=head("Squad Split","Loading…");nav.innerHTML="";ovl.innerHTML="";return}
  if(ME===null){v.innerHTML=loginScreen();nav.innerHTML="";ovl.innerHTML="";return}
  nav.innerHTML=[["dash",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>`,"Overview"],["new",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>`,"New Bill"],["mon",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20v-6M12 20V5M19 20v-9"/></svg>`,"Monthly"],["hist",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 3h10a2 2 0 0 1 2 2v16l-3-2-2 2-2-2-2 2-2-2-3 2V5a2 2 0 0 1 2-2z"/><path d="M9 9h6M9 13h6"/></svg>`,"History"],["acc",`<svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`,"Account"]].map(([k,i,l])=>`<button class="${tab==k?"on":""}" onclick="go('${k}')"><span>${i}</span>${l}</button>`).join("");
  v.innerHTML=tab=="dash"?dash():tab=="new"?newBill():tab=="mon"?monthly():tab=="acc"?account():hist();
  ovl.innerHTML=sheetHtml();
  if(tab=="new")prev();
- window.scrollTo(0,y);
+ sc2(y);
 }
-function go(k){tab=k;ob=null;render();window.scrollTo(0,0)}
+function go(k){tab=k;ob=null;render();sc2(0)}
+["gesturestart","gesturechange","gestureend"].forEach(e=>document.addEventListener(e,ev=>ev.preventDefault()));
+document.addEventListener("touchmove",ev=>{if(ev.touches.length>1)ev.preventDefault()},{passive:false});
 resolveMe();render();pull();setInterval(pull,5000);document.addEventListener("visibilitychange",()=>{if(!document.hidden)pull()});
 </script></body></html>
