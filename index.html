@@ -132,6 +132,11 @@ button:active,.btn:active{opacity:.65}
 .mnav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:14px;padding:4px;margin-bottom:12px}.mnav b{font-size:16px}.mnav .pill{min-width:48px;background:none;font-size:20px}
 .live button{border:0;border-radius:16px;padding:18px 8px;color:#fff;font:inherit;text-align:center;cursor:pointer}
 .live b{display:block;font-size:56px;line-height:1.05}.live small{display:block;font-size:12px;font-weight:600}
+.gin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:10px}
+.gcell{background:var(--card);border-radius:14px;padding:12px;text-align:center;border:2px solid transparent}.gcell.champ{border-color:var(--grn)}
+.gcell small{display:block;color:var(--mu);font-size:13px;overflow-wrap:anywhere}.gcell b{display:block;font-size:34px;color:var(--c)}.gcell .pb i{background:var(--c)}
+.win{background:var(--grn);color:#fff;border-radius:16px;padding:16px;text-align:center;margin:12px 0}.win small{display:block;font-weight:600;opacity:.9}.win b{display:block;font-size:26px;overflow-wrap:anywhere}
+.rank{display:inline-block;width:26px;color:var(--mu);font-weight:700}
 </style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div>
 <script>
 const P=["Appal","Uly","Miu","Raya","Aslan","Reesha"],CP=["Appal & Uly","Miu & Raya","Aslan & Reesha"],COL=["#ff9500","#af52de","#30b0c7"],GST=8;
@@ -141,7 +146,7 @@ const cpOf=i=>i>>1,mate=i=>i^1,f=n=>n.toFixed(2),sum=a=>a.reduce((x,y)=>x+y,0),c
 let ob=null;
 let S={bills:[],cpays:[]},tab="dash",who=0,trip="All",live=false,ME=null,memb={},ready=false,sheet=null,inflight=0,hq="",fails=0,lockUntil=0,lastSync=null,lg=null,slipCache={},mon=ldate().slice(0,7);
 try{const r=JSON.parse(localStorage.getItem("squad3")||"null");if(r){S=r}}catch(e){}
-S.cpays=S.cpays||[];S.nights=S.nights||[];S.games=S.games||{};
+S.cpays=S.cpays||[];S.nights=S.nights||[];S.games=S.games||{};S.gin=S.gin||[];S.comps=S.comps||[];
 let off=0,pres={},chatMsgs=[],pendingMsgs=[],chatOpen=false,lastOn="",lastRead=0;try{lastRead=+localStorage.getItem("squadread")||0}catch(e){}
 const save=()=>{try{localStorage.setItem("squad3",JSON.stringify(S))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -160,11 +165,12 @@ async function fget(path,q){const r=await fetch(`${DBU}/${path}.json${q?"?"+q:""
 async function pull(force){
  if(inflight>0&&!force)return;
  try{
-  const[b,c,m,pr,cht,bg,nt,gm]=await Promise.all([fget("bills"),fget("cpays"),fget("members"),fget("presence"),fget("chat",CHQ),ME===null?null:fget("budgets/"+cpOf(ME)),fget("nights"),fget("games")]);
+  const[b,c,m,pr,cht,bg,nt,gm,gx,cx]=await Promise.all([fget("bills"),fget("cpays"),fget("members"),fget("presence"),fget("chat",CHQ),ME===null?null:fget("budgets/"+cpOf(ME)),fget("nights"),fget("games"),fget("ginmatches"),fget("comps")]);
   const nb=Object.values(b||{}).map(normB).sort((x,y)=>y.id-x.id),nc=Object.values(c||{}).map(normP).sort((x,y)=>x.id-y.id);
   const nn=Object.values(nt||{}).filter(Boolean).sort((a,b)=>(a.date||"").localeCompare(b.date||"")||a.id-b.id);
-  const ch=JSON.stringify([nb,nc,m||{}])!==JSON.stringify([S.bills,S.cpays,memb])||JSON.stringify([nn,gm||{}])!==JSON.stringify([S.nights,S.games||{}])||JSON.stringify(bg&&ME!==null?{[cpOf(ME)]:bg}:{})!==JSON.stringify(S.budgets||{});
-  S.bills=nb;S.cpays=nc;S.nights=nn;S.games=gm||{};S.budgets=bg&&ME!==null?{[cpOf(ME)]:bg}:{};memb=m||{};lastSync=new Date();save();
+  const gn=Object.values(gx||{}).filter(Boolean).map(normGin).sort((a,b)=>a.id-b.id),cn=Object.values(cx||{}).filter(Boolean).sort((a,b)=>a.id-b.id);
+  const ch=JSON.stringify([nb,nc,m||{}])!==JSON.stringify([S.bills,S.cpays,memb])||JSON.stringify([nn,gm||{}])!==JSON.stringify([S.nights,S.games||{}])||JSON.stringify([gn,cn])!==JSON.stringify([S.gin,S.comps])||JSON.stringify(bg&&ME!==null?{[cpOf(ME)]:bg}:{})!==JSON.stringify(S.budgets||{});
+  S.bills=nb;S.cpays=nc;S.nights=nn;S.games=gm||{};S.gin=gn;S.comps=cn;S.budgets=bg&&ME!==null?{[cpOf(ME)]:bg}:{};memb=m||{};lastSync=new Date();save();
   pres=pr||{};const pc=setChat(cht),on=P.map((_,i)=>isOn(i)?1:0).join(""),oc=on!==lastOn;lastOn=on;
   const was=live;live=true;ready=true;
   if(chatOpen&&(pc||oc))updateChat();if(ch||pc||oc||!was)uiRefresh();
@@ -210,7 +216,7 @@ async function sendChat(){
  pendingMsgs=pendingMsgs.filter(p=>p.id!==id);if(e)e.focus();
 }
 const ago=t=>{if(!t)return"Not seen yet";const m=Math.floor((snow()-t)/60000);return m<1?"Just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+" h ago":new Date(t-off).toLocaleDateString([],{day:"numeric",month:"short"})};
-function uiRefresh(){if(gameOpen&&!gs)gameRender();if(tab=="new"&&ME!==null)return;if(sheet)return;render()}
+function uiRefresh(){if(gameOpen&&!gs&&!gset&&!cset)gameRender();if(tab=="new"&&ME!==null)return;if(sheet)return;render()}
 function wr(method,path,body){
  inflight++;
  return fetch(`${DBU}/${path}.json`,{method,body:body===undefined?undefined:JSON.stringify(body)}).then(r=>{if(!r.ok)throw new Error(r.status)}).catch(()=>alert("Could not save to the server. Check your connection and try again.")).finally(()=>{inflight--;pull(true)});
@@ -433,7 +439,7 @@ function monthly(){
 /* ---- game night ---- */
 const GIRLS=[1,3,5],BOYS=[0,2,4];
 let gameOpen=false,gv={s:"home",gid:null,m:""},gs=null;
-const gamesList=()=>[{id:"sequence",name:"SEQUENCE"},...Object.entries(S.games||{}).map(([id,g])=>({id,name:(g&&g.name)||"Game"}))];
+const gamesList=()=>[{id:"sequence",name:"SEQUENCE"},{id:"gin",name:"Gin Rummy"},...Object.entries(S.games||{}).map(([id,g])=>({id,name:(g&&g.name)||"Game"}))];
 const gname=id=>(gamesList().find(g=>g.id==id)||{name:"Game"}).name;
 const nWin=n=>n.g>n.b?"g":n.b>n.g?"b":"d";
 const nightsOf=(gid,m)=>S.nights.filter(n=>n.game==gid&&(!m||(n.date||"").startsWith(m)));
@@ -444,8 +450,8 @@ function streaks(list){
  return{cur:run,best};
 }
 const tn=t=>t=="g"?"Girls":"Boys",tcol=t=>t=="g"?"gc":"bc";
-function openGame(){gameOpen=true;gv={s:"home",gid:null,m:ldate().slice(0,7)};gs=null;gameov.style.display="block";gameRender()}
-function closeGame(){gameOpen=false;gs=null;gameov.style.display="none";gameov.innerHTML=""}
+function openGame(){gameOpen=true;gv={s:"home",gid:null,m:ldate().slice(0,7)};gs=null;gset=null;cset=null;ge=[];gameov.style.display="block";gameRender()}
+function closeGame(){gameOpen=false;gs=null;gset=null;cset=null;gameov.style.display="none";gameov.innerHTML=""}
 function gOpen(id){gv.s="game";gv.gid=id;gv.m=ldate().slice(0,7);gameRender();const e=document.querySelector(".gw");if(e)e.scrollTop=0}
 function gHome(){gv.s="home";gameRender()}
 function gShift(n){const[y,m]=gv.m.split("-").map(Number);gv.m=mkey(new Date(y,m-1+n,1));gameRender()}
@@ -468,13 +474,13 @@ function delNight(id){if(!confirm("Delete this night?"))return;S.nights=S.nights
 function gameRender(){
  const el=document.getElementById("gameov");if(!gameOpen||!el)return;
  const old=document.querySelector(".gw"),y=old?old.scrollTop:0;
- el.innerHTML=`<div class="w gw">${gv.s=="home"?gameHome():gamePage()}</div>${gs?nightSheetHtml():""}`;
+ el.innerHTML=`<div class="w gw">${gameView()}</div>${gs?nightSheetHtml():gset?ginSetupHtml():cset?compSheetHtml():""}`;
  const nw=document.querySelector(".gw");if(nw)nw.scrollTop=y;
 }
 function gameHome(){
  const mk=ldate().slice(0,7),mn=new Date().toLocaleString("en",{month:"long",year:"numeric"});
  return `<button class="pill" style="margin-top:6px" onclick="closeGame()">‹ Overview</button>`+head("Game Night","Pick a game to see the scores")+
- gamesList().map(g=>{const t=tally(nightsOf(g.id,mk)),sk=streaks(nightsOf(g.id)).cur;
+ gamesList().map(g=>{if(g.id=="gin")return ginCard();const t=tally(nightsOf(g.id,mk)),sk=streaks(nightsOf(g.id)).cur;
   return `<div class="gcard" onclick="gOpen('${g.id}')"><div class="gt"><b>${esc(g.name)}</b><span class="mu">›</span></div><div class="mu">${mn}</div>
   <div class="gs"><div class="tgirl ${t.g<t.b?"dim":""}"><b>${t.g}</b><small>Girls</small></div><span class="vs">vs</span><div class="tboy ${t.b<t.g?"dim":""}"><b>${t.b}</b><small>Boys</small></div></div>
   ${sk.t&&sk.n>=2?`<div class="mu" style="margin-top:10px;text-align:center"><b class="${tcol(sk.t)}">${tn(sk.t)}</b> on a ${sk.n}-night winning streak</div>`:""}</div>`}).join("")+
@@ -501,6 +507,120 @@ function nightSheetHtml(){
  <div class="l" style="margin-top:12px"><div class="li"><span>Date</span><input type="date" value="${gs.date}" oninput="gs.date=this.value" onchange="if(gs.id)liveSave()"></div><div class="li"><span>Note</span><input value="${esc(gs.note)}" placeholder="Optional" oninput="gs.note=this.value" onchange="if(gs.id)liveSave()"></div></div>
  <div style="margin-top:12px"><button class="btn" onclick="gs=null;gameRender()">Done</button></div></div></div>`;
 }
+/* ---- gin rummy ---- */
+let gset=null,cset=null,ge=[];
+const ENT_COL=["#0a84ff","#ff9500","#34c759","#af52de","#ff2d92","#30b0c7"];
+const nameList=ms=>ms.length>2?ms.slice(0,-1).map(i=>P[i]).join(", ")+" & "+P[ms[ms.length-1]]:ms.map(i=>P[i]).join(" & ");
+const normGin=m=>{m.ents=arrOf(m.ents).map(e=>({...e,m:arrOf(e.m)}));m.rounds=arrOf(m.rounds).map(r=>arrOf(r).map(Number));return m};
+const gtot=m=>m.ents.map((_,i)=>sum(m.rounds.map(r=>+r[i]||0)));
+function gresolve(m){const t=gtot(m),mx=Math.max(...t);m.status="live";m.winner=null;m.doneAt=null;
+ if(m.rounds.length&&mx>=m.target){const L=t.map((v,i)=>v==mx?i:-1).filter(i=>i>=0);if(L.length==1){m.status="done";m.winner=L[0];m.doneAt=Date.now()}}return m}
+const gsave=m=>{const i=S.gin.findIndex(x=>x.id==m.id);if(i>=0)S.gin[i]=m;else S.gin.push(m);S.gin.sort((a,b)=>a.id-b.id);save();wr("PUT","ginmatches/"+m.id,m)};
+const dd=(a,b)=>Math.round((new Date(b+"T00:00:00")-new Date(a+"T00:00:00"))/864e5);
+const addDays=(d,n)=>{const x=new Date(d+"T00:00:00");x.setDate(x.getDate()+n);return ldate(x)};
+function compStatus(c){const t=ldate();if(t<c.start){const n=dd(t,c.start);return{k:"up",t:`Starts in ${n} day${n==1?"":"s"}`}}if(t>c.end)return{k:"done",t:"Finished"};const n=dd(t,c.end);return{k:"active",t:n==0?"Ends today":`${n} day${n==1?"":"s"} left`}}
+const compGames=c=>S.gin.filter(m=>m.comp==c.id);
+function standings(ms){const p={};ms.filter(m=>m.status=="done").forEach(m=>{const t=gtot(m);m.ents.forEach((e,i)=>e.m.forEach(pi=>{const r=p[pi]=p[pi]||{i:pi,w:0,g:0,pts:0};r.g++;r.pts+=t[i];if(m.winner===i)r.w++}))});
+ return Object.values(p).sort((a,b)=>b.w-a.w||(b.w/b.g-a.w/a.g)||b.pts-a.pts||a.i-b.i)}
+function gameView(){return gv.s=="home"?gameHome():gv.s=="match"?ginMatch():gv.s=="comp"?compPage():gv.gid=="gin"?ginPage():gamePage()}
+function ginCard(){
+ const done=S.gin.filter(m=>m.status=="done"&&!m.comp),live=S.gin.filter(m=>m.status!="done").length,last=done[done.length-1],act=S.comps.find(c=>compStatus(c).k=="active");
+ return `<div class="gcard" onclick="gOpen('gin')"><div class="gt"><b>Gin Rummy</b><span class="mu">›</span></div><div class="mu">Cards · individual or teams</div><div style="margin-top:10px">${last&&last.ents[last.winner]?`<div>Last winner: <b>${esc(last.ents[last.winner].n)}</b></div>`:'<div class="mu">No games yet</div>'}${live?`<div class="mu" style="margin-top:4px">${live} game${live==1?"":"s"} in progress</div>`:""}${act?`<div class="mu" style="margin-top:4px">${esc(act.name)} · ${compStatus(act).t}</div>`:""}</div></div>`;
+}
+const mrow=m=>{const t=gtot(m);return `<div class="li" onclick="ginOpen(${m.id})" style="cursor:pointer"><span><b>${m.ents.map(e=>esc(e.n)).join(" vs ")}</b>${m.comp?`<span class="cp">${esc(cname(m.comp))}</span>`:""}<br><small>${shortDate(m.date)} · to ${m.target} · ${t.join(" – ")}</small></span><span>${m.status=="done"&&m.ents[m.winner]?`<span class="bd ok">${esc(m.ents[m.winner].n)}</span>`:'<span class="bd wt">In progress</span>'}</span></div>`};
+function ginPage(){
+ const live=S.gin.filter(m=>m.status!="done").slice().reverse(),done=S.gin.filter(m=>m.status=="done"&&!m.comp).slice().reverse().slice(0,15),st=standings(S.gin.filter(m=>!m.comp)).slice(0,6),cs2=S.comps.slice().reverse();
+ return `<button class="pill" style="margin-top:6px" onclick="gHome()">‹ Games</button>`+head("Gin Rummy","Individual or team games")+
+ `<div class="row2"><button class="btn" onclick="ginNew()">New game</button><button class="btn sec" onclick="compNew()">Plan competition</button></div>`+
+ (cs2.length?`<div class="sh">Competitions</div><div class="l">${cs2.map(c=>{const s2=compStatus(c),lead=standings(compGames(c))[0];return `<div class="li" onclick="compOpen(${c.id})" style="cursor:pointer"><span><b>${esc(c.name)}</b><br><small>${shortDate(c.start)} – ${shortDate(c.end)}${lead?` · ${s2.k=="done"?"Champion":"Leader"}: ${P[lead.i]}`:""}</small></span><span class="bd ${s2.k=="active"?"wt":s2.k=="done"?"ok":""}">${s2.t}</span></div>`}).join("")}</div>`:"")+
+ (live.length?`<div class="sh">In progress</div><div class="l">${live.map(mrow).join("")}</div>`:"")+
+ `<div class="sh">Recent casual games</div><div class="l">${done.map(mrow).join("")||'<div class="li mu">No finished games yet. Start one above.</div>'}</div>`+
+ (st.length?`<div class="sh">Leaderboard · casual games</div><div class="l">${st.map((r,k)=>`<div class="li"><span><span class="rank">${k+1}</span><b>${P[r.i]}</b></span><span class="mu">${r.w} win${r.w==1?"":"s"} · ${r.g} played</span></div>`).join("")}</div>`:"");
+}
+/* new game setup */
+function ginNew(cid){gset={mode:"ind",target:100,sel:[],asg:{},nt:2,comp:cid||null};gameRender()}
+const cname=id=>(S.comps.find(c=>c.id==id)||{}).name||"Competition";
+const gmTog=i=>{const w=gset.sel,x=w.indexOf(i);if(x<0)w.push(i);else{w.splice(x,1);delete gset.asg[i]}gameRender()};
+const gmBoth=c=>{const w=gset.sel,a=2*c,b=a+1;if(w.includes(a)&&w.includes(b)){gset.sel=w.filter(i=>i!=a&&i!=b);delete gset.asg[a];delete gset.asg[b]}else[a,b].forEach(i=>{if(!w.includes(i))w.push(i)});gameRender()};
+function ginShuffle(){
+ const p=gset.sel.slice();if(p.length<gset.nt)return alert("Pick at least "+gset.nt+" players first.");
+ for(let i=p.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[p[i],p[j]]=[p[j],p[i]]}
+ gset.asg={};p.forEach((x,k)=>gset.asg[x]=k%gset.nt);gameRender();
+}
+function ginSetupHtml(){
+ const g=gset,teams=[...Array(g.nt)].map((_,k)=>g.sel.filter(i=>g.asg[i]===k));
+ return `<div class="ov" onclick="gset=null;gameRender()"><div class="sheet" onclick="event.stopPropagation()"><h2 style="margin:0 0 10px">New Gin Rummy game</h2>
+ ${seg([["ind","Individual"],["team","Teams"]],g.mode,"((v)=>{gset.mode=v;gameRender()})")}
+ <div class="sh">Winning score</div><div class="l"><div class="li"><span>First to reach</span><input type="number" inputmode="numeric" value="${g.target}" oninput="gset.target=+this.value"></div></div>
+ <div class="chips" style="margin-top:8px">${[50,100,150,250].map(v=>`<button class="pill ${g.target==v?"solid":""}" onclick="gset.target=${v};gameRender()">${v}</button>`).join("")}</div>
+ <div class="sh">Counts for</div><div class="chips" style="margin:0 0 4px"><button class="pill ${!g.comp?"solid":""}" onclick="gset.comp=null;gameRender()">Casual</button>${S.comps.filter(c=>compStatus(c).k=="active").map(c=>`<button class="pill ${g.comp==c.id?"solid":""}" onclick="gset.comp=${c.id};gameRender()">${esc(c.name)}</button>`).join("")}</div><div class="mu">${g.comp?"Scored in the competition only.":"Casual games are scored separately from competitions."}</div>
+ <div class="sh">Who is playing?</div><div class="chips" style="margin:0 0 4px"><button class="pill" onclick="gset.sel=[0,1,2,3,4,5];gameRender()">Everyone</button><button class="pill r" onclick="gset.sel=[];gset.asg={};gameRender()">Clear</button></div>
+ ${picker(g.sel,i=>`gmTog(${i})`,"gmBoth")}
+ ${g.mode=="team"?`<div class="sh">Teams</div>${seg([[2,"2 teams"],[3,"3 teams"]],g.nt,"((v)=>{gset.nt=+v;gset.asg={};gameRender()})")}
+ <div style="margin-top:10px"><button class="btn sec" onclick="ginShuffle()">Auto-assign teams (shuffle)</button></div>
+ ${g.sel.length?`<div class="l" style="margin-top:10px">${g.sel.map(i=>`<div class="li"><span>${P[i]}</span><span style="display:flex;gap:6px">${[...Array(g.nt)].map((_,k)=>`<button class="pill ${g.asg[i]===k?"solid":""}" onclick="gset.asg[${i}]=${k};gameRender()">${"ABC"[k]}</button>`).join("")}</span></div>`).join("")}</div>`:'<div class="mu" style="margin-top:8px">Pick players above, then shuffle or tap A / B / C.</div>'}
+ ${teams.some(t=>t.length)?`<div class="mu" style="margin-top:8px">${teams.map((t,k)=>`<div><b>Team ${"ABC"[k]}:</b> ${t.length?nameList(t):"–"}</div>`).join("")}</div>`:""}`:""}
+ <div class="row2"><button class="btn sec" onclick="gset=null;gameRender()">Cancel</button><button class="btn" onclick="ginStart()">Start game</button></div></div></div>`;
+}
+function ginStart(){
+ const g=gset;if(!(g.target>0))return alert("Enter the winning score.");
+ let ents;
+ if(g.mode=="ind"){if(g.sel.length<2)return alert("Pick at least 2 players.");ents=g.sel.map(i=>({n:P[i],m:[i]}))}
+ else{const teams=[...Array(g.nt)].map((_,k)=>g.sel.filter(i=>g.asg[i]===k)).filter(t=>t.length);if(teams.length<2)return alert("Put players into at least 2 teams.");if(g.sel.some(i=>g.asg[i]===undefined))return alert("Every picked player needs a team (A, B or C).");ents=teams.map(t=>({n:nameList(t),m:t}))}
+ const m={id:Math.max(Date.now(),...S.gin.map(x=>x.id+1)),game:"gin",date:today(),mode:g.mode,target:g.target,ents,rounds:[],status:"live",winner:null,by:ME,comp:(g.comp&&S.comps.some(c=>c.id==g.comp&&compStatus(c).k=="active"))?g.comp:null};
+ gsave(m);gset=null;ginOpen(m.id);
+}
+function ginOpen(id){gv.s="match";gv.mid=id;ge=[];gameRender();const e=document.querySelector(".gw");if(e)e.scrollTop=0}
+/* match page */
+function ginMatch(){
+ const m=S.gin.find(x=>x.id==gv.mid);if(!m){gv.s="game";return ginPage()}
+ const t=gtot(m),done=m.status=="done",cps=S.comps.filter(c=>m.comp==c.id);
+ let h=`<button class="pill" style="margin-top:6px" onclick="gv.s='game';gameRender()">‹ Gin Rummy</button>`+head(m.mode=="team"?"Team game":"Individual game",`${shortDate(m.date)} · first to ${m.target}${cps.length?" · Competition: "+cps.map(c=>esc(c.name)).join(", "):" · Casual"}`);
+ if(done&&m.ents[m.winner])h+=`<div class="win"><small>${m.mode=="team"?"Winning team":"Winner"}</small><b>${esc(m.ents[m.winner].n)}</b><span>${t[m.winner]} points</span></div>`;
+ h+=`<div class="gin-grid">${m.ents.map((e,i)=>`<div class="gcell ${done&&m.winner===i?"champ":""}" style="--c:${ENT_COL[i%6]}"><small>${esc(e.n)}</small><b>${t[i]}</b><div class="pb"><i style="width:${Math.min(100,Math.max(0,t[i])/m.target*100)}%"></i></div></div>`).join("")}</div>`;
+ if(!done)h+=`<div class="sh">Round ${m.rounds.length+1} scores</div><div class="l">${m.ents.map((e,i)=>`<div class="li"><span><span class="od" style="background:${ENT_COL[i%6]}"></span>${esc(e.n)}</span><input type="number" inputmode="numeric" placeholder="0" value="${ge[i]??""}" oninput="ge[${i}]=this.value" style="max-width:110px"></div>`).join("")}</div><div style="margin-top:10px"><button class="btn" onclick="addRound()">Add round</button></div>`;
+ if(m.rounds.length)h+=`<div class="sh">Rounds</div><div class="l">${m.rounds.map((r,k)=>`<div class="li"><span><b>R${k+1}</b></span><span style="display:flex;gap:14px;flex-wrap:wrap;justify-content:flex-end">${r.map((v,i)=>`<b style="color:${ENT_COL[i%6]}">${v}</b>`).join("")}</span><button class="x" onclick="delRound(${k})">×</button></div>`).join("")}</div>`;
+ h+=`<div class="row2" style="margin-top:16px">${done?`<button class="btn sec" onclick="rematch()">Rematch</button>`:""}<button class="btn sec" style="color:var(--red)" onclick="ginDel(${m.id})">Delete game</button></div>`;
+ return h;
+}
+function addRound(){
+ const m=S.gin.find(x=>x.id==gv.mid);if(!m||m.status=="done")return;
+ const r=m.ents.map((_,i)=>+(ge[i]||0));if(r.every(v=>v===0)&&!ge.some(v=>v!==undefined&&v!==""))return alert("Enter the scores for this round.");
+ m.rounds.push(r);ge=[];gresolve(m);gsave(m);gameRender();
+ if(m.status=="done"){const e=document.querySelector(".gw");if(e)e.scrollTop=0}
+}
+function delRound(k){const m=S.gin.find(x=>x.id==gv.mid);if(!m||!confirm("Delete round "+(k+1)+"?"))return;m.rounds.splice(k,1);gresolve(m);gsave(m);gameRender()}
+function ginDel(id){if(!confirm("Delete this game?"))return;S.gin=S.gin.filter(x=>x.id!=id);save();wr("DELETE","ginmatches/"+id);gv.s="game";gameRender()}
+function rematch(){const o=S.gin.find(x=>x.id==gv.mid);if(!o)return;const m={id:Math.max(Date.now(),...S.gin.map(x=>x.id+1)),game:"gin",date:today(),mode:o.mode,target:o.target,ents:cl(o.ents),rounds:[],status:"live",winner:null,by:ME,comp:(o.comp&&S.comps.some(c=>c.id==o.comp&&compStatus(c).k=="active"))?o.comp:null};gsave(m);ginOpen(m.id)}
+/* competitions */
+function compNew(){cset={name:"Gin Rummy Cup",start:today(),end:addDays(today(),7)};gameRender()}
+function compSheetHtml(){
+ const c=cset;
+ return `<div class="ov" onclick="cset=null;gameRender()"><div class="sheet" onclick="event.stopPropagation()"><h2 style="margin:0 0 4px">Plan a competition</h2><div class="mu">Only games you start for this competition count, and only while it is running. Casual games are scored separately.</div>
+ <div class="l" style="margin-top:12px"><div class="li"><span>Name</span><input value="${esc(c.name)}" oninput="cset.name=this.value"></div><div class="li"><span>Starts</span><input type="date" value="${c.start}" oninput="cset.start=this.value"></div><div class="li"><span>Ends</span><input type="date" value="${c.end}" oninput="cset.end=this.value"></div></div>
+ <div class="chips" style="margin-top:8px">${[[7,"1 week"],[14,"2 weeks"],[30,"1 month"]].map(([n,l])=>`<button class="pill" onclick="cset.end=addDays(cset.start,${n});gameRender()">${l}</button>`).join("")}</div>
+ <div class="row2"><button class="btn sec" onclick="cset=null;gameRender()">Cancel</button><button class="btn" onclick="compSave()">Create</button></div></div></div>`;
+}
+function compSave(){
+ const c=cset;if(!(c.name||"").trim())return alert("Give the competition a name.");if(!c.start||!c.end||c.end<c.start)return alert("The end date must be on or after the start date.");
+ const o={id:Math.max(Date.now(),...S.comps.map(x=>x.id+1)),name:c.name.trim(),start:c.start,end:c.end,by:ME};
+ S.comps.push(o);save();wr("PUT","comps/"+o.id,o);cset=null;compOpen(o.id);
+}
+function compOpen(id){gv.s="comp";gv.cid=id;gameRender();const e=document.querySelector(".gw");if(e)e.scrollTop=0}
+function compPage(){
+ const c=S.comps.find(x=>x.id==gv.cid);if(!c){gv.s="game";return ginPage()}
+ const s2=compStatus(c),gs2=compGames(c),st=standings(gs2),top=st.length?st.filter(r=>r.w==st[0].w&&r.g==st[0].g&&r.pts==st[0].pts):[];
+ let h=`<button class="pill" style="margin-top:6px" onclick="gv.s='game';gameRender()">‹ Gin Rummy</button>`+head(esc(c.name),`${shortDate(c.start)} – ${shortDate(c.end)} · ${s2.t}`);
+ if(s2.k=="done"&&top.length)h+=`<div class="win"><small>${top.length>1?"Champions":"Champion"}</small><b>${top.map(r=>P[r.i]).join(" & ")}</b><span>${st[0].w} win${st[0].w==1?"":"s"} from ${st[0].g} games</span></div>`;
+ else if(s2.k=="active"&&top.length)h+=`<div class="l" style="margin-top:12px;border-left:4px solid var(--grn)"><div class="li"><span><b>Leading now</b><br><small>${top.map(r=>P[r.i]).join(" & ")} · ${st[0].w} win${st[0].w==1?"":"s"}</small></span></div></div>`;
+ if(s2.k=="active")h+=`<div style="margin-top:12px"><button class="btn" onclick="ginNew(${c.id})">Play a competition game</button></div>`;
+ else if(s2.k=="up")h+=`<div class="mu" style="margin:10px 4px 0">Games can be played for this competition once it starts.</div>`;
+ h+=`<div class="sh">Standings</div><div class="l">${st.map((r,k)=>`<div class="li"><span style="display:flex;gap:6px;align-items:center"><span class="rank">${k+1}</span><span><b>${P[r.i]}</b><br><small>${r.w} wins · ${r.g} played · ${r.g?Math.round(r.w/r.g*100):0}%</small></span></span><b>${r.pts} pts</b></div>`).join("")||'<div class="li mu">No finished games in this period yet.</div>'}</div>`;
+ h+=`<div class="sh">Competition games</div><div class="l">${gs2.slice().reverse().map(mrow).join("")||'<div class="li mu">None yet.</div>'}</div>`;
+ h+=`<div style="margin-top:16px"><button class="btn sec" style="color:var(--red)" onclick="compDel(${c.id})">Delete competition</button></div>`;
+ return h;
+}
+function compDel(id){if(!confirm("Delete this competition? Games are kept."))return;S.comps=S.comps.filter(x=>x.id!=id);save();wr("DELETE","comps/"+id);gv.s="game";gameRender()}
 /* ---- history ---- */
 const openB=id=>{ob=id;render();sc2(0)};
 function duesPays(x){
