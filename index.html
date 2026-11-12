@@ -5,6 +5,8 @@
 <title>Squad Split</title>
 <meta name="apple-mobile-web-app-title" content="Squad Split">
 <link rel="apple-touch-icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27><text y=%27.9em%27 font-size=%2790%27>💸</text></svg>">
@@ -160,6 +162,32 @@ const DBU="https://kudhinbillsplit-default-rtdb.asia-southeast1.firebasedatabase
 const arr=o=>o?(Array.isArray(o)?o:Object.values(o)).filter(x=>x!==null&&x!==undefined):[];
 const normB=b=>{b.items=arr(b.items).map(it=>({...it,w:arr(it.w),v:it.v||{}}));return b};
 const normP=p=>{p.items=arr(p.items);return p};
+/* ---- push notifications (Firebase Cloud Messaging) ---- */
+const FB_CFG={apiKey:"AIzaSyD1M8VVTlrWrPD3qMmc0FG6nTauWntM-d8",projectId:"kudhinbillsplit",messagingSenderId:"58781718349",appId:"1:58781718349:web:416bef9fa4e203082c4904"},VAPID="BKZVSp1zYAXDKz5j8OEuLYZQqYqOUBr4cO6ET8ZgXKd5MxYHr91leZ1zPPEmj_9S4Qdxm2Nv-j6sIx7Pt-dz-Ew",NOTIFY_URL="https://squad-split-notify.sa-noo12247.workers.dev/";
+const fbReady=()=>!/^PASTE/.test(FB_CFG.apiKey+FB_CFG.messagingSenderId+FB_CFG.appId+VAPID);
+const isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent||""),standalone=()=>!!(navigator.standalone||(window.matchMedia&&matchMedia("(display-mode: standalone)").matches));
+const notifOn=()=>{try{return localStorage.getItem("squadnotif")==="1"&&typeof Notification!="undefined"&&Notification.permission==="granted"}catch(e){return false}};
+async function enableNotif(silent){
+ try{
+  if(!fbReady())return silent||alert("Notifications are not set up yet. Fill in the Firebase details first (see SETUP.md).");
+  if(isIOS&&!standalone())return silent||alert("On iPhone, add this app to the Home Screen first (Share, then Add to Home Screen), then open it from there and try again.");
+  if(typeof Notification=="undefined"||!("serviceWorker" in navigator)||!window.firebase)return silent||alert("This phone or browser can't receive notifications. Update iOS to 16.4 or newer.");
+  if(!silent){const p=await Notification.requestPermission();if(p!=="granted")return alert("Notifications were not allowed. You can change this in iPhone Settings, then Notifications.")}
+  else if(Notification.permission!=="granted")return;
+  const reg=await navigator.serviceWorker.register("firebase-messaging-sw.js");
+  if(!firebase.apps.length)firebase.initializeApp({apiKey:FB_CFG.apiKey,projectId:FB_CFG.projectId,messagingSenderId:FB_CFG.messagingSenderId,appId:FB_CFG.appId});
+  const tok=await firebase.messaging().getToken({vapidKey:VAPID,serviceWorkerRegistration:reg});
+  if(!tok)throw new Error("no token");
+  const key=await hp("tok",tok);
+  const r=await fetch(`${DBU}/tokens/${ME}/${key}.json`,{method:"PUT",body:JSON.stringify({t:tok,at:Date.now()})});if(!r.ok)throw new Error("save");
+  try{localStorage.setItem("squadnotif","1");localStorage.setItem("squadtok",JSON.stringify({p:ME,k:key}))}catch(e){}
+  if(!silent){alert("Message alerts are on for this phone.");render()}
+ }catch(e){if(!silent)alert("Could not turn on notifications. Make sure the app is opened from the Home Screen and the Firebase details are filled in.")}
+}
+async function dropTok(){
+ try{const t=JSON.parse(localStorage.getItem("squadtok")||"null");if(t)await fetch(`${DBU}/tokens/${t.p}/${t.k}.json`,{method:"DELETE"});localStorage.removeItem("squadtok");localStorage.removeItem("squadnotif")}catch(e){}
+}
+async function disableNotif(){await dropTok();render()}
 const CHQ="orderBy=%22%24key%22&limitToLast=80";
 async function fget(path,q){const r=await fetch(`${DBU}/${path}.json${q?"?"+q:""}`,{cache:"no-store"});if(!r.ok)throw new Error(r.status);return r.json()}
 async function pull(force){
@@ -212,7 +240,7 @@ function updateChat(force){
 async function sendChat(){
  const e=document.getElementById("ci"),t=((e&&e.value)||"").trim();if(!t)return;e.value="";
  const id=snow(),msg={id,from:ME,text:t.slice(0,500)};pendingMsgs.push(msg);chatMsgs.push(msg);updateChat(true);
- try{const r=await fetch(`${DBU}/chat/${id}.json`,{method:"PUT",body:JSON.stringify(msg)});if(!r.ok)throw 0}catch(x){alert("Message not sent. Check your connection.")}
+ try{const r=await fetch(`${DBU}/chat/${id}.json`,{method:"PUT",body:JSON.stringify(msg)});if(!r.ok)throw 0;if(!/^PASTE/.test(NOTIFY_URL))fetch(NOTIFY_URL,{method:"POST",body:JSON.stringify({id}),keepalive:true}).catch(()=>{})}catch(x){alert("Message not sent. Check your connection.")}
  pendingMsgs=pendingMsgs.filter(p=>p.id!==id);if(e)e.focus();
 }
 const ago=t=>{if(!t)return"Not seen yet";const m=Math.floor((snow()-t)/60000);return m<1?"Just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+" h ago":new Date(t-off).toLocaleDateString([],{day:"numeric",month:"short"})};
@@ -225,7 +253,7 @@ const rw=(c,id,d)=>wr("PUT",`${c}/${id}`,d);
 const rd=(c,id)=>wr("DELETE",`${c}/${id}`);
 function resolveMe(){try{const r=localStorage.getItem("squadme");ME=r===null?null:+r}catch(e){ME=null}if(ME!==null&&!D.touched)D.payer=ME}
 async function hp(i,pin){const t=new TextEncoder().encode("squad:"+i+":"+pin);if(window.crypto&&crypto.subtle){const h=await crypto.subtle.digest("SHA-256",t);return[...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("")}let x=0;for(const c of t)x=(x*31+c)>>>0;return "n"+x}
-function logout(){if(!confirm("Sign out of "+P[ME]+"?"))return;try{localStorage.removeItem("squadme")}catch(e){}ME=null;lg=null;render()}
+function logout(){if(!confirm("Sign out of "+P[ME]+"?"))return;dropTok();try{localStorage.removeItem("squadme")}catch(e){}ME=null;lg=null;render()}
 async function viewSlip(id){
  try{if(!slipCache[id])slipCache[id]=await fget("slips/"+id);if(!slipCache[id])return alert("Slip not found.");sheet={t:"img",src:slipCache[id]};render()}catch(e){alert("Could not load the slip.")}
 }
@@ -656,6 +684,7 @@ function account(){
  const t=lastSync?lastSync.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"–";
  return head("Account",`Signed in as ${P[ME]}`)+`<div class="l"><div class="li"><span>Name</span><b>${P[ME]}</b></div><div class="li"><span>Couple</span><b>${CP[cpOf(ME)]}</b></div><div class="li"><span>Data</span><b>${live?"Live":"Offline"}</b></div><div class="li"><span>Last updated</span><b>${t}</b></div></div>
  <div class="sh">Chat</div><div class="l"><div class="li" onclick="openChat()" style="cursor:pointer"><span>Group chat</span><span style="display:flex;gap:8px;align-items:center">${unread()?`<span class="bd no">${unread()}</span>`:""}<span class="mu">›</span></span></div></div>
+ <div class="sh">Alerts</div><div class="l"><div class="li" onclick="${notifOn()?"disableNotif()":"enableNotif()"}" style="cursor:pointer"><span>New message alerts</span><span class="mu">${notifOn()?"On · tap to turn off":"Turn on ›"}</span></div></div><div class="mu" style="margin:6px 12px">${isIOS&&!standalone()?"To get alerts on iPhone, add this app to your Home Screen and open it from there.":"Get a notification when someone sends a chat message."}</div>
  <div class="sh">Who is online</div><div class="l">${P.map((p,i)=>`<div class="li"><span><span class="od ${isOn(i)||i===ME?"on":""}"></span>${p}${i===ME?'<span class="cp">you</span>':""}</span><span class="mu">${i===ME||isOn(i)?"Online":ago(pres[i]&&pres[i].t)}</span></div>`).join("")}</div>
  <div class="sh">Tools</div><div class="l"><div class="li" onclick="refreshNow()" style="cursor:pointer"><span>Refresh now</span><span class="mu">›</span></div><div class="li" onclick="startChg()" style="cursor:pointer"><span>Change PIN</span><span class="mu">›</span></div><div class="li" onclick="exportCsv()" style="cursor:pointer"><span>Export all bills (CSV)</span><span class="mu">›</span></div></div>
  <div style="margin-top:18px"><button class="btn sec" style="color:var(--red)" onclick="logout()">Sign out</button></div>`;
@@ -729,6 +758,8 @@ function go(k){tab=k;ob=null;render();sc2(0)}
 ["gesturestart","gesturechange","gestureend"].forEach(e=>document.addEventListener(e,ev=>ev.preventDefault()));
 document.addEventListener("touchmove",ev=>{if(ev.touches.length>1)ev.preventDefault()},{passive:false});
 if(window.visualViewport){const fit=()=>{document.body.style.height=visualViewport.height+"px";document.body.style.bottom="auto";window.scrollTo(0,0)};visualViewport.addEventListener("resize",fit);visualViewport.addEventListener("scroll",()=>window.scrollTo(0,0));fit()}
-resolveMe();render();pull();beat();setInterval(pull,5000);setInterval(beat,20000);setInterval(()=>{if(chatOpen)pullChat()},2500);
+resolveMe();render();pull();beat();window.addEventListener("load",()=>setTimeout(()=>{if(ME!==null&&notifOn())enableNotif(true)},1500));setInterval(pull,5000);setInterval(beat,20000);setInterval(()=>{if(chatOpen)pullChat()},2500);
 document.addEventListener("visibilitychange",()=>{if(document.hidden){if(ME!==null)fetch(`${DBU}/presence/${ME}.json`,{method:"PUT",body:JSON.stringify({t:0}),keepalive:true}).catch(()=>{})}else{pull();beat()}});
-</script></body></html>
+</script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js" defer></script></body></html>
