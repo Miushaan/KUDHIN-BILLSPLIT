@@ -188,6 +188,13 @@ async function dropTok(){
  try{const t=JSON.parse(localStorage.getItem("squadtok")||"null");if(t)await fetch(`${DBU}/tokens/${t.p}/${t.k}.json`,{method:"DELETE"});localStorage.removeItem("squadtok");localStorage.removeItem("squadnotif")}catch(e){}
 }
 async function disableNotif(){await dropTok();render()}
+const ping=o=>{if(!/^PASTE/.test(NOTIFY_URL))fetch(NOTIFY_URL,{method:"POST",body:JSON.stringify(o),keepalive:true}).catch(()=>{})};
+async function remind(a,b){
+ if(/^PASTE/.test(NOTIFY_URL))return alert("Alerts are not set up yet.");
+ try{const r=await fetch(NOTIFY_URL,{method:"POST",body:JSON.stringify({kind:"remind",a,b})});const j=await r.json();
+  alert(j.limited?"You already sent a reminder recently. Try again later.":j.none?"Nothing is overdue.":j.sent?`Reminder sent to ${CP[a]}.`:`${CP[a]} have not turned on alerts yet. Message them in the chat instead.`)}
+ catch(e){alert("Could not send the reminder. Check your connection.")}
+}
 const CHQ="orderBy=%22%24key%22&limitToLast=80";
 async function fget(path,q){const r=await fetch(`${DBU}/${path}.json${q?"?"+q:""}`,{cache:"no-store"});if(!r.ok)throw new Error(r.status);return r.json()}
 async function pull(force){
@@ -240,7 +247,7 @@ function updateChat(force){
 async function sendChat(){
  const e=document.getElementById("ci"),t=((e&&e.value)||"").trim();if(!t)return;e.value="";
  const id=snow(),msg={id,from:ME,text:t.slice(0,500)};pendingMsgs.push(msg);chatMsgs.push(msg);updateChat(true);
- try{const r=await fetch(`${DBU}/chat/${id}.json`,{method:"PUT",body:JSON.stringify(msg)});if(!r.ok)throw 0;if(!/^PASTE/.test(NOTIFY_URL))fetch(NOTIFY_URL,{method:"POST",body:JSON.stringify({id}),keepalive:true}).catch(()=>{})}catch(x){alert("Message not sent. Check your connection.")}
+ try{const r=await fetch(`${DBU}/chat/${id}.json`,{method:"PUT",body:JSON.stringify(msg)});if(!r.ok)throw 0;ping({id})}catch(x){alert("Message not sent. Check your connection.")}
  pendingMsgs=pendingMsgs.filter(p=>p.id!==id);if(e)e.focus();
 }
 const ago=t=>{if(!t)return"Not seen yet";const m=Math.floor((snow()-t)/60000);return m<1?"Just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+" h ago":new Date(t-off).toLocaleDateString([],{day:"numeric",month:"short"})};
@@ -310,7 +317,7 @@ function dash(){
  {const mc=cpOf(ME),owe=sum(d[mc]),got=sum(d.map(r=>r[mc]));h+=`<div class="row2" style="margin-top:12px"><div class="tile"><small>${CP[mc]} owe</small><b class="${owe>0.005?"neg":""}">${mh(owe)}</b></div><div class="tile"><small>${CP[mc]} are owed</small><b class="${got>0.005?"pos":""}">${mh(got)}</b></div></div>`}
  h+=`<div class="sh">Couple balances</div><div class="l">${CP.map((c,k)=>`<div class="li"><span><b>${c}</b>${cpOf(ME)==k?'<span class="cp">you</span>':""}<br><small>${net[k]>0.005?"gets back":net[k]<-0.005?"needs to pay":"settled"}</small></span><b class="${net[k]>0.005?"pos":net[k]<-0.005?"neg":""}">${net[k]<0?"−":net[k]>0?"+":""}${mh(Math.abs(net[k]))}</b></div>`).join("")}</div>`;
  let rows="";
- for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(d[a][b]>0.005)rows+=`<div class="li"><span><b>${CP[a]}</b> owe <b>${CP[b]}</b><br><span class="neg">${mh(d[a][b])}</span>${pd[a][b]?` <small>· ${mh(pd[a][b])} awaiting confirmation</small>`:""}</span>${canC(a)&&rm[a][b]>0.005?`<button class="pill" onclick="openPay(${a},${b})">Pay</button>`:""}</div>`;
+ for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(d[a][b]>0.005)rows+=`<div class="li"><span><b>${CP[a]}</b> owe <b>${CP[b]}</b><br><span class="neg">${mh(d[a][b])}</span>${pd[a][b]?` <small>· ${mh(pd[a][b])} awaiting confirmation</small>`:""}</span>${canC(a)&&rm[a][b]>0.005?`<button class="pill" onclick="openPay(${a},${b})">Pay</button>`:""}${canC(b)&&rm[a][b]>0.005?`<button class="pill" onclick="remind(${a},${b})">Remind</button>`:""}</div>`;
  h+=`<div class="sh">Who owes whom</div><div class="l">${rows||'<div class="li mu">All clear</div>'}</div><div class="mu" style="margin:6px 12px">Couples pay each other together, bill by bill. Open History to see each bill.</div>`;
  const pl=S.cpays.filter(p=>p.status==="pending");
  if(pl.length)h+=`<div class="sh">Waiting for confirmation</div><div class="l">${pl.map(p=>payRow(p)).join("")}</div>`;
@@ -327,7 +334,7 @@ function payRow(p,bid){
  const sub=bid&&p.items.length>1?`part of ${mt(p.amt)} payment`:`${p.items.length} bill${p.items.length==1?"":"s"} · ${p.date}`;
  return `<div class="li"><span style="display:flex;gap:10px;align-items:center">${p.slip?`<button class="pill" onclick="viewSlip(${p.id})">Slip</button>`:""}<span>${CP[p.from]} → ${CP[p.to]}<br><b>${mh(amt)}</b> <small>${sub}</small></span></span><span style="display:flex;gap:4px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${st}${act}</span></div>`;
 }
-function setPay(id,s){const p=S.cpays.find(x=>x.id==id);if(!p)return;p.status=s;p.by2=ME;save();rw("cpays",id,p);render()}
+function setPay(id,s){const p=S.cpays.find(x=>x.id==id);if(!p)return;p.status=s;p.by2=ME;save();rw("cpays",id,p).then(()=>ping({kind:"pay",id,status:s}));render()}
 function delPay(id){S.cpays=S.cpays.filter(b=>b.id!=id);save();rd("cpays",id);rd("slips",id);render()}
 function openPay(a,b,bid){const sel={};dues(true).filter(r=>r.from==a&&r.to==b&&r.rem>0.005&&(!bid||r.b.id==bid)).forEach(r=>sel[r.b.id]=true);sheet={t:"pay",from:a,to:b,sel,slip:""};render()}
 async function pickSlip(inp){
@@ -340,7 +347,7 @@ function sendPay(){
  const rows=dues(true).filter(r=>r.from==sheet.from&&r.to==sheet.to&&r.rem>0.005&&sheet.sel[r.b.id]);
  if(!rows.length)return alert("Select at least one bill to pay.");
  const items=rows.map(r=>({b:r.b.id,a:+r.rem.toFixed(2)})),p={id:Date.now(),from:sheet.from,to:sheet.to,items,amt:+sum(items.map(i=>i.a)).toFixed(2),date:today(),status:"pending",slip:!!sheet.slip,by:ME};
- S.cpays.push(p);save();if(sheet.slip){slipCache[p.id]=sheet.slip;wr("PUT","slips/"+p.id,sheet.slip)}rw("cpays",p.id,p);sheet=null;render();
+ S.cpays.push(p);save();if(sheet.slip){slipCache[p.id]=sheet.slip;wr("PUT","slips/"+p.id,sheet.slip)}rw("cpays",p.id,p).then(()=>ping({kind:"pay",id:p.id,status:"pending"}));sheet=null;render();
 }
 function itemSheet(k){
  const it=k>=0?D.items[k]:null;
@@ -441,7 +448,7 @@ function saveBill(){
  const ed=D.editId,old=ed?S.bills.find(x=>x.id==ed):null;
  const b={...cl(D),title:D.title||"Untitled bill",id:ed||Date.now(),by:old?old.by:ME};delete b.touched;delete b.editId;delete b.rc;const bk=(b.date||"").slice(0,7),bef=monthSpend(bk);
  if(ed)S.bills=S.bills.map(x=>x.id==ed?b:x);else S.bills.unshift(b);
- save();rw("bills",b.id,b);D=blank();if(ed){tab="hist";ob=b.id}else tab="dash";render();sc2(0);
+ save();rw("bills",b.id,b).then(()=>{if(!ed)ping({kind:"bill",id:b.id})});D=blank();if(ed){tab="hist";ob=b.id}else tab="dash";render();sc2(0);
  const aft=monthSpend(bk),al=[0,1,2].map(c=>{const l=budget(c);if(!(l>0))return"";const pb=bef[c]/l,pa=aft[c]/l;return pa>=1&&pb<1?`${CP[c]} are now over their monthly budget.`:pa>=BW&&pb<BW?`${CP[c]} have used ${Math.round(pa*100)}% of their monthly budget.`:""}).filter(Boolean);
  if(al.length)setTimeout(()=>alert("Budget warning\n"+al.join("\n")),200);
 }
@@ -653,7 +660,7 @@ function compDel(id){if(!confirm("Delete this competition? Games are kept."))ret
 const openB=id=>{ob=id;render();sc2(0)};
 function duesPays(x){
  const rs=dues(true).filter(r=>r.b.id==x.id),ps=S.cpays.filter(p=>p.items.some(i=>i.b==x.id));
- return (rs.length?`<div class="sh">Couple dues</div><div class="l">${rs.map(r=>{const left=r.owed-r.paid;return `<div class="li"><span><b>${CP[r.from]}</b><br><small>owe ${CP[r.to]}</small></span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${left<0.005?'<span class="bd ok">Paid</span>':`<b class="neg">${mh(left)}</b>`}${r.pend>0.005?'<span class="bd">Pending</span>':""}${canC(r.from)&&r.rem>0.005?`<button class="pill" onclick="openPay(${r.from},${r.to},${x.id})">Pay</button>`:""}</span></div>`}).join("")}</div>`:"")
+ return (rs.length?`<div class="sh">Couple dues</div><div class="l">${rs.map(r=>{const left=r.owed-r.paid;return `<div class="li"><span><b>${CP[r.from]}</b><br><small>owe ${CP[r.to]}</small></span><span style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">${left<0.005?'<span class="bd ok">Paid</span>':`<b class="neg">${mh(left)}</b>`}${r.pend>0.005?'<span class="bd">Pending</span>':""}${canC(r.from)&&r.rem>0.005?`<button class="pill" onclick="openPay(${r.from},${r.to},${x.id})">Pay</button>`:""}${canC(r.to)&&r.rem>0.005?`<button class="pill" onclick="remind(${r.from},${r.to})">Remind</button>`:""}</span></div>`}).join("")}</div>`:"")
  +(ps.length?`<div class="sh">Payments</div><div class="l">${ps.map(p=>payRow(p,x.id)).join("")}</div>`:"");
 }
 function billDetail(id){
@@ -684,7 +691,7 @@ function account(){
  const t=lastSync?lastSync.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"–";
  return head("Account",`Signed in as ${P[ME]}`)+`<div class="l"><div class="li"><span>Name</span><b>${P[ME]}</b></div><div class="li"><span>Couple</span><b>${CP[cpOf(ME)]}</b></div><div class="li"><span>Data</span><b>${live?"Live":"Offline"}</b></div><div class="li"><span>Last updated</span><b>${t}</b></div></div>
  <div class="sh">Chat</div><div class="l"><div class="li" onclick="openChat()" style="cursor:pointer"><span>Group chat</span><span style="display:flex;gap:8px;align-items:center">${unread()?`<span class="bd no">${unread()}</span>`:""}<span class="mu">›</span></span></div></div>
- <div class="sh">Alerts</div><div class="l"><div class="li" onclick="${notifOn()?"disableNotif()":"enableNotif()"}" style="cursor:pointer"><span>New message alerts</span><span class="mu">${notifOn()?"On · tap to turn off":"Turn on ›"}</span></div></div><div class="mu" style="margin:6px 12px">${isIOS&&!standalone()?"To get alerts on iPhone, add this app to your Home Screen and open it from there.":"Get a notification when someone sends a chat message."}</div>
+ <div class="sh">Alerts</div><div class="l"><div class="li" onclick="${notifOn()?"disableNotif()":"enableNotif()"}" style="cursor:pointer"><span>New message alerts</span><span class="mu">${notifOn()?"On · tap to turn off":"Turn on ›"}</span></div></div><div class="mu" style="margin:6px 12px">${isIOS&&!standalone()?"To get alerts on iPhone, add this app to your Home Screen and open it from there.":"Get alerts for chat messages, new bills, payments and reminders."}</div>
  <div class="sh">Who is online</div><div class="l">${P.map((p,i)=>`<div class="li"><span><span class="od ${isOn(i)||i===ME?"on":""}"></span>${p}${i===ME?'<span class="cp">you</span>':""}</span><span class="mu">${i===ME||isOn(i)?"Online":ago(pres[i]&&pres[i].t)}</span></div>`).join("")}</div>
  <div class="sh">Tools</div><div class="l"><div class="li" onclick="refreshNow()" style="cursor:pointer"><span>Refresh now</span><span class="mu">›</span></div><div class="li" onclick="startChg()" style="cursor:pointer"><span>Change PIN</span><span class="mu">›</span></div><div class="li" onclick="exportCsv()" style="cursor:pointer"><span>Export all bills (CSV)</span><span class="mu">›</span></div></div>
  <div style="margin-top:18px"><button class="btn sec" style="color:var(--red)" onclick="logout()">Sign out</button></div>`;
