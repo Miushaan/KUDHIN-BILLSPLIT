@@ -115,7 +115,24 @@ button:active,.btn:active{opacity:.65}
 .tabs,.ov,#chatov{position:absolute}
 .tabs button{font-size:10.5px}
 @media (max-width:360px){.nb{font-size:14px}.li{padding:11px 12px}.btn{padding:13px}.kp button{height:56px}}
-</style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div>
+#gameov{display:none;position:absolute;top:0;left:0;right:0;bottom:0;z-index:50;background:var(--bg);overflow:hidden}
+.hrow{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}.hrow .pill{margin-top:16px;flex:none}
+.pill.solid{background:var(--ac);color:#fff}
+.tm{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tm>div{border-radius:14px;padding:16px 8px;text-align:center;color:#fff}
+.tm .tgirl{background:#ff2d92}.tm .tboy{background:#0a84ff}.tm .dim{opacity:.72}
+.tm b{display:block;font-size:46px;line-height:1.1}.tm small{font-size:13px;font-weight:600}
+.gc{color:#ff2d92}.bc{color:#0a84ff}
+.step{display:flex;align-items:center;gap:14px}.step b{font-size:24px;min-width:30px;text-align:center}.step .pill{min-width:44px;min-height:40px;font-size:20px}
+.gcard{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;cursor:pointer}
+.gt{display:flex;justify-content:space-between;align-items:center;font-size:21px;letter-spacing:.5px}
+.gs{display:flex;align-items:center;gap:10px;margin-top:12px}.gs>div{flex:1;border-radius:14px;padding:12px 8px;text-align:center;color:#fff}.gs .tgirl{background:#ff2d92}.gs .tboy{background:#0a84ff}.gs .dim{opacity:.7}
+.gs b{display:block;font-size:36px;line-height:1.1}.gs small{font-size:13px;font-weight:600}.vs{color:var(--mu);font-weight:700;font-size:13px}
+.sk{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sk>div{background:var(--card);border-radius:14px;padding:14px 8px;text-align:center}.sk b{display:block;font-size:34px;line-height:1.1}.sk .bs{display:flex;justify-content:center;gap:8px;align-items:baseline}.sk .bs b{display:inline}.sk small{display:block;color:var(--mu);font-size:12px}
+.mnav{display:flex;align-items:center;justify-content:space-between;background:var(--card);border-radius:14px;padding:4px;margin-bottom:12px}.mnav b{font-size:16px}.mnav .pill{min-width:48px;background:none;font-size:20px}
+.live button{border:0;border-radius:16px;padding:18px 8px;color:#fff;font:inherit;text-align:center;cursor:pointer}
+.live b{display:block;font-size:56px;line-height:1.05}.live small{display:block;font-size:12px;font-weight:600}
+</style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div>
 <script>
 const P=["Appal","Uly","Miu","Raya","Aslan","Reesha"],CP=["Appal & Uly","Miu & Raya","Aslan & Reesha"],COL=["#ff9500","#af52de","#30b0c7"],GST=8;
 function sc2(n){const e=document.querySelector(".w");if(e)e.scrollTop=n}
@@ -124,7 +141,7 @@ const cpOf=i=>i>>1,mate=i=>i^1,f=n=>n.toFixed(2),sum=a=>a.reduce((x,y)=>x+y,0),c
 let ob=null;
 let S={bills:[],cpays:[]},tab="dash",who=0,trip="All",live=false,ME=null,memb={},ready=false,sheet=null,inflight=0,hq="",fails=0,lockUntil=0,lastSync=null,lg=null,slipCache={},mon=ldate().slice(0,7);
 try{const r=JSON.parse(localStorage.getItem("squad3")||"null");if(r){S=r}}catch(e){}
-S.cpays=S.cpays||[];
+S.cpays=S.cpays||[];S.nights=S.nights||[];S.games=S.games||{};
 let off=0,pres={},chatMsgs=[],pendingMsgs=[],chatOpen=false,lastOn="",lastRead=0;try{lastRead=+localStorage.getItem("squadread")||0}catch(e){}
 const save=()=>{try{localStorage.setItem("squad3",JSON.stringify(S))}catch(e){}};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -143,10 +160,11 @@ async function fget(path,q){const r=await fetch(`${DBU}/${path}.json${q?"?"+q:""
 async function pull(force){
  if(inflight>0&&!force)return;
  try{
-  const[b,c,m,pr,cht,bg]=await Promise.all([fget("bills"),fget("cpays"),fget("members"),fget("presence"),fget("chat",CHQ),ME===null?null:fget("budgets/"+cpOf(ME))]);
+  const[b,c,m,pr,cht,bg,nt,gm]=await Promise.all([fget("bills"),fget("cpays"),fget("members"),fget("presence"),fget("chat",CHQ),ME===null?null:fget("budgets/"+cpOf(ME)),fget("nights"),fget("games")]);
   const nb=Object.values(b||{}).map(normB).sort((x,y)=>y.id-x.id),nc=Object.values(c||{}).map(normP).sort((x,y)=>x.id-y.id);
-  const ch=JSON.stringify([nb,nc,m||{}])!==JSON.stringify([S.bills,S.cpays,memb])||JSON.stringify(bg&&ME!==null?{[cpOf(ME)]:bg}:{})!==JSON.stringify(S.budgets||{});
-  S.bills=nb;S.cpays=nc;S.budgets=bg&&ME!==null?{[cpOf(ME)]:bg}:{};memb=m||{};lastSync=new Date();save();
+  const nn=Object.values(nt||{}).filter(Boolean).sort((a,b)=>(a.date||"").localeCompare(b.date||"")||a.id-b.id);
+  const ch=JSON.stringify([nb,nc,m||{}])!==JSON.stringify([S.bills,S.cpays,memb])||JSON.stringify([nn,gm||{}])!==JSON.stringify([S.nights,S.games||{}])||JSON.stringify(bg&&ME!==null?{[cpOf(ME)]:bg}:{})!==JSON.stringify(S.budgets||{});
+  S.bills=nb;S.cpays=nc;S.nights=nn;S.games=gm||{};S.budgets=bg&&ME!==null?{[cpOf(ME)]:bg}:{};memb=m||{};lastSync=new Date();save();
   pres=pr||{};const pc=setChat(cht),on=P.map((_,i)=>isOn(i)?1:0).join(""),oc=on!==lastOn;lastOn=on;
   const was=live;live=true;ready=true;
   if(chatOpen&&(pc||oc))updateChat();if(ch||pc||oc||!was)uiRefresh();
@@ -192,7 +210,7 @@ async function sendChat(){
  pendingMsgs=pendingMsgs.filter(p=>p.id!==id);if(e)e.focus();
 }
 const ago=t=>{if(!t)return"Not seen yet";const m=Math.floor((snow()-t)/60000);return m<1?"Just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+" h ago":new Date(t-off).toLocaleDateString([],{day:"numeric",month:"short"})};
-function uiRefresh(){if(tab=="new"&&ME!==null)return;if(sheet)return;render()}
+function uiRefresh(){if(gameOpen&&!gs)gameRender();if(tab=="new"&&ME!==null)return;if(sheet)return;render()}
 function wr(method,path,body){
  inflight++;
  return fetch(`${DBU}/${path}.json`,{method,body:body===undefined?undefined:JSON.stringify(body)}).then(r=>{if(!r.ok)throw new Error(r.status)}).catch(()=>alert("Could not save to the server. Check your connection and try again.")).finally(()=>{inflight--;pull(true)});
@@ -248,10 +266,11 @@ const seg=(opts,cur,fn)=>`<div class="seg">${opts.map(([k,l])=>`<button class="$
 const head=(t,s)=>`<h1>${t}</h1><div class="sub">${s}</div>`;
 
 /* ---- dashboard ---- */
+const headBtn=(t,sub)=>`<div class="hrow"><h1>${t}</h1><button class="pill solid" onclick="openGame()">Game Night</button></div><div class="sub">${sub}</div>`;
 function dash(){
  const{d,pd,rm}=pairs(),trips=[...new Set(S.bills.map(b=>b.trip).filter(Boolean))];
  const net=[0,1,2].map(c=>sum(d.map(r=>r[c]))-sum(d[c]));
- let h=head("Overview",`Hi ${P[ME]} · ${live?"Live":"Offline"} · ${P.filter((_,i)=>isOn(i)||i===ME).length} online`);
+ let h=headBtn("Overview",`Hi ${P[ME]} · ${live?"Live":"Offline"} · ${P.filter((_,i)=>isOn(i)||i===ME).length} online`);
  h+=`<div class="l"><div class="li"><span>Trip</span><select onchange="trip=this.value;render()"><option>All</option>${trips.map(t=>`<option ${t==trip?"selected":""}>${esc(t)}</option>`).join("")}</select></div></div>`;
  {const mk=ldate().slice(0,7),mc0=cpOf(ME),st=budState(monthSpend(mk)[mc0],budget(mc0));if(st&&st.p>=BW)h+=`<div class="l" style="margin-top:12px;border-left:4px solid ${st.bar}"><div class="li"><span><b>Budget alert</b><br><small>${CP[mc0]} used ${Math.round(st.p*100)}% of this month's budget. ${st.t}.</small></span></div></div>`}
  {const mc=cpOf(ME),owe=sum(d[mc]),got=sum(d.map(r=>r[mc]));h+=`<div class="row2" style="margin-top:12px"><div class="tile"><small>${CP[mc]} owe</small><b class="${owe>0.005?"neg":""}">${mh(owe)}</b></div><div class="tile"><small>${CP[mc]} are owed</small><b class="${got>0.005?"pos":""}">${mh(got)}</b></div></div>`}
@@ -411,6 +430,77 @@ function monthly(){
  return h;
 }
 
+/* ---- game night ---- */
+const GIRLS=[1,3,5],BOYS=[0,2,4];
+let gameOpen=false,gv={s:"home",gid:null,m:""},gs=null;
+const gamesList=()=>[{id:"sequence",name:"SEQUENCE"},...Object.entries(S.games||{}).map(([id,g])=>({id,name:(g&&g.name)||"Game"}))];
+const gname=id=>(gamesList().find(g=>g.id==id)||{name:"Game"}).name;
+const nWin=n=>n.g>n.b?"g":n.b>n.g?"b":"d";
+const nightsOf=(gid,m)=>S.nights.filter(n=>n.game==gid&&(!m||(n.date||"").startsWith(m)));
+function tally(list){const t={g:0,b:0,d:0};list.forEach(n=>t[nWin(n)]++);return t}
+function streaks(list){
+ let run={t:null,n:0};const best={g:0,b:0};
+ list.forEach(n=>{const w=nWin(n);if(w=="d"){run={t:null,n:0}}else{run=run.t==w?{t:w,n:run.n+1}:{t:w,n:1};if(run.n>best[w])best[w]=run.n}});
+ return{cur:run,best};
+}
+const tn=t=>t=="g"?"Girls":"Boys",tcol=t=>t=="g"?"gc":"bc";
+function openGame(){gameOpen=true;gv={s:"home",gid:null,m:ldate().slice(0,7)};gs=null;gameov.style.display="block";gameRender()}
+function closeGame(){gameOpen=false;gs=null;gameov.style.display="none";gameov.innerHTML=""}
+function gOpen(id){gv.s="game";gv.gid=id;gv.m=ldate().slice(0,7);gameRender();const e=document.querySelector(".gw");if(e)e.scrollTop=0}
+function gHome(){gv.s="home";gameRender()}
+function gShift(n){const[y,m]=gv.m.split("-").map(Number);gv.m=mkey(new Date(y,m-1+n,1));gameRender()}
+function addGame(){const n=(prompt("Game name")||"").trim();if(!n)return;const id="g"+Date.now();S.games[id]={name:n.toUpperCase()};save();wr("PUT","games/"+id,{name:n.toUpperCase()});gameRender()}
+function nightSheet(){gs={id:null,game:gv.gid,date:today(),note:"",rounds:[]};gameRender()}
+const arrOf=o=>Array.isArray(o)?o:Object.values(o||{});
+function editNight(id){const n=S.nights.find(x=>x.id==id);if(!n)return;gs={id:n.id,game:n.game,date:n.date,note:n.note||"",by:n.by,rounds:n.rounds&&arrOf(n.rounds).length?arrOf(n.rounds):[...Array(n.g||0).fill("g"),...Array(n.b||0).fill("b")]};gameRender()}
+function rnd(w){gs.rounds.push(w);liveSave()}
+function undoRound(){if(gs.rounds.length){gs.rounds.pop();liveSave()}}
+function liveSave(){
+ const g=gs.rounds.filter(x=>x=="g").length,b=gs.rounds.length-g;
+ if(!gs.rounds.length){if(gs.id){S.nights=S.nights.filter(x=>x.id!=gs.id);save();wr("DELETE","nights/"+gs.id);gs.id=null}return gameRender()}
+ if(!gs.id)gs.id=Math.max(Date.now(),...S.nights.map(x=>x.id+1));
+ const n={id:gs.id,game:gs.game||gv.gid,date:gs.date||today(),g,b,note:(gs.note||"").trim(),by:gs.by||ME,rounds:[...gs.rounds]};
+ const i=S.nights.findIndex(x=>x.id==n.id);if(i>=0)S.nights[i]=n;else S.nights.push(n);
+ S.nights.sort((a,b)=>(a.date||"").localeCompare(b.date||"")||a.id-b.id);save();wr("PUT","nights/"+n.id,n);
+ gv.m=n.date.slice(0,7);gameRender();
+}
+function delNight(id){if(!confirm("Delete this night?"))return;S.nights=S.nights.filter(n=>n.id!=id);save();wr("DELETE","nights/"+id);gameRender()}
+function gameRender(){
+ const el=document.getElementById("gameov");if(!gameOpen||!el)return;
+ const old=document.querySelector(".gw"),y=old?old.scrollTop:0;
+ el.innerHTML=`<div class="w gw">${gv.s=="home"?gameHome():gamePage()}</div>${gs?nightSheetHtml():""}`;
+ const nw=document.querySelector(".gw");if(nw)nw.scrollTop=y;
+}
+function gameHome(){
+ const mk=ldate().slice(0,7),mn=new Date().toLocaleString("en",{month:"long",year:"numeric"});
+ return `<button class="pill" style="margin-top:6px" onclick="closeGame()">‹ Overview</button>`+head("Game Night","Pick a game to see the scores")+
+ gamesList().map(g=>{const t=tally(nightsOf(g.id,mk)),sk=streaks(nightsOf(g.id)).cur;
+  return `<div class="gcard" onclick="gOpen('${g.id}')"><div class="gt"><b>${esc(g.name)}</b><span class="mu">›</span></div><div class="mu">${mn}</div>
+  <div class="gs"><div class="tgirl ${t.g<t.b?"dim":""}"><b>${t.g}</b><small>Girls</small></div><span class="vs">vs</span><div class="tboy ${t.b<t.g?"dim":""}"><b>${t.b}</b><small>Boys</small></div></div>
+  ${sk.t&&sk.n>=2?`<div class="mu" style="margin-top:10px;text-align:center"><b class="${tcol(sk.t)}">${tn(sk.t)}</b> on a ${sk.n}-night winning streak</div>`:""}</div>`}).join("")+
+ `<button class="btn sec" onclick="addGame()">+ Add game</button>`;
+}
+function gamePage(){
+ const all=nightsOf(gv.gid),mo=nightsOf(gv.gid,gv.m),t=tally(mo),st=streaks(all),lead=t.g==t.b?"All square":(t.g>t.b?"Girls":"Boys")+" lead by "+Math.abs(t.g-t.b);
+ const[y,m]=gv.m.split("-").map(Number),mn=new Date(y,m-1,1).toLocaleString("en",{month:"long",year:"numeric"});
+ const rows=all.slice().reverse().slice(0,40).map(n=>{const w=nWin(n);return `<div class="li" onclick="editNight(${n.id})" style="cursor:pointer"><span><b>${shortDate(n.date)}</b><br><small>${esc(n.note||"")||"&nbsp;"}</small></span><span style="display:flex;gap:8px;align-items:center"><span><b class="gc">${n.g}</b> – <b class="bc">${n.b}</b></span><span class="bd ${w=="d"?"":"ok"}" style="${w=="g"?"background:#ff2d92":w=="b"?"background:#0a84ff":""}">${w=="d"?"Draw":tn(w)}</span><button class="x" onclick="event.stopPropagation();delNight(${n.id})">×</button></span></div>`}).join("");
+ return `<button class="pill" style="margin-top:6px" onclick="gHome()">‹ Games</button>`+head(esc(gname(gv.gid)),"Girls vs Boys")+
+ `<div class="mnav"><button class="pill" onclick="gShift(-1)">‹</button><b>${mn}</b><button class="pill" onclick="gShift(1)">›</button></div>
+ <div class="mu" style="margin:0 4px 6px">Monthly wins</div><div class="tm"><div class="tgirl ${t.g<t.b?"dim":""}"><b>${t.g}</b><small>Girls</small></div><div class="tboy ${t.b<t.g?"dim":""}"><b>${t.b}</b><small>Boys</small></div></div>
+ <div class="mu" style="text-align:center;margin:8px 0 0">${lead}${t.d?` · ${t.d} draw${t.d==1?"":"s"}`:""}</div>
+ <div class="sh">Winning streak</div><div class="sk"><div><small>Current</small>${st.cur.t?`<b class="${tcol(st.cur.t)}">${st.cur.n}</b><small>${tn(st.cur.t)} · night${st.cur.n==1?"":"s"}</small>`:`<b class="mu">–</b><small>No streak</small>`}</div><div><small>Best ever</small><span class="bs"><b class="gc">${st.best.g}</b><b class="mu">/</b><b class="bc">${st.best.b}</b></span><small>Girls / Boys</small></div></div>
+ <div style="margin-top:14px"><button class="btn" onclick="nightSheet()">Add a new night</button></div>
+ <div class="sh">Nights played · tap one to add rounds</div><div class="l">${rows||'<div class="li mu">No nights yet. Add your first one.</div>'}</div>`;
+}
+function nightSheetHtml(){
+ const g=gs.rounds.filter(x=>x=="g").length,b=gs.rounds.length-g,w=g>b?"Girls are ahead":b>g?"Boys are ahead":g?"All square":"No rounds yet";
+ return `<div class="ov" onclick="gs=null;gameRender()"><div class="sheet" onclick="event.stopPropagation()"><h2 style="margin:0 0 4px">Night · ${esc(gname(gs.game||gv.gid))}</h2><div class="mu" style="margin-bottom:12px">Tap a team each time they win a round. It saves automatically.</div>
+ <div class="tm live"><button class="tgirl" onclick="rnd('g')"><b>${g}</b><small>Girls · tap for a round win</small></button><button class="tboy" onclick="rnd('b')"><b>${b}</b><small>Boys · tap for a round win</small></button></div>
+ <div style="text-align:center;margin:10px 0 4px"><b>${w}</b></div>
+ ${gs.rounds.length?`<div class="chips" style="justify-content:center">${gs.rounds.map((x,i)=>`<span class="chip" style="background:${x=="g"?"#ff2d92":"#0a84ff"};color:#fff">R${i+1} · ${tn(x)}</span>`).join("")}</div><div style="text-align:center;margin-top:8px"><button class="pill r" onclick="undoRound()">Undo last round</button></div>`:""}
+ <div class="l" style="margin-top:12px"><div class="li"><span>Date</span><input type="date" value="${gs.date}" oninput="gs.date=this.value" onchange="if(gs.id)liveSave()"></div><div class="li"><span>Note</span><input value="${esc(gs.note)}" placeholder="Optional" oninput="gs.note=this.value" onchange="if(gs.id)liveSave()"></div></div>
+ <div style="margin-top:12px"><button class="btn" onclick="gs=null;gameRender()">Done</button></div></div></div>`;
+}
 /* ---- history ---- */
 const openB=id=>{ob=id;render();sc2(0)};
 function duesPays(x){
