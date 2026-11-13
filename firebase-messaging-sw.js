@@ -16,6 +16,10 @@ const messaging = firebase.messaging();
 
 messaging.onBackgroundMessage((payload) => {
   const d = payload.data || {};
+  // Show the app icon badge with the unread message count (when the alert includes one).
+  try {
+    if (d.badge && self.navigator && self.navigator.setAppBadge) self.navigator.setAppBadge(Number(d.badge));
+  } catch (e) {}
   return self.registration.showNotification(d.title || "Squad Split", {
     body: d.body || "",
     icon: "icon-192.png",
