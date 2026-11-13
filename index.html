@@ -149,7 +149,9 @@ button:active,.btn:active{opacity:.65}
 .mc{display:flex;flex-direction:column;min-width:0;max-width:calc(100% - 60px)}.mr.me .mc{align-items:flex-end}.mc .b{max-width:100%;align-self:auto}
 .pp{flex:none;width:46px;height:46px;border-radius:50%;color:#fff;font-size:10.5px;font-weight:700;display:flex;align-items:center;justify-content:center;text-align:center;line-height:1;overflow:hidden}.pp.sp{visibility:hidden}
 .seen{font-size:10.5px;color:var(--mu);margin:2px 6px 4px}
-</style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div><div id="fab" onclick="openChat()"></div>
+#perov{display:none;position:absolute;top:0;left:0;right:0;bottom:0;z-index:35;background:var(--bg);overflow:hidden}
+.sugl{max-height:240px;overflow-y:auto;scrollbar-width:none}.sugl::-webkit-scrollbar{display:none}
+</style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div><div id="fab" onclick="openChat()"></div><div id="perov"></div>
 <script>
 const P=["Appal","Uly","Miu","Raya","Aslan","Reesha"],CP=["Appal & Uly","Miu & Raya","Aslan & Reesha"],COL=["#ff9500","#af52de","#30b0c7"],GST=8;
 function sc2(n){const e=document.querySelector(".w");if(e)e.scrollTop=n}
@@ -210,12 +212,13 @@ async function fget(path,q){const r=await fetch(`${DBU}/${path}.json${q?"?"+q:""
 async function pull(force){
  if(inflight>0&&!force)return;
  try{
-  const[b,c,m,pr,cht,bg,nt,gm,gx,cx,sn]=await Promise.all([fget("bills"),fget("cpays"),fget("members"),fget("presence"),fget("chat",CHQ),ME===null?null:fget("budgets/"+cpOf(ME)),fget("nights"),fget("games"),fget("ginmatches"),fget("comps"),fget("seen")]);
+  const[b,c,m,pr,cht,bg,nt,gm,gx,cx,sn,pe]=await Promise.all([fget("bills"),fget("cpays"),fget("members"),fget("presence"),fget("chat",CHQ),ME===null?null:fget("budgets/"+cpOf(ME)),fget("nights"),fget("games"),fget("ginmatches"),fget("comps"),fget("seen"),ME===null?null:fget("personal/"+cpOf(ME))]);
   const nb=Object.values(b||{}).map(normB).sort((x,y)=>y.id-x.id),nc=Object.values(c||{}).map(normP).sort((x,y)=>x.id-y.id);
   const nn=Object.values(nt||{}).filter(Boolean).sort((a,b)=>(a.date||"").localeCompare(b.date||"")||a.id-b.id);
   const gn=Object.values(gx||{}).filter(Boolean).map(normGin).sort((a,b)=>a.id-b.id),cn=Object.values(cx||{}).filter(Boolean).sort((a,b)=>a.id-b.id);
-  const ch=JSON.stringify([nb,nc,m||{}])!==JSON.stringify([S.bills,S.cpays,memb])||JSON.stringify([nn,gm||{}])!==JSON.stringify([S.nights,S.games||{}])||JSON.stringify([gn,cn])!==JSON.stringify([S.gin,S.comps])||JSON.stringify(bg&&ME!==null?{[cpOf(ME)]:bg}:{})!==JSON.stringify(S.budgets||{});
-  S.bills=nb;S.cpays=nc;S.nights=nn;S.games=gm||{};S.gin=gn;S.comps=cn;S.budgets=bg&&ME!==null?{[cpOf(ME)]:bg}:{};memb=m||{};lastSync=new Date();save();
+  const pn=normPer(pe);
+  const ch=JSON.stringify([nb,nc,m||{}])!==JSON.stringify([S.bills,S.cpays,memb])||JSON.stringify([nn,gm||{}])!==JSON.stringify([S.nights,S.games||{}])||JSON.stringify([gn,cn])!==JSON.stringify([S.gin,S.comps])||JSON.stringify(pn)!==JSON.stringify(S.per||null)||JSON.stringify(bg&&ME!==null?{[cpOf(ME)]:bg}:{})!==JSON.stringify(S.budgets||{});
+  S.bills=nb;S.cpays=nc;S.nights=nn;S.games=gm||{};S.gin=gn;S.comps=cn;S.per=pn;S.budgets=bg&&ME!==null?{[cpOf(ME)]:bg}:{};memb=m||{};lastSync=new Date();save();
   pres=pr||{};const pc=setChat(cht,sn),on=P.map((_,i)=>isOn(i)?1:0).join(""),oc=on!==lastOn;lastOn=on;fabUpd();
   const was=live;live=true;ready=true;
   if(chatOpen&&(pc||oc))updateChat();if(ch||pc||oc||!was)uiRefresh();
@@ -279,7 +282,7 @@ async function sendChat(){
  pendingMsgs=pendingMsgs.filter(p=>p.id!==id);if(e)e.focus();
 }
 const ago=t=>{if(!t)return"Not seen yet";const m=Math.floor((snow()-t)/60000);return m<1?"Just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+" h ago":new Date(t-off).toLocaleDateString([],{day:"numeric",month:"short"})};
-function uiRefresh(){if(gameOpen&&!gs&&!gset&&!cset)gameRender();if(tab=="new"&&ME!==null)return;if(sheet)return;render()}
+function uiRefresh(){if(gameOpen&&!gs&&!gset&&!cset)gameRender();if(perOpen&&!pset)perRender();if(tab=="new"&&ME!==null)return;if(sheet)return;render()}
 function wr(method,path,body){
  inflight++;
  return fetch(`${DBU}/${path}.json`,{method,body:body===undefined?undefined:JSON.stringify(body)}).then(r=>{if(!r.ok)throw new Error(r.status)}).catch(()=>alert("Could not save to the server. Check your connection and try again.")).finally(()=>{inflight--;pull(true)});
@@ -338,18 +341,25 @@ const head=(t,s)=>`<h1>${t}</h1><div class="sub">${s}</div>`;
 /* ---- dashboard ---- */
 const headBtn=(t,sub)=>`<div class="hrow"><h1>${t}</h1><button class="pill solid" onclick="openGame()">Game Night</button></div><div class="sub">${sub}</div>`;
 function dash(){
- const{d,pd,rm}=pairs(),trips=[...new Set(S.bills.map(b=>b.trip).filter(Boolean))];
- const net=[0,1,2].map(c=>sum(d.map(r=>r[c]))-sum(d[c]));
- let h=head("Overview",`Hi ${P[ME]} · ${live?"Live":"Offline"} · ${P.filter((_,i)=>isOn(i)||i===ME).length} online`);
- h+=`<div class="l"><div class="li"><span>Trip</span><select onchange="trip=this.value;render()"><option>All</option>${trips.map(t=>`<option ${t==trip?"selected":""}>${esc(t)}</option>`).join("")}</select></div></div>`;
- {const mk=ldate().slice(0,7),mc0=cpOf(ME),st=budState(monthSpend(mk)[mc0],budget(mc0));if(st&&st.p>=BW)h+=`<div class="l" style="margin-top:12px;border-left:4px solid ${st.bar}"><div class="li"><span><b>Budget alert</b><br><small>${CP[mc0]} used ${Math.round(st.p*100)}% of this month's budget. ${st.t}.</small></span></div></div>`}
- {const mc=cpOf(ME),owe=sum(d[mc]),got=sum(d.map(r=>r[mc]));h+=`<div class="row2" style="margin-top:12px"><div class="tile"><small>${CP[mc]} owe</small><b class="${owe>0.005?"neg":""}">${mh(owe)}</b></div><div class="tile"><small>${CP[mc]} are owed</small><b class="${got>0.005?"pos":""}">${mh(got)}</b></div></div>`}
- h+=`<div class="sh">Couple balances</div><div class="l">${CP.map((c,k)=>`<div class="li"><span><b>${c}</b>${cpOf(ME)==k?'<span class="cp">you</span>':""}<br><small>${net[k]>0.005?"gets back":net[k]<-0.005?"needs to pay":"settled"}</small></span><b class="${net[k]>0.005?"pos":net[k]<-0.005?"neg":""}">${net[k]<0?"−":net[k]>0?"+":""}${mh(Math.abs(net[k]))}</b></div>`).join("")}</div>`;
+ const{d,pd,rm}=pairs(),mc=cpOf(ME),trips=[...new Set(S.bills.map(b=>b.trip).filter(Boolean))],mk=ldate().slice(0,7);
+ const owe=sum(d[mc]),got=sum(d.map(r=>r[mc])),mine=S.cpays.filter(p=>p.status==="pending"&&(p.to===mc||p.from===mc)),toMe=mine.filter(p=>p.to===mc);
+ let h=head("Overview",`Hi ${P[ME]} · ${CP[mc]} · ${live?"Live":"Offline"}`);
+ /* alerts for this couple */
+ const al=[];
+ if(toMe.length)al.push({c:"var(--ac)",h:`<b>${toMe.length}</b> payment${toMe.length==1?"":"s"} waiting for your confirmation · ${mh(sum(toMe.map(p=>p.amt)))}`});
+ for(let b=0;b<3;b++)if(b!==mc&&rm[mc][b]>0.005)al.push({c:"var(--red)",h:`You owe <b>${CP[b]}</b> ${mh(rm[mc][b])}`,btn:`<button class="pill" onclick="openPay(${mc},${b})">Pay</button>`});
+ {const sp=mySpend(mk),st=budState(sp.total,budget(mc));if(st&&st.p>=BW)al.push({c:st.bar,h:`<b>Budget</b> · ${Math.round(st.p*100)}% used. ${st.t}.`,btn:`<button class="pill" onclick="openPer()">Open</button>`})}
+ {const day=new Date().getDate();per().fixed.filter(f=>fixedOn(f,mk)&&f.day>=day&&f.day-day<=3).forEach(f=>al.push({c:"#ff9500",h:`<b>${esc(f.name)}</b> ${f.day==day?"is due today":"is due in "+(f.day-day)+" day"+(f.day-day==1?"":"s")} · ${mh(+f.amount||0)}`}))}
+ if(unread()>0)al.push({c:"var(--ac)",h:`<b>${unread()}</b> unread chat message${unread()==1?"":"s"}`,btn:`<button class="pill" onclick="openChat()">Open</button>`});
+ h+=`<div class="sh">Alerts</div><div class="l">${al.length?al.map(a=>`<div class="li" style="border-left:4px solid ${a.c}"><span>${a.h}</span>${a.btn||""}</div>`).join(""):'<div class="li mu">You are all caught up.</div>'}</div>`;
+ h+=`<div class="row2" style="margin-top:12px"><div class="tile"><small>${CP[mc]} owe</small><b class="${owe>0.005?"neg":""}">${mh(owe)}</b></div><div class="tile"><small>${CP[mc]} are owed</small><b class="${got>0.005?"pos":""}">${mh(got)}</b></div></div>`;
+ h+=`<div class="l" style="margin-top:12px"><div class="li"><span>Trip</span><select onchange="trip=this.value;render()"><option>All</option>${trips.map(t=>`<option ${t==trip?"selected":""}>${esc(t)}</option>`).join("")}</select></div></div>`;
  let rows="";
- for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(d[a][b]>0.005)rows+=`<div class="li"><span><b>${CP[a]}</b> owe <b>${CP[b]}</b><br><span class="neg">${mh(d[a][b])}</span>${pd[a][b]?` <small>· ${mh(pd[a][b])} awaiting confirmation</small>`:""}</span>${canC(a)&&rm[a][b]>0.005?`<button class="pill" onclick="openPay(${a},${b})">Pay</button>`:""}${canC(b)&&rm[a][b]>0.005?`<button class="pill" onclick="remind(${a},${b})">Remind</button>`:""}</div>`;
- h+=`<div class="sh">Who owes whom</div><div class="l">${rows||'<div class="li mu">All clear</div>'}</div><button class="btn" style="margin-top:12px;padding:18px;font-size:18px" onclick="go('hist')">Bills · ${S.bills.length}</button>`;
- const pl=S.cpays.filter(p=>p.status==="pending");
- if(pl.length)h+=`<div class="sh">Waiting for confirmation</div><div class="l">${pl.map(p=>payRow(p)).join("")}</div>`;
+ for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(d[a][b]>0.005&&(a===mc||b===mc))rows+=`<div class="li"><span><b>${CP[a]}</b> owe <b>${CP[b]}</b><br><span class="neg">${mh(d[a][b])}</span>${pd[a][b]?` <small>· ${mh(pd[a][b])} awaiting confirmation</small>`:""}</span>${canC(a)&&rm[a][b]>0.005?`<button class="pill" onclick="openPay(${a},${b})">Pay</button>`:""}${canC(b)&&rm[a][b]>0.005?`<button class="pill" onclick="remind(${a},${b})">Remind</button>`:""}</div>`;
+ h+=`<div class="sh">Who owes whom</div><div class="l">${rows||'<div class="li mu">Nothing owed to or by your couple</div>'}</div>`;
+ if(mine.length)h+=`<div class="sh">Waiting for confirmation</div><div class="l">${mine.map(p=>payRow(p)).join("")}</div>`;
+ h+=`<button class="btn" style="margin-top:14px;padding:18px;font-size:18px" onclick="go('hist')">Bills · ${S.bills.length}</button>`;
+ {const st=budState(mySpend(mk).total,budget(mc));h+=`<button class="btn sec" style="margin-top:10px;padding:18px;font-size:18px" onclick="openPer()">Personal budget${st?` · ${Math.round(st.p*100)}% used`:""}</button>`}
  return h;
 }
 function payRow(p,bid){
@@ -405,8 +415,8 @@ function itemPage(){
  const s=sheet,lastIt=s.k<0&&D.items.length?D.items[D.items.length-1]:null,rec=pastItems().slice(0,8),unit=s.pm=="unit";
  return `<div class="fp"><div class="w"><button class="pill" style="margin-top:6px" onclick="closeItem()">‹ Cancel</button>
  <h1>${s.k<0?"Add item":"Edit item"}</h1><div class="sub">Type the price from the bill, then pick who ordered it.</div>
- <div class="l"><div class="li"><span>Item</span><input id="isn" autocomplete="off" placeholder="e.g. Grilled fish" value="${esc(s.n)}" oninput="sheet.n=this.value"></div></div>
- ${rec.length&&s.k<0?`<div class="chips" style="margin-top:8px">${rec.map((x,i)=>`<button class="pill" onclick="pickRecent(${i})">${esc(x.n)}</button>`).join("")}</div>`:""}
+ <div class="l"><div class="li"><span>Item</span><input id="isn" autocomplete="off" placeholder="e.g. Grilled fish" value="${esc(s.n)}" oninput="sheet.n=this.value;itSug()"></div></div>
+ <div class="l sugl" id="its" style="margin-top:8px;display:none"></div>
  <div class="sh">Price</div>${seg([["bill","Bill price"],["unit","Unit price"]],s.pm,"setPM")}
  <div class="l" style="margin-top:10px"><div class="li"><span>${unit?"Unit price":"Bill price"}</span><input type="number" inputmode="decimal" step="any" placeholder="0" value="${esc(s.pr)}" oninput="sheet.pr=this.value;itemTot()"></div>
  <div class="li"><span>Quantity</span><span class="step"><button class="pill" onclick="sheet.q=Math.max(1,sheet.q-1);render()">−</button><b>${s.q}</b><button class="pill" onclick="sheet.q++;render()">+</button></span></div>
@@ -436,8 +446,8 @@ function newBill(){
  const num=(k,l)=>`<div class="li"><span>${l}</span><input type="number" inputmode="decimal" step="any" value="${D[k]||""}" placeholder="0" oninput="D.${k}=+this.value;prev()"></div>`;
  let h=head(D.editId?"Edit Bill":"New Bill",D.editId?"Changing a saved bill. Payments already made stay as they are.":"Add what everyone had");
  h+=` <div class="sh">Details</div><div class="l">
- <div class="li"><span>Place</span><input list="pl" autocomplete="off" value="${esc(D.title)}" placeholder="Search or type a place" oninput="D.title=this.value"><datalist id="pl">${pastPlaces().map(x=>`<option value="${esc(x)}">`).join("")}</datalist></div>
- ${pastPlaces().length?`<div class="li col"><div class="mu">Recent places</div><div class="chips">${pastPlaces().slice(0,8).map((x,i)=>`<button class="pill" onclick="setPlace(${i})">${esc(x)}</button>`).join("")}</div></div>`:""}
+ <div class="li"><span>Place</span><input autocomplete="off" value="${esc(D.title)}" placeholder="Type to search places" oninput="D.title=this.value;plSug()" onfocus="plSug()"></div>
+ <div id="pls"></div>
  <div class="li"><span>Trip</span><input list="tl" value="${esc(D.trip)}" placeholder="Optional" oninput="D.trip=this.value"><datalist id="tl">${trips.map(t=>`<option value="${esc(t)}">`).join("")}</datalist></div>
  <div class="li"><span>Date</span><input type="date" value="${D.date}" oninput="D.date=this.value"></div>
  <div class="li"><span>Receipt total</span><input type="number" inputmode="decimal" step="any" placeholder="Optional check" value="${D.recTotal||""}" oninput="D.recTotal=+this.value;prev()"></div>
@@ -455,6 +465,22 @@ function pastItems(){const seen={},o=[];S.bills.forEach(b=>b.items.forEach(it=>{
 function autoP(k){const it=D.items[k],x=pastItems().find(y=>y.n.toLowerCase()==(it.n||"").trim().toLowerCase());if(x&&!(+it.p)){it.p=x.p;render()}}
 function addItem(){D.items.push(newItem());render();const e=[...document.querySelectorAll(".nm")].pop();if(e){e.focus();e.scrollIntoView({block:"center",behavior:"smooth"})}}
 function pastPlaces(){const seen={},o=[];S.bills.forEach(b=>{const n=(b.title||"").trim(),k=n.toLowerCase();if(n&&n!=="Untitled bill"&&!seen[k]){seen[k]=1;o.push(n)}});return o}
+let plL=[],sugL=[];
+function plSug(){
+ const q=(D.title||"").trim().toLowerCase(),all=pastPlaces();
+ plL=(q?all.filter(x=>x.toLowerCase().includes(q)&&x.toLowerCase()!==q).sort((a,b)=>(b.toLowerCase().startsWith(q)?1:0)-(a.toLowerCase().startsWith(q)?1:0)):all.slice(0,8)).slice(0,30);
+ const e=document.getElementById("pls");if(!e)return;
+ e.innerHTML=plL.length?`<div style="border-top:.5px solid var(--bd)"><div class="mu" style="padding:8px 16px 2px">${q?"Matching places":"Recent places"}</div><div class="sugl">${plL.map((x,i)=>`<div class="li" onclick="pickPlace(${i})" style="cursor:pointer;min-height:44px"><span>${esc(x)}</span></div>`).join("")}</div></div>`:"";
+}
+function pickPlace(i){if(plL[i]!==undefined){D.title=plL[i];render()}}
+function itSug(){
+ const q=(sheet.n||"").trim().toLowerCase(),all=pastItems();
+ sugL=(q?all.filter(x=>x.n.toLowerCase().includes(q)&&x.n.toLowerCase()!==q).sort((a,b)=>(b.n.toLowerCase().startsWith(q)?1:0)-(a.n.toLowerCase().startsWith(q)?1:0)):all).slice(0,40);
+ const e=document.getElementById("its");if(!e)return;
+ e.style.display=sugL.length?"block":"none";
+ e.innerHTML=sugL.length?`<div class="mu" style="padding:8px 16px 2px">${q?"Matching items":"Recent items"}</div>`+sugL.map((x,i)=>`<div class="li" onclick="pickItem(${i})" style="cursor:pointer;min-height:44px"><span>${esc(x.n)}</span><span class="mu">${mh(x.p)}</span></div>`).join(""):"";
+}
+function pickItem(i){const x=sugL[i];if(!x)return;sheet.n=x.n;sheet.pm="bill";sheet.pr=String(x.p);sheet.q=1;render()}
 function setPlace(i){D.title=pastPlaces()[i];render()}
 const setMode=k=>{D.mode=k;render()};
 const setM=(k,v)=>{D.items[k].m=v;render()};
@@ -483,10 +509,10 @@ function saveBill(){
  if(!D.items.some(i=>+i.p>0))return alert("Add at least one item with a price.");
  if(D.items.some(i=>+i.p>0&&!i.w.length))return alert("Pick at least one person for every item.");
  const ed=D.editId,old=ed?S.bills.find(x=>x.id==ed):null;
- const b={...cl(D),title:D.title||"Untitled bill",id:ed||Date.now(),by:old?old.by:ME};delete b.touched;delete b.editId;delete b.rc;const bk=(b.date||"").slice(0,7),bef=monthSpend(bk);
+ const b={...cl(D),title:D.title||"Untitled bill",id:ed||Date.now(),by:old?old.by:ME};delete b.touched;delete b.editId;delete b.rc;const bk=(b.date||"").slice(0,7),bef=mySpend(bk).total;
  if(ed)S.bills=S.bills.map(x=>x.id==ed?b:x);else S.bills.unshift(b);
  save();rw("bills",b.id,b).then(()=>{if(!ed)ping({kind:"bill",id:b.id})});D=blank();if(ed){tab="hist";ob=b.id}else tab="dash";render();sc2(0);
- const aft=monthSpend(bk),al=[0,1,2].map(c=>{const l=budget(c);if(!(l>0))return"";const pb=bef[c]/l,pa=aft[c]/l;return pa>=1&&pb<1?`${CP[c]} are now over their monthly budget.`:pa>=BW&&pb<BW?`${CP[c]} have used ${Math.round(pa*100)}% of their monthly budget.`:""}).filter(Boolean);
+ const aft=mySpend(bk).total,al=budCross(bef,aft);
  if(al.length)setTimeout(()=>alert("Budget warning\n"+al.join("\n")),200);
 }
 /* ---- monthly ---- */
@@ -502,8 +528,6 @@ function monthly(){
  <div class="l"><div class="bars">${keys.map((k,i)=>`<button class="mb ${k==mon?"on":""}" onclick="mon='${k}';render()"><i style="height:${Math.max(3,tots[i]/mx*85)}%"></i>${mname(k,1)}</button>`).join("")}</div></div>
  <div class="sh">${mname(mon)} total</div><div class="l"><div class="li"><span>${cur.n} bill${cur.n==1?"":"s"}</span><b style="font-size:22px">${mh(T)}</b></div></div>`;
  h+=`<div class="sh">Per person</div><div class="l">${P.map((p,i)=>`<div class="li col"><div style="display:flex;justify-content:space-between;align-items:center"><span style="display:flex;gap:10px;align-items:center">${dot(i)}<b>${p}</b>${i==ME?'<span class="cp">you</span>':""}</span><b>${mh(cur.t[i])}</b></div><div class="pb" style="--c:${COL[cpOf(i)]}"><i style="width:${cur.t[i]/pm*100}%"></i></div></div>`).join("")}</div>`;
- {const k=cpOf(ME),lim=budget(k),sp=cur.t[2*k]+cur.t[2*k+1],st=budState(sp,lim);
- h+=`<div class="sh">Your budget · ${mname(mon)}</div><div class="l"><div class="li col" onclick="budSheet(${k})" style="cursor:pointer"><div style="display:flex;justify-content:space-between;gap:8px"><b>${CP[k]}</b><span>${lim>0?`${mh(sp)} / ${mh(lim)}`:'<span class="mu">Set budget ›</span>'}</span></div>${st?`<div class="pb"><i style="width:${Math.min(100,st.p*100)}%;background:${st.bar}"></i></div><small class="${st.c}">${st.t}</small>`:""}</div></div><div class="mu" style="margin:6px 12px">Only your couple can see this budget. You get a warning at 80%.</div>`}
  h+=`<div class="sh">Per couple</div><div class="l">${CP.map((c,k)=>`<div class="li"><span>${c}${cpOf(ME??0)==k?'<span class="cp">yours</span>':""}</span><b>${mh(cur.t[2*k]+cur.t[2*k+1])}</b></div>`).join("")}</div>`;
  return h;
 }
@@ -581,6 +605,93 @@ function nightPage(){
  ${gs.rounds.length?`<div style="margin-top:10px"><button class="btn sec" onclick="undoRound()">Undo last round</button></div>`:""}
  <div class="sh">Details</div><div class="l"><div class="li"><span>Date</span><input type="date" value="${gs.date}" oninput="gs.date=this.value" onchange="if(gs.id)liveSave()"></div><div class="li"><span>Note</span><input value="${esc(gs.note)}" placeholder="Optional" oninput="gs.note=this.value" onchange="if(gs.id)liveSave()"></div></div>
  ${gs.id?`<div style="margin-top:18px"><button class="btn red" onclick="delNight(${gs.id})">Delete night</button></div>`:""}`;
+}
+/* ---- personal budget & expenses (only the couple's own data is loaded) ---- */
+let perOpen=false,pset=null,pmo=ldate().slice(0,7);
+const PCOL=["#0a84ff","#ff9500","#34c759","#af52de","#ff2d92","#30b0c7","#ff3b30","#8e8e93"];
+const normPer=pe=>ME===null?null:{c:cpOf(ME),cats:Object.values((pe&&pe.cats)||{}).filter(Boolean),exp:Object.values((pe&&pe.exp)||{}).filter(Boolean).sort((a,b)=>b.id-a.id),fixed:Object.values((pe&&pe.fixed)||{}).filter(Boolean)};
+const per=()=>S.per&&ME!==null&&S.per.c===cpOf(ME)?S.per:{c:-1,cats:[],exp:[],fixed:[]};
+function pcur(){if(!S.per||S.per.c!==cpOf(ME))S.per={c:cpOf(ME),cats:[],exp:[],fixed:[]};return S.per}
+const pbase=()=>"personal/"+cpOf(ME);
+const pput=(kind,o)=>wr("PUT",`${pbase()}/${kind}/${o.id}`,o);
+const pdel=(kind,id)=>wr("DELETE",`${pbase()}/${kind}/${id}`);
+const pid=()=>{const p=per();return Math.max(Date.now(),...p.exp.map(x=>x.id+1),...p.cats.map(x=>x.id+1),...p.fixed.map(x=>x.id+1))};
+const catName=id=>{const c=per().cats.find(x=>x.id==id);return c?c.name:"Other"};
+const fixedOn=(f,k)=>f.from<=k&&(!f.to||k<=f.to);
+function pMonth(k){
+ const p=per(),exp=p.exp.filter(e=>(e.date||"").startsWith(k)),fx=p.fixed.filter(f=>fixedOn(f,k)),byCat={};
+ const add=(c,v,t)=>{const x=byCat[c||0]=byCat[c||0]||{e:0,f:0};x[t]+=v};
+ exp.forEach(e=>add(e.cat,+e.amount||0,"e"));fx.forEach(f=>add(f.cat,+f.amount||0,"f"));
+ return{exp,fx,byCat,e:sum(exp.map(e=>+e.amount||0)),f:sum(fx.map(f=>+f.amount||0))};
+}
+const mySpend=k=>{const b=ME===null?0:monthSpend(k)[cpOf(ME)],p=pMonth(k);return{bills:b,e:p.e,f:p.f,total:b+p.e+p.f}};
+function budCross(b0,a0){const c=cpOf(ME),l=budget(c);if(!(l>0))return[];const pb=b0/l,pa=a0/l;return pa>=1&&pb<1?[`${CP[c]} are now over their monthly budget.`]:pa>=BW&&pb<BW?[`${CP[c]} have used ${Math.round(pa*100)}% of their monthly budget.`]:[]}
+function openPer(){perOpen=true;pset=null;pmo=ldate().slice(0,7);perov.style.display="block";perRender();const e=document.querySelector(".pw");if(e)e.scrollTop=0}
+function closePer(){perOpen=false;pset=null;perov.style.display="none";perov.innerHTML="";render()}
+function perShift(n){const[y,m]=pmo.split("-").map(Number);pmo=mkey(new Date(y,m-1+n,1));perRender()}
+function perRender(){
+ if(!perOpen)return;const old=document.querySelector(".pw"),y=old?old.scrollTop:0;
+ perov.innerHTML=`<div class="w pw">${perPage()}</div>${pset?perSheet():""}`;
+ const nw=document.querySelector(".pw");if(nw)nw.scrollTop=y;
+}
+function perPage(){
+ const mc=cpOf(ME),k=pmo,t=mySpend(k),lim=budget(mc),st=budState(t.total,lim),pm_=pMonth(k),p=per(),mn=mname(k);
+ let h=`<button class="pill" style="margin-top:6px" onclick="closePer()">‹ Overview</button>`+head("Personal budget",`${CP[mc]} · only your couple can see this`);
+ h+=`<div class="mnav"><button class="pill" onclick="perShift(-1)">‹</button><b>${mn}</b><button class="pill" onclick="perShift(1)">›</button></div>`;
+ h+=`<div class="l"><div class="li"><span>Spent in ${mn}</span><b style="font-size:24px">${mh(t.total)}</b></div>
+ <div class="li" onclick="pBud()" style="cursor:pointer"><span>Monthly budget</span><span>${lim>0?mh(lim):'<span class="mu">Set budget ›</span>'}</span></div>
+ ${st?`<div class="li col"><div class="pb"><i style="width:${Math.min(100,st.p*100)}%;background:${st.bar}"></i></div><small class="${st.c}" style="display:block;margin-top:6px">${Math.round(st.p*100)}% used · ${st.t}</small></div>`:""}
+ <div class="li"><span>Shared bills (your share)</span><span>${mh(t.bills)}</span></div><div class="li"><span>Personal expenses</span><span>${mh(t.e)}</span></div><div class="li"><span>Fixed monthly</span><span>${mh(t.f)}</span></div></div>
+ <div style="margin-top:12px"><button class="btn" onclick="expSheet()">+ Add expense</button></div>`;
+ const ids=p.cats.map(c=>c.id),other=sum(Object.entries(pm_.byCat).filter(([c])=>!ids.includes(+c)).map(([,x])=>x.e+x.f));
+ const rowsC=p.cats.map((c,i)=>{const x=pm_.byCat[c.id]||{e:0,f:0},sp=x.e+x.f,l=+c.limit||0,sc=budState(sp,l);return `<div class="li col" onclick="catSheet(${c.id})" style="cursor:pointer"><div style="display:flex;justify-content:space-between;gap:8px"><span><i class="od" style="background:${PCOL[i%PCOL.length]}"></i><b>${esc(c.name)}</b></span><span>${mh(sp)}${l>0?` <span class="mu">/ ${mh(l)}</span>`:""}</span></div>${sc?`<div class="pb"><i style="width:${Math.min(100,sc.p*100)}%;background:${sc.bar}"></i></div>`:""}</div>`}).join("");
+ h+=`<div class="sh">Categories</div><div class="l">${rowsC}${other>0?`<div class="li"><span><i class="od"></i>Other</span><span>${mh(other)}</span></div>`:""}${!rowsC&&!(other>0)?'<div class="li mu">No categories yet. Add one here or while adding an expense.</div>':""}</div><div style="margin-top:10px"><button class="btn sec" onclick="catSheet()">+ Add category</button></div>`;
+ h+=`<div class="sh">Fixed monthly expenses</div><div class="l">${p.fixed.length?p.fixed.map(f=>`<div class="li" onclick="fixSheet(${f.id})" style="cursor:pointer;${fixedOn(f,k)?"":"opacity:.5"}"><span><b>${esc(f.name)}</b><br><small>${esc(catName(f.cat))} · day ${f.day}${f.to&&f.to<ldate().slice(0,7)?" · ended":""}</small></span><b>${mh(+f.amount||0)}</b></div>`).join(""):'<div class="li mu">None yet. Rent, internet, loans and so on.</div>'}</div><div style="margin-top:10px"><button class="btn sec" onclick="fixSheet()">+ Add fixed expense</button></div>`;
+ h+=`<div class="sh">Expenses · ${mn}</div><div class="l">${pm_.exp.length?pm_.exp.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||b.id-a.id).map(e=>`<div class="li" onclick="expSheet(${e.id})" style="cursor:pointer"><span><b>${esc(e.note||catName(e.cat))}</b><br><small>${shortDate(e.date)} · ${esc(catName(e.cat))}</small></span><b>${mh(+e.amount||0)}</b></div>`).join(""):'<div class="li mu">No expenses this month.</div>'}</div>`;
+ return h;
+}
+const catChips=(cur,fn)=>`<div class="chips"><button class="pill ${!cur?"solid":""}" onclick="${fn}(0)">None</button>${per().cats.map(c=>`<button class="pill ${cur==c.id?"solid":""}" onclick="${fn}(${c.id})">${esc(c.name)}</button>`).join("")}</div>`;
+function expSheet(id){const e=id?per().exp.find(x=>x.id==id):null;pset={t:"exp",id:e?e.id:0,amount:e?String(e.amount):"",cat:e?e.cat||0:0,newcat:"",date:e?e.date:today(),note:e?e.note||"":""};perRender()}
+function saveExp(){
+ const a=+pset.amount;if(!(a>0))return alert("Enter the amount.");
+ const p=pcur(),dt=pset.date||today(),k=dt.slice(0,7),bef=mySpend(k).total;let cat=pset.cat;
+ const nc=(pset.newcat||"").trim();
+ if(nc){let c=p.cats.find(x=>x.name.toLowerCase()==nc.toLowerCase());if(!c){c={id:pid(),name:nc,limit:0};p.cats.push(c);pput("cats",c)}cat=c.id}
+ const e={id:pset.id||pid(),date:dt,cat:cat||0,amount:a,note:(pset.note||"").trim(),by:ME},i=p.exp.findIndex(x=>x.id==e.id);
+ if(i>=0)p.exp[i]=e;else p.exp.push(e);p.exp.sort((x,y)=>y.id-x.id);save();pput("exp",e);
+ pmo=k;pset=null;perRender();
+ const al=budCross(bef,mySpend(k).total);if(al.length)setTimeout(()=>alert("Budget warning\n"+al.join("\n")),200);
+}
+function delExp(){if(!confirm("Delete this expense?"))return;const p=pcur();p.exp=p.exp.filter(x=>x.id!=pset.id);save();pdel("exp",pset.id);pset=null;perRender()}
+function catSheet(id){const c=id?per().cats.find(x=>x.id==id):null;pset={t:"cat",id:c?c.id:0,name:c?c.name:"",limit:c&&c.limit?String(c.limit):""};perRender()}
+function saveCat(){
+ const n=(pset.name||"").trim();if(!n)return alert("Give the category a name.");
+ const p=pcur();if(p.cats.some(x=>x.name.toLowerCase()==n.toLowerCase()&&x.id!=pset.id))return alert("You already have a category with that name.");
+ const c={id:pset.id||pid(),name:n,limit:+pset.limit||0},i=p.cats.findIndex(x=>x.id==c.id);
+ if(i>=0)p.cats[i]=c;else p.cats.push(c);save();pput("cats",c);pset=null;perRender();
+}
+function delCat(){if(!confirm("Delete this category? Its expenses stay and show as Other."))return;const p=pcur();p.cats=p.cats.filter(x=>x.id!=pset.id);save();pdel("cats",pset.id);pset=null;perRender()}
+function fixSheet(id){const f=id?per().fixed.find(x=>x.id==id):null;pset={t:"fix",id:f?f.id:0,name:f?f.name:"",amount:f?String(f.amount):"",cat:f?f.cat||0:0,day:f?String(f.day):"1",from:f?f.from:ldate().slice(0,7),to:f?f.to||"":""};perRender()}
+function saveFix(){
+ const a=+pset.amount,d=Math.round(+pset.day);
+ if(!(pset.name||"").trim())return alert("Give it a name, for example Rent.");if(!(a>0))return alert("Enter the monthly amount.");if(!(d>=1&&d<=31))return alert("Day of month must be 1 to 31.");
+ if(pset.to&&pset.to<pset.from)return alert("The last month can't be before the first month.");
+ const p=pcur(),k=ldate().slice(0,7),bef=mySpend(k).total;
+ const f={id:pset.id||pid(),name:pset.name.trim(),amount:a,cat:pset.cat||0,day:d,from:pset.from||k,to:pset.to||""},i=p.fixed.findIndex(x=>x.id==f.id);
+ if(i>=0)p.fixed[i]=f;else p.fixed.push(f);save();pput("fixed",f);pset=null;perRender();
+ const al=budCross(bef,mySpend(k).total);if(al.length)setTimeout(()=>alert("Budget warning\n"+al.join("\n")),200);
+}
+function delFix(){if(!confirm("Delete this fixed expense for every month?"))return;const p=pcur();p.fixed=p.fixed.filter(x=>x.id!=pset.id);save();pdel("fixed",pset.id);pset=null;perRender()}
+function pBud(){pset={t:"bud",v:budget(cpOf(ME))||""};perRender()}
+function pSaveBud(){const v=+pset.v||0,c=cpOf(ME);S.budgets=S.budgets||{};if(v>0){S.budgets[c]={limit:v};wr("PUT","budgets/"+c,{limit:v})}else{delete S.budgets[c];wr("DELETE","budgets/"+c)}pset=null;save();perRender()}
+function perSheet(){
+ const x=pset,close='onclick="pset=null;perRender()"',wrap=(t,body)=>`<div class="ov" ${close}><div class="sheet" onclick="event.stopPropagation()"><h2 style="margin:0 0 10px">${t}</h2>${body}</div></div>`;
+ const inp=(k,l,ty,ph)=>`<div class="li"><span>${l}</span><input type="${ty||"text"}" ${ty=="number"?'inputmode="decimal" step="any"':""} placeholder="${ph||""}" value="${esc(x[k]||"")}" oninput="pset.${k}=this.value"></div>`;
+ if(x.t=="bud")return wrap("Monthly budget",`<div class="mu">${CP[cpOf(ME)]} · you get a warning at 80%. It counts shared bills, personal expenses and fixed expenses. Set 0 to remove.</div><div class="l" style="margin-top:12px">${inp("v","Limit per month","number","0")}</div><div class="row2"><button class="btn sec" ${close}>Cancel</button><button class="btn" onclick="pSaveBud()">Save</button></div>`);
+ if(x.t=="exp")return wrap(x.id?"Edit expense":"Add expense",`<div class="l">${inp("amount","Amount","number","0")}${inp("date","Date","date")}${inp("note","Note","text","Optional")}</div><div class="sh">Category</div>${catChips(x.cat,"((c)=>{pset.cat=c;pset.newcat=\"\";perRender()})")}<div class="l" style="margin-top:8px">${inp("newcat","New category","text","Type to create one")}</div><div class="row2">${x.id?'<button class="btn red" onclick="delExp()">Delete</button>':`<button class="btn sec" ${close}>Cancel</button>`}<button class="btn" onclick="saveExp()">Save</button></div>`);
+ if(x.t=="cat")return wrap(x.id?"Edit category":"Add category",`<div class="l">${inp("name","Name","text","e.g. Groceries")}${inp("limit","Monthly limit","number","Optional")}</div><div class="row2">${x.id?'<button class="btn red" onclick="delCat()">Delete</button>':`<button class="btn sec" ${close}>Cancel</button>`}<button class="btn" onclick="saveCat()">Save</button></div>`);
+ if(x.t=="fix")return wrap(x.id?"Edit fixed expense":"Add fixed expense",`<div class="l">${inp("name","Name","text","e.g. Rent")}${inp("amount","Amount per month","number","0")}${inp("day","Day of month","number","1")}${inp("from","First month","month")}${inp("to","Last month","month","Optional")}</div><div class="sh">Category</div>${catChips(x.cat,"((c)=>{pset.cat=c;perRender()})")}<div class="row2">${x.id?'<button class="btn red" onclick="delFix()">Delete</button>':`<button class="btn sec" ${close}>Cancel</button>`}<button class="btn" onclick="saveFix()">Save</button></div>`);
+ return "";
 }
 /* ---- gin rummy ---- */
 let gset=null,cset=null,ge=[];
@@ -800,7 +911,8 @@ function render(){
  ovl.innerHTML=sheetHtml();
  const nf=document.querySelector(".fp .w");if(nf)nf.scrollTop=fs;
  fabUpd();
- if(tab=="new")prev();
+ if(sheet&&sheet.t=="item")itSug();
+ if(tab=="new"){prev();plSug()}
  sc2(y);
 }
 function go(k){tab=k;ob=null;if(k=="game")openGame();else if(gameOpen)closeGame();render();sc2(0)}
