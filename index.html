@@ -747,13 +747,13 @@ function perRender(){
 /* ---- Partner Spending Comparison & Couple Bill Split Maths ---- */
 function partnerSpend(k){
  const mc=cpOf(ME),p0=2*mc,p1=2*mc+1;
- let sq0=0,sq1=0,pr0=0,pr1=0;
+ let sq0=0,sq1=0,pr0=0,pr1=0,gen=0;
  S.bills.forEach(b=>{if((b.date||"").slice(0,7)==k){const c=calc(b);sq0+=c[p0].tot;sq1+=c[p1].tot}});
  per().exp.forEach(e=>{if(!(e.date||"").startsWith(k))return;const a=+e.amount||0;
   if(e.split){pr0+=+e.p0||0;pr1+=+e.p1||0}
-  else{const w=e.paidBy!==undefined&&e.paidBy!==null?+e.paidBy:(e.by!==undefined&&e.by!==null?+e.by:p0);if(w===p1)pr1+=a;else pr0+=a}
+  else{gen+=a}
  });
- return{p0,p1,sq0,sq1,pr0,pr1,tot0:sq0+pr0,tot1:sq1+pr1};
+ return{p0,p1,sq0,sq1,pr0,pr1,gen,tot0:sq0+pr0,tot1:sq1+pr1};
 }
 function pSplitCalc(s){
  const mc=cpOf(ME),p0=2*mc,p1=2*mc+1;
@@ -819,8 +819,8 @@ function pExpPage(){
    ${catRow}${newCatRow}
    <div class="li"><span>Date</span><input type="date" value="${esc(x.date)}" oninput="pset.date=this.value"></div>
    <div class="li"><span>Note</span><input placeholder="Optional" value="${esc(x.note||"")}" oninput="pset.note=this.value"></div>
-   ${payPick}
-  </div>`;
+  </div>
+  <div class="mu" style="margin:6px 12px">General expenses count toward your couple's personal budget, not as a single partner's spending.</div>`;
  }else{
   const num=(k,l)=>`<div class="li"><span>${l}</span><input type="number" inputmode="decimal" step="any" value="${x[k]||""}" placeholder="0" oninput="pset.${k}=+this.value;pSplitPrev()"></div>`;
   const r=pSplitCalc(x),rc=+x.recTotal||0;
@@ -870,7 +870,7 @@ function perPage(){
    <div style="text-align:right"><small style="color:#af52de;font-weight:700">${P[pt.p1]}</small><div style="font-size:20px;font-weight:800">${mh(pt.tot1)}</div><small>Personal ${f(pt.pr1)} · Squad ${f(pt.sq1)}</small></div>
   </div>
   <div class="cp-bar"><i style="width:${p0Pct}%;background:var(--ac)"></i><i style="width:${100-p0Pct}%;background:#af52de"></i></div>
-  <small style="display:block;margin-top:6px">${ptSum>0?(diff<0.01?"Both partners spent the exact same amount.":`${pt.tot0>pt.tot1?P[pt.p0]:P[pt.p1]} spent ${mh(diff)} more this month.`):"No individual or split spending recorded yet this month."}</small>
+  <small style="display:block;margin-top:6px">${ptSum>0?(diff<0.01?"Both partners spent the exact same amount.":`${pt.tot0>pt.tot1?P[pt.p0]:P[pt.p1]} spent ${mh(diff)} more this month.`):"No individual or split spending recorded yet this month."}${pt.gen>0?` · Excludes ${mh(pt.gen)} in general couple expenses.`:""}</small>
  </div></div>`;
  h+=`<div class="sh">Spending heat map</div>
  <div style="margin-bottom:8px">${seg([["cal","Calendar"],["mat","Category × Day"]],hm.view,"((v)=>{hm.view=v;perRender()})")}</div>
@@ -883,8 +883,8 @@ function perPage(){
  h+=`<div class="sh">Categories</div><div class="l">${squadRow}${rowsC}${other>0?`<div class="li"><span><i class="od"></i>Other</span><span>${mh(other)}</span></div>`:""}</div><div class="mu" style="margin:6px 12px">Squad Budget is your couple's share of shared bills, compared separately from your personal budget.</div><div style="margin-top:10px"><button class="btn sec" onclick="catSheet()">+ Add category</button></div>`;
  h+=`<div class="sh">Fixed monthly expenses</div><div class="l">${p.fixed.length?p.fixed.map(f=>`<div class="li" onclick="fixSheet(${f.id})" style="cursor:pointer;${fixedOn(f,k)?"":"opacity:.5"}"><span><b>${esc(f.name)}</b><br><small>${esc(catName(f.cat))} · day ${f.day}${f.to&&f.to<ldate().slice(0,7)?" · ended":""}</small></span><b>${mh(+f.amount||0)}</b></div>`).join(""):'<div class="li mu">None yet. Rent, internet, loans and so on.</div>'}</div><div style="margin-top:10px"><button class="btn sec" onclick="fixSheet()">+ Add fixed expense</button></div>`;
  h+=`<div class="sh">Expenses · ${mn}</div><div class="l">${pm_.exp.length?pm_.exp.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||b.id-a.id).map(e=>{
-  const whoTxt=e.split?`Split (${P[2*mc]} ${f(e.p0||0)} / ${P[2*mc+1]} ${f(e.p1||0)}) · paid by ${P[e.paidBy??e.by??2*mc]}`:(e.paidBy!==undefined&&e.paidBy!==null?`Paid by ${P[e.paidBy]}`:(e.by!==undefined&&e.by!==null?P[e.by]:""));
-  return `<div class="li" onclick="expSheet(${e.id})" style="cursor:pointer"><span><b>${esc(e.note||catName(e.cat))}</b>${e.split?'<span class="cp">split</span>':""}<br><small>${shortDate(e.date)} · ${esc(catName(e.cat))}${whoTxt?" · "+whoTxt:""}</small></span><b>${mh(+e.amount||0)}</b></div>`}).join(""):'<div class="li mu">No expenses this month.</div>'}</div>`;
+  const whoTxt=e.split?`Split (${P[2*mc]} ${f(e.p0||0)} / ${P[2*mc+1]} ${f(e.p1||0)}) · paid by ${P[e.paidBy??e.by??2*mc]}`:"Couple expense";
+  return `<div class="li" onclick="expSheet(${e.id})" style="cursor:pointer"><span><b>${esc(e.note||catName(e.cat))}</b>${e.split?'<span class="cp">split</span>':""}<br><small>${shortDate(e.date)} · ${esc(catName(e.cat))} · ${whoTxt}</small></span><b>${mh(+e.amount||0)}</b></div>`}).join(""):'<div class="li mu">No expenses this month.</div>'}</div>`;
  return h;
 }
 function catSelect(cur,fn){
