@@ -33,6 +33,8 @@ input,select{font:inherit;font-size:16px;color:var(--tx);background:transparent;
 .btn.sec{background:var(--ac2);color:var(--ac)}
 .pill{background:var(--ac2);color:var(--ac);border:0;border-radius:99px;padding:6px 12px;font:inherit;font-size:14px;font-weight:600;cursor:pointer;white-space:nowrap}
 .pill.g{background:var(--grn);color:#fff}.pill.r{background:none;color:var(--red)}
+.pill.paid-on{background:var(--grn);color:#fff;padding:5px 10px;font-size:12.5px;min-height:28px}
+.pill.paid-off{background:var(--ac2);color:var(--ac);padding:5px 10px;font-size:12.5px;min-height:28px}
 .x{background:none;border:0;color:var(--red);font-size:22px;padding:0 4px;cursor:pointer}
 .sw{position:relative;width:51px;height:31px;flex:none;display:inline-block}.sw input{opacity:0;width:0;height:0;position:absolute}
 .sw i{position:absolute;inset:0;background:var(--bd);border-radius:99px;transition:.2s}.sw i:before{content:"";position:absolute;width:27px;height:27px;left:2px;top:2px;background:#fff;border-radius:50%;box-shadow:0 2px 4px rgba(0,0,0,.3);transition:.2s}
@@ -391,7 +393,7 @@ function dash(){
  {const sst=budState(sSpend(mk),budget(mc)),pst=budState(tSpend(mk),pbudget());
   if(sst&&sst.p>=BW)al.push({c:sst.bar,h:`<b>Squad budget</b> · ${Math.round(sst.p*100)}% used. ${sst.t}.`,btn:`<button class="pill" onclick="openPer()">Open</button>`});
   if(pst&&pst.p>=BW)al.push({c:pst.bar,h:`<b>Personal budget</b> · ${Math.round(pst.p*100)}% used. ${pst.t}.`,btn:`<button class="pill" onclick="openPer()">Open</button>`})}
- {const day=new Date().getDate();per().fixed.filter(f=>fixedOn(f,mk)&&f.day>=day&&f.day-day<=3).forEach(f=>al.push({c:"#ff9500",h:`<b>${esc(f.name)}</b> ${f.day==day?"is due today":"is due in "+(f.day-day)+" day"+(f.day-day==1?"":"s")} · ${mh(+f.amount||0)}`}))}
+ {const day=new Date().getDate();per().fixed.filter(f=>fixedOn(f,mk)&&!(f.paid&&f.paid[mk])&&f.day>=day&&f.day-day<=3).forEach(f=>al.push({c:"#ff9500",h:`<b>${esc(f.name)}</b> ${f.day==day?"is due today":"is due in "+(f.day-day)+" day"+(f.day-day==1?"":"s")} · ${mh(+f.amount||0)}`,btn:`<button class="pill" onclick="openPer()">Open</button>`}))}
  if(unread()>0)al.push({c:"var(--ac)",h:`<b>${unread()}</b> unread chat message${unread()==1?"":"s"}`,btn:`<button class="pill" onclick="openChat()">Open</button>`});
  h+=`<div class="sh">Alerts</div><div class="l">${al.length?al.map(a=>`<div class="li" style="border-left:4px solid ${a.c}"><span>${a.h}</span>${a.btn||""}</div>`).join(""):'<div class="li mu">You are all caught up.</div>'}</div>`;
  h+=`<div class="row2" style="margin-top:12px"><div class="tile"><small>${CP[mc]} owe</small><b class="${owe>0.005?"neg":""}">${mh(owe)}</b></div><div class="tile"><small>${CP[mc]} are owed</small><b class="${got>0.005?"pos":""}">${mh(got)}</b></div></div>`;
@@ -881,7 +883,7 @@ function perPage(){
  const squadRow=`<div class="li col" onclick="sqBud()" style="cursor:pointer"><div style="display:flex;justify-content:space-between;gap:8px"><span><i class="od" style="background:var(--ac)"></i><b>Squad Budget</b><span class="cp">fixed</span></span><span>${mh(sp)}${sl>0?` <span class="mu">/ ${mh(sl)}</span>`:""}</span></div>${sst?bar(sst):'<small class="mu" style="display:block;margin-top:4px">Shared bills · tap to set a limit</small>'}</div>`;
  const rowsC=p.cats.map((c,i)=>{const x=pm_.byCat[c.id]||{e:0,f:0},spc=x.e+x.f,l=+c.limit||0,sc=budState(spc,l);return `<div class="li col" onclick="catSheet(${c.id})" style="cursor:pointer"><div style="display:flex;justify-content:space-between;gap:8px"><span><i class="od" style="background:${PCOL[i%PCOL.length]}"></i><b>${esc(c.name)}</b></span><span>${mh(spc)}${l>0?` <span class="mu">/ ${mh(l)}</span>`:""}</span></div>${sc?`<div class="pb"><i style="width:${Math.min(100,sc.p*100)}%;background:${sc.bar}"></i></div>`:""}</div>`}).join("");
  h+=`<div class="sh">Categories</div><div class="l">${squadRow}${rowsC}${other>0?`<div class="li"><span><i class="od"></i>Other</span><span>${mh(other)}</span></div>`:""}</div><div class="mu" style="margin:6px 12px">Squad Budget is your couple's share of shared bills, compared separately from your personal budget.</div><div style="margin-top:10px"><button class="btn sec" onclick="catSheet()">+ Add category</button></div>`;
- h+=`<div class="sh">Fixed monthly expenses</div><div class="l">${p.fixed.length?p.fixed.map(f=>`<div class="li" onclick="fixSheet(${f.id})" style="cursor:pointer;${fixedOn(f,k)?"":"opacity:.5"}"><span><b>${esc(f.name)}</b><br><small>${esc(catName(f.cat))} · day ${f.day}${f.to&&f.to<ldate().slice(0,7)?" · ended":""}</small></span><b>${mh(+f.amount||0)}</b></div>`).join(""):'<div class="li mu">None yet. Rent, internet, loans and so on.</div>'}</div><div style="margin-top:10px"><button class="btn sec" onclick="fixSheet()">+ Add fixed expense</button></div>`;
+ h+=`<div class="sh">Fixed monthly expenses · ${mn}</div><div class="l">${p.fixed.length?p.fixed.map(f=>{const active=fixedOn(f,k),isPaid=!!(f.paid&&f.paid[k]);return `<div class="li" onclick="fixSheet(${f.id})" style="cursor:pointer;${active?"":"opacity:.5"}"><span><b>${esc(f.name)}</b><br><small>${esc(catName(f.cat))} · day ${f.day}${f.to&&f.to<ldate().slice(0,7)?" · ended":""}</small></span><span style="display:flex;gap:8px;align-items:center">${active?`<button class="pill ${isPaid?"paid-on":"paid-off"}" onclick="event.stopPropagation();toggleFixPaid(${f.id},'${k}')">${isPaid?"Paid ✓":"Mark paid"}</button>`:""}<b>${mh(+f.amount||0)}</b></span></div>`}).join(""):'<div class="li mu">None yet. Rent, internet, loans and so on.</div>'}</div><div class="mu" style="margin:6px 12px">Paid status resets automatically at the start of every new month.</div><div style="margin-top:10px"><button class="btn sec" onclick="fixSheet()">+ Add fixed expense</button></div>`;
  h+=`<div class="sh">Expenses · ${mn}</div><div class="l">${pm_.exp.length?pm_.exp.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||b.id-a.id).map(e=>{
   const whoTxt=e.split?`Split (${P[2*mc]} ${f(e.p0||0)} / ${P[2*mc+1]} ${f(e.p1||0)}) · paid by ${P[e.paidBy??e.by??2*mc]}`:"Couple expense";
   return `<div class="li" onclick="expSheet(${e.id})" style="cursor:pointer"><span><b>${esc(e.note||catName(e.cat))}</b>${e.split?'<span class="cp">split</span>':""}<br><small>${shortDate(e.date)} · ${esc(catName(e.cat))} · ${whoTxt}</small></span><b>${mh(+e.amount||0)}</b></div>`}).join(""):'<div class="li mu">No expenses this month.</div>'}</div>`;
@@ -948,9 +950,16 @@ function saveFix(){
  const p=pcur(),k=ldate().slice(0,7),bef=tSpend(k);let cat=pset.cat==="new"?0:+pset.cat||0;
  const nc=(pset.newcat||"").trim();
  if(nc){let c=p.cats.find(x=>x.name.toLowerCase()==nc.toLowerCase());if(!c){c={id:pid(),name:nc,limit:0};p.cats.push(c);pput("cats",c)}cat=c.id}
- const f={id:pset.id||pid(),name:pset.name.trim(),amount:a,cat:cat||0,day:d,from:pset.from||k,to:pset.to||""},i=p.fixed.findIndex(x=>x.id==f.id);
+ const prevF=pset.id?p.fixed.find(x=>x.id==pset.id):null;
+ const f={id:pset.id||pid(),name:pset.name.trim(),amount:a,cat:cat||0,day:d,from:pset.from||k,to:pset.to||"",paid:prevF&&prevF.paid?{...prevF.paid}:{}},i=p.fixed.findIndex(x=>x.id==f.id);
  if(i>=0)p.fixed[i]=f;else p.fixed.push(f);save();pput("fixed",f);pset=null;perRender();
  const al=budCross(bef,tSpend(k),pbudget(),"personal budget");if(al.length)setTimeout(()=>alert("Budget warning\n"+al.join("\n")),200);
+}
+function toggleFixPaid(id,k){
+ const p=pcur(),f=p.fixed.find(x=>x.id==id);if(!f)return;
+ f.paid=f.paid||{};
+ if(f.paid[k])delete f.paid[k];else f.paid[k]=today();
+ save();pput("fixed",f);perRender();
 }
 function delFix(){if(!confirm("Delete this fixed expense for every month?"))return;const p=pcur();p.fixed=p.fixed.filter(x=>x.id!=pset.id);save();pdel("fixed",pset.id);pset=null;perRender()}
 function pBud(){pset={t:"bud",v:pbudget()||""};perRender()}
@@ -1111,9 +1120,25 @@ function exportCsv(){
 }
 function startChg(){lg={i:ME,mode:"chg0",pin:"",first:"",err:""};render()}
 async function refreshNow(){await pull(true);render()}
+let appZoom=1;try{appZoom=+localStorage.getItem("squadzoom")||1}catch(e){}
+function applyZoom(z){
+ appZoom=Math.min(1.2,Math.max(0.8,Math.round(z*100)/100));
+ try{localStorage.setItem("squadzoom",appZoom)}catch(e){}
+ document.documentElement.style.zoom=appZoom;
+ if(window.visualViewport){
+  document.body.style.height=(visualViewport.height/appZoom)+"px";
+  document.body.style.width=(visualViewport.width/appZoom)+"px";
+ }
+}
+function setZoom(z){applyZoom(z);render()}
 function account(){
  const t=lastSync?lastSync.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"–";
+ const pct=Math.round(appZoom*100);
  return head("Account",`Signed in as ${P[ME]}`)+`<div class="l"><div class="li"><span>Name</span><b>${P[ME]}</b></div><div class="li"><span>Couple</span><b>${CP[cpOf(ME)]}</b></div><div class="li"><span>Data</span><b>${live?"Live":"Offline"}</b></div><div class="li"><span>Last updated</span><b>${t}</b></div></div>
+ <div class="sh">Display &amp; Zoom</div><div class="l">
+  <div class="li"><span>App zoom</span><span class="step"><button class="pill" onclick="setZoom(appZoom-0.05)">−</button><b>${pct}%</b><button class="pill" onclick="setZoom(appZoom+0.05)">+</button></span></div>
+  <div class="li col"><div class="mu" style="margin-bottom:6px">Screen scale presets</div>${seg([["0.85","Compact"],["0.92","Small"],["1","Default"],["1.08","Large"],["1.15","XL"]],String(appZoom),"((v)=>setZoom(+v))")}</div>
+ </div><div class="mu" style="margin:6px 12px">Adjusts the overall text and interface size on this device.</div>
  <div class="sh">Alerts</div><div class="l"><div class="li" onclick="${notifOn()?"disableNotif()":"enableNotif()"}" style="cursor:pointer"><span>New message alerts</span><span class="mu">${notifOn()?"On · tap to turn off":"Turn on ›"}</span></div></div><div class="mu" style="margin:6px 12px">${isIOS&&!standalone()?"To get alerts on iPhone, add this app to your Home Screen and open it from there.":"Get alerts for chat messages, new bills, payments and reminders."}</div>
  <div class="sh">Tools</div><div class="l"><div class="li" onclick="refreshNow()" style="cursor:pointer"><span>Refresh now</span><span class="mu">›</span></div><div class="li" onclick="startChg()" style="cursor:pointer"><span>Change PIN</span><span class="mu">›</span></div><div class="li" onclick="exportCsv()" style="cursor:pointer"><span>Export all bills (CSV)</span><span class="mu">›</span></div></div>
  <div style="margin-top:18px"><button class="btn sec" style="color:var(--red)" onclick="logout()">Sign out</button></div>`;
@@ -1191,7 +1216,7 @@ function render(){
 function go(k){tab=k;ob=null;if(k=="game")openGame();else if(gameOpen)closeGame();render();sc2(0)}
 ["gesturestart","gesturechange","gestureend"].forEach(e=>document.addEventListener(e,ev=>ev.preventDefault()));
 document.addEventListener("touchmove",ev=>{if(ev.touches.length>1)ev.preventDefault()},{passive:false});
-if(window.visualViewport){const fit=()=>{document.body.style.height=visualViewport.height+"px";document.body.style.bottom="auto";window.scrollTo(0,0)};visualViewport.addEventListener("resize",fit);visualViewport.addEventListener("scroll",()=>window.scrollTo(0,0));fit()}
+if(window.visualViewport){const fit=()=>{document.documentElement.style.zoom=appZoom;document.body.style.height=(visualViewport.height/appZoom)+"px";document.body.style.width=(visualViewport.width/appZoom)+"px";document.body.style.bottom="auto";window.scrollTo(0,0)};visualViewport.addEventListener("resize",fit);visualViewport.addEventListener("scroll",()=>window.scrollTo(0,0));fit()}else{applyZoom(appZoom)}
 resolveMe();render();pull();beat();window.addEventListener("load",()=>setTimeout(()=>{if(ME!==null&&notifOn())enableNotif(true)},1500));setInterval(pull,5000);setInterval(beat,20000);setInterval(()=>{if(chatOpen)pullChat()},2500);
 document.addEventListener("visibilitychange",()=>{if(document.hidden){if(ME!==null)fetch(`${DBU}/presence/${ME}.json`,{method:"PUT",body:JSON.stringify({t:0}),keepalive:true}).catch(()=>{})}else{pull();beat()}});
 </script>
