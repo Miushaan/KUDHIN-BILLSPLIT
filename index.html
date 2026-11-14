@@ -192,6 +192,12 @@ button:active,.btn:active{opacity:.65}
 .cp-pick{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
 .cp-bar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--bg);margin-top:10px}
 .cp-bar i{display:block;height:100%;transition:width .2s}
+.b.gnb,.b.gnb.me{background:var(--card);color:var(--tx);border:1.5px solid #af52de;min-width:220px}
+.gnh{font-size:11px;font-weight:700;color:#af52de;text-transform:uppercase;letter-spacing:.4px}.gnt{font-size:18px;margin:2px 0}
+.gnbtn{display:flex;gap:8px;margin:10px 0 6px}.gnbtn button{flex:1;border:0;border-radius:10px;padding:9px;font:inherit;font-weight:700;background:var(--bg);color:var(--tx);cursor:pointer}.gnbtn button.yes.on{background:var(--grn);color:#fff}.gnbtn button.no.on{background:var(--red);color:#fff}
+.gnr{font-size:12px;color:var(--mu);margin-top:2px;line-height:1.5;white-space:normal}
+.rxr{display:flex;gap:4px;flex-wrap:wrap;margin:3px 4px 0}.rxc{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:12px;padding:1px 8px;font-size:13px;cursor:pointer}.rxc.on{border-color:var(--ac);background:var(--ac2)}
+.rxp{display:flex;gap:2px;background:var(--card);border:.5px solid var(--bd);border-radius:22px;padding:4px 6px;margin:4px 0;box-shadow:0 4px 14px rgba(0,0,0,.18)}.rxp button{border:0;background:none;font-size:22px;padding:2px 5px;border-radius:10px;cursor:pointer}.rxp button.on{background:var(--ac2)}
 </style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div><div id="fab" onclick="openChat()"></div><div id="perov"></div>
 <script>
 const P=["Appal","Uly","Miu","Raya","Aslan","Reesha"],CP=["Appal & Uly","Miu & Raya","Aslan & Reesha"],COL=["#ff9500","#af52de","#30b0c7"],GST=8;
@@ -253,14 +259,14 @@ async function fget(path,q){const r=await fetch(`${DBU}/${path}.json${q?"?"+q:""
 async function pull(force){
  if(inflight>0&&!force)return;
  try{
-  const[b,c,m,pr,cht,bg,nt,gm,gx,cx,sn,pe]=await Promise.all([fget("bills"),fget("cpays"),fget("members"),fget("presence"),fget("chat",CHQ),ME===null?null:fget("budgets/"+cpOf(ME)),fget("nights"),fget("games"),fget("ginmatches"),fget("comps"),fget("seen"),ME===null?null:fget("personal/"+cpOf(ME))]);
+  const[b,c,m,pr,cht,bg,nt,gm,gx,cx,sn,pe,rv,rc]=await Promise.all([fget("bills"),fget("cpays"),fget("members"),fget("presence"),fget("chat",CHQ),ME===null?null:fget("budgets/"+cpOf(ME)),fget("nights"),fget("games"),fget("ginmatches"),fget("comps"),fget("seen"),ME===null?null:fget("personal/"+cpOf(ME)),fget("rsvp"),fget("react")]);
   const nb=Object.values(b||{}).map(normB).sort((x,y)=>y.id-x.id),nc=Object.values(c||{}).map(normP).sort((x,y)=>x.id-y.id);
   const nn=Object.values(nt||{}).filter(Boolean).sort((a,b)=>(a.date||"").localeCompare(b.date||"")||a.id-b.id);
   const gn=Object.values(gx||{}).filter(Boolean).map(normGin).sort((a,b)=>a.id-b.id),cn=Object.values(cx||{}).filter(Boolean).sort((a,b)=>a.id-b.id);
   const pn=normPer(pe);
   const ch=JSON.stringify([nb,nc,m||{}])!==JSON.stringify([S.bills,S.cpays,memb])||JSON.stringify([nn,gm||{}])!==JSON.stringify([S.nights,S.games||{}])||JSON.stringify([gn,cn])!==JSON.stringify([S.gin,S.comps])||JSON.stringify(pn)!==JSON.stringify(S.per||null)||JSON.stringify(bg&&ME!==null?{[cpOf(ME)]:bg}:{})!==JSON.stringify(S.budgets||{});
   S.bills=nb;S.cpays=nc;S.nights=nn;S.games=gm||{};S.gin=gn;S.comps=cn;S.per=pn;S.budgets=bg&&ME!==null?{[cpOf(ME)]:bg}:{};memb=m||{};lastSync=new Date();save();
-  pres=pr||{};const pc=setChat(cht,sn),on=P.map((_,i)=>isOn(i)?1:0).join(""),oc=on!==lastOn;lastOn=on;fabUpd();
+  pres=pr||{};const pc=setChat(cht,sn,rv,rc),on=P.map((_,i)=>isOn(i)?1:0).join(""),oc=on!==lastOn;lastOn=on;fabUpd();
   const was=live;live=true;ready=true;
   if(chatOpen&&(pc||oc))updateChat();if(ch||pc||oc||!was)uiRefresh();
  }catch(e){const was=live;live=false;ready=true;if(was||!ready)uiRefresh();else if(!document.getElementById("v").innerHTML)render()}
@@ -273,16 +279,17 @@ function budSheet(c){sheet={t:"bud",c,v:budget(c)||""};render()}
 function saveBud(){const v=+sheet.v||0,c=sheet.c;S.budgets=S.budgets||{};if(v>0){S.budgets[c]={limit:v};wr("PUT","budgets/"+c,{limit:v})}else{delete S.budgets[c];wr("DELETE","budgets/"+c)}sheet=null;save();render()}
 const isOn=i=>pres[i]&&pres[i].t&&snow()-pres[i].t<45000;
 const snow=()=>Date.now()+off;
-function setChat(c,sn){
+let gnset=null,rsvpMap={},reactMap={},rxOpen=null;
+function setChat(c,sn,rv,rc){
  const sv=Object.values(c||{}).filter(x=>x&&x.text).sort((a,b)=>a.id-b.id);
  const merged=[...sv,...pendingMsgs.filter(p=>!sv.some(x=>x.id===p.id))].sort((a,b)=>a.id-b.id);
- const sig=JSON.stringify([merged,sn||{}]),ch=sig!==chatSig;chatSig=sig;chatMsgs=merged;seenMap=sn||{};return ch;
+ const sig=JSON.stringify([merged,sn||{},rv||{},rc||{}]),ch=sig!==chatSig;chatSig=sig;chatMsgs=merged;seenMap=sn||{};rsvpMap=rv||{};reactMap=rc||{};pendingMsgs.forEach(p=>{if(p.kind==="gn"){rsvpMap[p.id]=rsvpMap[p.id]||{};if(!rsvpMap[p.id][p.from])rsvpMap[p.id][p.from]="yes"}});return ch;
 }
 async function beat(){
  if(ME===null||document.hidden)return;
  try{await fetch(`${DBU}/presence/${ME}.json`,{method:"PUT",body:JSON.stringify({t:{".sv":"timestamp"}})});const r=await fget("presence/"+ME);if(r&&r.t)off=r.t-Date.now()}catch(e){}
 }
-async function pullChat(){try{const[pr,c,sn]=await Promise.all([fget("presence"),fget("chat",CHQ),fget("seen")]);pres=pr||{};setChat(c,sn);updateChat()}catch(e){}}
+async function pullChat(){try{const[pr,c,sn,rv,rc]=await Promise.all([fget("presence"),fget("chat",CHQ),fget("seen"),fget("rsvp"),fget("react")]);pres=pr||{};setChat(c,sn,rv,rc);updateChat()}catch(e){}}
 const unread=()=>chatMsgs.filter(m=>m.from!==ME&&m.id>lastRead).length;
 function setBadge(n){try{if(!navigator.setAppBadge)return;if(n>0)navigator.setAppBadge(n).catch(()=>{});else navigator.clearAppBadge().catch(()=>{})}catch(e){}}
 function fabUpd(){
@@ -312,9 +319,50 @@ function updateChat(force){
   const mine=x.from===ME,d=new Date(x.id-off),t=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"),nx=chatMsgs[k+1],lastRun=!nx||nx.from!==x.from;
   const av=lastRun?`<div class="pp" style="background:${COL[cpOf(x.from)]}">${P[x.from]}</div>`:'<div class="pp sp"></div>';
   const sn=seenAt[x.id]?`<div class="seen">Seen by ${seenAt[x.id].join(", ")}</div>`:"";
-  return `<div class="mr ${mine?"me":""}">${av}<div class="mc"><div class="b ${mine?"me":""}">${esc(x.text)}<small>${t}</small></div>${sn}</div></div>`}).join(""):'<div class="mu" style="text-align:center;margin-top:30px">No messages yet. Say hi!</div>';
+  return `<div class="mr ${mine?"me":""}">${av}<div class="mc">${msgBubble(x,mine,t)}${rxRow(x.id)}${sn}</div></div>`}).join(""):'<div class="mu" style="text-align:center;margin-top:30px">No messages yet. Say hi!</div>';
  const o=document.getElementById("chon");if(o)o.innerHTML=P.map((p,i)=>`<span><i class="od ${isOn(i)||i===ME?"on":""}"></i>${p}</span>`).join("");
  if(near)m.scrollTop=m.scrollHeight;markRead();
+}
+const RX=["👍🏼","👎","❤️","🥱","🖕","🤦"];
+const fmtWhen=(d,t)=>{const day=new Date(d+"T00:00:00").toLocaleDateString([],{weekday:"short",day:"numeric",month:"short"});if(!t)return day;const[h,m]=t.split(":").map(Number),h12=h%12||12;return `${day} · ${h12}:${String(m).padStart(2,"0")} ${h>=12?"PM":"AM"}`};
+function gnCard(x){
+ const g=x.gn||{},rs=rsvpMap[x.id]||{},yes=P.filter((_,i)=>rs[i]==="yes"),no=P.filter((_,i)=>rs[i]==="no"),wait=P.filter((_,i)=>!rs[i]),me=rs[ME];
+ return `<div class="gnh">Game night request</div><div class="gnt"><b>${esc(g.game||"Game")}</b></div><div>${esc(fmtWhen(g.date||ldate(),g.time))}</div>${g.note?`<div>${esc(g.note)}</div>`:""}<div class="gnbtn"><button class="yes ${me==="yes"?"on":""}" onclick="event.stopPropagation();gnRsvp(${x.id},'yes')">Accept</button><button class="no ${me==="no"?"on":""}" onclick="event.stopPropagation();gnRsvp(${x.id},'no')">Reject</button></div><div class="gnr"><b>Accepted</b> ${yes.length?yes.join(", "):"–"}<br><b>Rejected</b> ${no.length?no.join(", "):"–"}<br><b>Waiting</b> ${wait.length?wait.join(", "):"–"}</div>`;
+}
+function msgBubble(x,mine,t){const gn=x.kind==="gn";return `<div class="b ${mine?"me":""} ${gn?"gnb":""}" onclick="rxToggle(${x.id})">${gn?gnCard(x):esc(x.text)}<small>${t}</small></div>`}
+function rxRow(id){
+ const m=reactMap[id]||{},cnt={};Object.values(m).forEach(e=>{cnt[e]=(cnt[e]||0)+1});
+ const chips=Object.entries(cnt).map(([e,n])=>`<button class="rxc ${m[ME]===e?"on":""}" onclick="event.stopPropagation();rxSet(${id},'${e}')">${e} ${n}</button>`).join("");
+ const pick=rxOpen===id?`<div class="rxp">${RX.map(e=>`<button class="${m[ME]===e?"on":""}" onclick="event.stopPropagation();rxSet(${id},'${e}')">${e}</button>`).join("")}</div>`:"";
+ return (chips?`<div class="rxr">${chips}</div>`:"")+pick;
+}
+function rxToggle(id){rxOpen=rxOpen===id?null:id;updateChat()}
+function rxSet(id,e){
+ const m=reactMap[id]=reactMap[id]||{};
+ if(m[ME]===e){delete m[ME];wr("DELETE",`react/${id}/${ME}`)}else{m[ME]=e;wr("PUT",`react/${id}/${ME}`,e)}
+ rxOpen=null;updateChat();
+}
+function gnRsvp(id,r){
+ const m=rsvpMap[id]=rsvpMap[id]||{};
+ if(m[ME]===r){delete m[ME];wr("DELETE",`rsvp/${id}/${ME}`)}else{m[ME]=r;wr("PUT",`rsvp/${id}/${ME}`,r)}
+ updateChat();if(tab=="dash")render();
+}
+function gnNew(){gnset={gid:"sequence",date:today(),time:"20:00",note:""};gameRender()}
+function gnSheetHtml(){
+ const g=gnset;
+ return `<div class="ov" onclick="gnset=null;gameRender()"><div class="sheet" onclick="event.stopPropagation()"><h2 style="margin:0 0 4px">Game night request</h2><div class="mu">Everyone gets a chat message and an alert. They can accept or reject.</div>
+ <div class="sh">Game</div><div class="chips">${gamesList().map(x=>`<button class="pill ${g.gid==x.id?"solid":""}" onclick="gnset.gid='${x.id}';gameRender()">${esc(x.name)}</button>`).join("")}</div>
+ <div class="l" style="margin-top:12px"><div class="li"><span>Date</span><input type="date" value="${esc(g.date)}" oninput="gnset.date=this.value"></div><div class="li"><span>Time</span><input type="time" value="${esc(g.time)}" oninput="gnset.time=this.value"></div><div class="li"><span>Note</span><input value="${esc(g.note)}" placeholder="Optional, e.g. at our place" oninput="gnset.note=this.value"></div></div>
+ <div class="row2"><button class="btn sec" onclick="gnset=null;gameRender()">Cancel</button><button class="btn" onclick="gnSend()">Send request</button></div></div></div>`;
+}
+async function gnSend(){
+ const g=gnset,gm=gamesList().find(x=>x.id==g.gid);if(!gm)return alert("Pick a game.");if(!g.date)return alert("Pick a date.");
+ const when=fmtWhen(g.date,g.time),note=(g.note||"").trim(),id=snow();
+ const msg={id,from:ME,kind:"gn",text:`Game night request: ${gm.name} · ${when}${note?" · "+note:""}. Accept or reject in the chat.`,gn:{game:gm.name,gid:gm.id,date:g.date,time:g.time||"",note}};
+ pendingMsgs.push(msg);chatMsgs.push(msg);rsvpMap[id]={[ME]:"yes"};
+ gnset=null;gameRender();openChat();
+ try{const r=await fetch(`${DBU}/chat/${id}.json`,{method:"PUT",body:JSON.stringify(msg)});if(!r.ok)throw 0;await fetch(`${DBU}/rsvp/${id}/${ME}.json`,{method:"PUT",body:'"yes"'});ping({id})}catch(x){alert("Could not send the request. Check your connection.")}
+ pendingMsgs=pendingMsgs.filter(p=>p.id!==id);pullChat();
 }
 async function sendChat(){
  const e=document.getElementById("ci"),t=((e&&e.value)||"").trim();if(!t)return;e.value="";
@@ -323,7 +371,7 @@ async function sendChat(){
  pendingMsgs=pendingMsgs.filter(p=>p.id!==id);if(e)e.focus();
 }
 const ago=t=>{if(!t)return"Not seen yet";const m=Math.floor((snow()-t)/60000);return m<1?"Just now":m<60?m+" min ago":m<1440?Math.floor(m/60)+" h ago":new Date(t-off).toLocaleDateString([],{day:"numeric",month:"short"})};
-function uiRefresh(){if(gameOpen&&!gs&&!gset&&!cset)gameRender();if(perOpen&&!pset)perRender();if(tab=="new"&&ME!==null)return;if(sheet)return;render()}
+function uiRefresh(){if(gameOpen&&!gs&&!gset&&!cset&&!gnset)gameRender();if(perOpen&&!pset)perRender();if(tab=="new"&&ME!==null)return;if(sheet)return;render()}
 function wr(method,path,body){
  inflight++;
  return fetch(`${DBU}/${path}.json`,{method,body:body===undefined?undefined:JSON.stringify(body)}).then(r=>{if(!r.ok)throw new Error(r.status)}).catch(()=>alert("Could not save to the server. Check your connection and try again.")).finally(()=>{inflight--;pull(true)});
@@ -394,6 +442,7 @@ function dash(){
   if(sst&&sst.p>=BW)al.push({c:sst.bar,h:`<b>Squad budget</b> · ${Math.round(sst.p*100)}% used. ${sst.t}.`,btn:`<button class="pill" onclick="openPer()">Open</button>`});
   if(pst&&pst.p>=BW)al.push({c:pst.bar,h:`<b>Personal budget</b> · ${Math.round(pst.p*100)}% used. ${pst.t}.`,btn:`<button class="pill" onclick="openPer()">Open</button>`})}
  {const day=new Date().getDate();per().fixed.filter(f=>fixedOn(f,mk)&&!(f.paid&&f.paid[mk])&&f.day>=day&&f.day-day<=3).forEach(f=>al.push({c:"#ff9500",h:`<b>${esc(f.name)}</b> ${f.day==day?"is due today":"is due in "+(f.day-day)+" day"+(f.day-day==1?"":"s")} · ${mh(+f.amount||0)}`,btn:`<button class="pill" onclick="openPer()">Open</button>`}))}
+ {const open=chatMsgs.filter(m=>m.kind==="gn"&&m.from!==ME&&m.gn&&m.gn.date>=ldate()&&!(rsvpMap[m.id]&&rsvpMap[m.id][ME]));open.slice(-2).forEach(m=>al.push({c:"#af52de",h:`<b>Game night</b> · ${esc(m.gn.game)} · ${esc(fmtWhen(m.gn.date,m.gn.time))}<br><small>${P[m.from]} is waiting for your reply</small>`,btn:`<button class="pill" onclick="openChat()">Reply</button>`}))}
  if(unread()>0)al.push({c:"var(--ac)",h:`<b>${unread()}</b> unread chat message${unread()==1?"":"s"}`,btn:`<button class="pill" onclick="openChat()">Open</button>`});
  h+=`<div class="sh">Alerts</div><div class="l">${al.length?al.map(a=>`<div class="li" style="border-left:4px solid ${a.c}"><span>${a.h}</span>${a.btn||""}</div>`).join(""):'<div class="li mu">You are all caught up.</div>'}</div>`;
  h+=`<div class="row2" style="margin-top:12px"><div class="tile"><small>${CP[mc]} owe</small><b class="${owe>0.005?"neg":""}">${mh(owe)}</b></div><div class="tile"><small>${CP[mc]} are owed</small><b class="${got>0.005?"pos":""}">${mh(got)}</b></div></div>`;
@@ -678,12 +727,12 @@ function delNight(id){if(!confirm("Delete this night?"))return;S.nights=S.nights
 function gameRender(){
  const el=document.getElementById("gameov");if(!gameOpen||!el)return;
  const old=document.querySelector(".gw"),y=old?old.scrollTop:0;
- el.innerHTML=`<div class="w gw">${gameView()}</div>${gset?ginSetupHtml():cset?compSheetHtml():""}`;
+ el.innerHTML=`<div class="w gw">${gameView()}</div>${gset?ginSetupHtml():cset?compSheetHtml():gnset?gnSheetHtml():""}`;
  const nw=document.querySelector(".gw");if(nw)nw.scrollTop=y;
 }
 function gameHome(){
  const mk=ldate().slice(0,7),mn=new Date().toLocaleString("en",{month:"long",year:"numeric"});
- return head("Games","Pick a game to see the scores")+
+ return head("Games","Pick a game to see the scores")+`<button class="btn" style="margin-bottom:12px" onclick="gnNew()">Game night request</button>`+
  gamesList().map(g=>{if(g.id=="gin")return ginCard();const t=tally(nightsOf(g.id,mk)),sk=streaks(nightsOf(g.id)).cur;
   return `<div class="gcard" onclick="gOpen('${g.id}')"><div class="gt"><b>${esc(g.name)}</b><span class="mu">›</span></div><div class="mu">${mn}</div>
   <div class="gs"><div class="tgirl ${t.g<t.b?"dim":""}"><b>${t.g}</b><small>Girls</small></div><span class="vs">vs</span><div class="tboy ${t.b<t.g?"dim":""}"><b>${t.b}</b><small>Boys</small></div></div>
@@ -736,14 +785,18 @@ const pSpend=k=>{const p=pMonth(k);return{e:p.e,f:p.f,total:p.e+p.f}};
 const tSpend=k=>sSpend(k)+pSpend(k).total;
 const sSpend=k=>ME===null?0:monthSpend(k)[cpOf(ME)];
 function budCross(b0,a0,l,label){const c=cpOf(ME);if(!(l>0))return[];const pb=b0/l,pa=a0/l;return pa>=1&&pb<1?[`${CP[c]} are now over their ${label}.`]:pa>=BW&&pb<BW?[`${CP[c]} have used ${Math.round(pa*100)}% of their ${label}.`]:[]}
-function openPer(){perOpen=true;pset=null;pmo=ldate().slice(0,7);perov.style.display="block";perRender();const e=document.querySelector(".pw");if(e)e.scrollTop=0}
+function openPer(){perOpen=true;pset=null;pMode="page";pY=0;pmo=ldate().slice(0,7);perov.style.display="block";perRender();const e=document.querySelector(".pw");if(e)e.scrollTop=0}
 function closePer(){perOpen=false;pset=null;perov.style.display="none";perov.innerHTML="";render()}
 function perShift(n){const[y,m]=pmo.split("-").map(Number);pmo=mkey(new Date(y,m-1+n,1));perRender()}
+let pY=0,pExpY=0,pMode="page";
 function perRender(){
- if(!perOpen)return;const old=document.querySelector(".pw"),y=old?old.scrollTop:0;
- const isFull=pset&&pset.t=="exp";
- perov.innerHTML=isFull?pExpPage():`<div class="w pw">${perPage()}</div><button class="fabx" onclick="expSheet()">+ Add expense</button>${pset?perSheet():""}`;
- const nw=document.querySelector(".pw");if(nw)nw.scrollTop=isFull?0:y;
+ if(!perOpen)return;
+ const old=document.querySelector(".pw"),isFull=pset&&pset.t=="exp",mode=isFull?(pset.it?"item":"exp"):"page";
+ if(old){if(pMode==="page")pY=old.scrollTop;else if(pMode==="exp")pExpY=old.scrollTop}
+ if(pMode==="page"&&mode==="exp")pExpY=0;
+ perov.innerHTML=mode==="item"?pItemPageHtml():mode==="exp"?pExpPage():`<div class="w pw">${perPage()}</div><button class="fabx" onclick="expSheet()">+ Add expense</button>${pset?perSheet():""}`;
+ const nw=document.querySelector(".pw");if(nw)nw.scrollTop=mode==="page"?pY:mode==="exp"?pExpY:0;
+ pMode=mode;
 }
 
 /* ---- Partner Spending Comparison & Couple Bill Split Maths ---- */
@@ -794,18 +847,18 @@ function pSaveItem(next){
  if(pset.it.k<0)pset.items.push(it);else pset.items[pset.it.k]=it;
  if(next){pset.it={k:-1,n:"",pm:pset.it.pm,pr:"",q:1,w:[p0,p1]};perRender();setTimeout(()=>{const e=document.getElementById("pisn");if(e)e.focus()},80)}else{pset.it=null;perRender()}
 }
-function pItemSheetHtml(){
+function pTgl(i){const w=pset.it.w,x=w.indexOf(i);x<0?w.push(i):w.splice(x,1);perRender()}
+function pItemPageHtml(){
  const s=pset.it,mc=cpOf(ME),p0=2*mc,p1=2*mc+1,unit=s.pm=="unit";
- const tgl=i=>{const w=s.w,x=w.indexOf(i);x<0?w.push(i):w.splice(x,1);perRender()};
- return `<div class="ov" onclick="pset.it=null;perRender()"><div class="sheet" onclick="event.stopPropagation()"><h2 style="margin:0 0 10px">${s.k<0?"Add item":"Edit item"}</h2>
- <div class="l"><div class="li"><span>Item</span><input id="pisn" autocomplete="off" placeholder="e.g. Coffee & cake" value="${esc(s.n)}" oninput="pset.it.n=this.value"></div></div>
+ return `<div class="fp" style="z-index:36"><div class="w pw">${headB('style="margin-top:6px" onclick="pset.it=null;perRender()"','‹ Back',s.k<0?"Add item":"Edit item","Divided between "+P[p0]+" and "+P[p1]+" only")}
+ <div class="l"><div class="li"><span>Item</span><input id="pisn" autocomplete="off" placeholder="e.g. Coffee &amp; cake" value="${esc(s.n)}" oninput="pset.it.n=this.value"></div></div>
  <div class="sh">Price</div>${seg([["bill","Bill price"],["unit","Unit price"]],s.pm,"((v)=>{pset.it.pm=v;perRender()})")}
  <div class="l" style="margin-top:10px"><div class="li"><span>${unit?"Unit price":"Bill price"}</span><input type="number" inputmode="decimal" step="any" placeholder="0" value="${esc(s.pr)}" oninput="pset.it.pr=this.value;pItemTot()"></div>
  <div class="li"><span>Quantity</span><span class="step"><button class="pill" onclick="pset.it.q=Math.max(1,pset.it.q-1);perRender()">−</button><b>${s.q}</b><button class="pill" onclick="pset.it.q++;perRender()">+</button></span></div>
  <div class="li"><span class="mu" id="pitd">${pItDer()}</span></div></div>
  <div class="sh">Who ordered it?</div>
  <div class="chips" style="margin:0 0 4px"><button class="pill" onclick="pset.it.w=[${p0},${p1}];perRender()">Both</button><button class="pill r" onclick="pset.it.w=[];perRender()">Clear</button></div>
- <div class="cp-pick">${[p0,p1].map(i=>`<button class="nb ${s.w.includes(i)?"on":""}" style="--c:${COL[mc]}" onclick="(${tgl})(${i})">${P[i]}</button>`).join("")}</div>
+ <div class="cp-pick">${[p0,p1].map(i=>`<button class="nb ${s.w.includes(i)?"on":""}" style="--c:${COL[mc]}" onclick="pTgl(${i})">${P[i]}</button>`).join("")}</div>
  <div class="sh">Each pays</div><div class="l" id="pitp">${pItShares()}</div>
  <div class="row2" style="margin-top:16px">${s.k<0?`<button class="btn sec" onclick="pSaveItem(true)">Add &amp; next</button>`:`<button class="btn red" onclick="pset.items.splice(${s.k},1);pset.it=null;perRender()">Delete</button>`}<button class="btn" onclick="pSaveItem(false)">${s.k<0?"Add":"Save"}</button></div></div></div>`;
 }
@@ -852,7 +905,7 @@ function pExpPage(){
   ${seg([["gen","General Expense"],["split","Couple Bill Split"]],x.mode,"((v)=>{pset.mode=v;perRender()})")}
   ${body}
   <div class="row2" style="margin-top:16px">${x.id?'<button class="btn red" onclick="delExp()">Delete</button>':`<button class="btn sec" onclick="pset=null;perRender()">Cancel</button>`}<button class="btn" onclick="saveExp()">${x.id?"Save changes":"Save expense"}</button></div>
- </div></div>${x.it?pItemSheetHtml():""}`;
+ </div></div>`;
 }
 
 function perPage(){
@@ -882,7 +935,8 @@ function perPage(){
  const ids=p.cats.map(c=>c.id),other=sum(Object.entries(pm_.byCat).filter(([c])=>!ids.includes(+c)).map(([,x])=>x.e+x.f));
  const squadRow=`<div class="li col" onclick="sqBud()" style="cursor:pointer"><div style="display:flex;justify-content:space-between;gap:8px"><span><i class="od" style="background:var(--ac)"></i><b>Squad Budget</b><span class="cp">fixed</span></span><span>${mh(sp)}${sl>0?` <span class="mu">/ ${mh(sl)}</span>`:""}</span></div>${sst?bar(sst):'<small class="mu" style="display:block;margin-top:4px">Shared bills · tap to set a limit</small>'}</div>`;
  const rowsC=p.cats.map((c,i)=>{const x=pm_.byCat[c.id]||{e:0,f:0},spc=x.e+x.f,l=+c.limit||0,sc=budState(spc,l);return `<div class="li col" onclick="catSheet(${c.id})" style="cursor:pointer"><div style="display:flex;justify-content:space-between;gap:8px"><span><i class="od" style="background:${PCOL[i%PCOL.length]}"></i><b>${esc(c.name)}</b></span><span>${mh(spc)}${l>0?` <span class="mu">/ ${mh(l)}</span>`:""}</span></div>${sc?`<div class="pb"><i style="width:${Math.min(100,sc.p*100)}%;background:${sc.bar}"></i></div>`:""}</div>`}).join("");
- h+=`<div class="sh">Categories</div><div class="l">${squadRow}${rowsC}${other>0?`<div class="li"><span><i class="od"></i>Other</span><span>${mh(other)}</span></div>`:""}</div><div class="mu" style="margin:6px 12px">Squad Budget is your couple's share of shared bills, compared separately from your personal budget.</div><div style="margin-top:10px"><button class="btn sec" onclick="catSheet()">+ Add category</button></div>`;
+ const totBud=sl+sum(p.cats.map(c=>+c.limit||0)),catSp=sp+sum(p.cats.map(c=>{const x=pm_.byCat[c.id]||{e:0,f:0};return x.e+x.f}))+other;
+ h+=`<div class="sh">Categories</div><div class="l">${squadRow}${rowsC}${other>0?`<div class="li"><span><i class="od"></i>Other</span><span>${mh(other)}</span></div>`:""}</div><div class="l" style="margin-top:8px"><div class="li"><span>Total budgeted</span><b>${mh(totBud)}</b></div><div class="li"><span>Spent in these categories</span><span>${mh(catSp)}</span></div>${totBud>0?`<div class="li"><span>${catSp>totBud?"Over by":"Left"}</span><b class="${catSp>totBud?"neg":"pos"}">${mh(Math.abs(totBud-catSp))}</b></div>`:""}</div><div class="mu" style="margin:6px 12px">Squad Budget is your couple's share of shared bills, compared separately from your personal budget.</div><div style="margin-top:10px"><button class="btn sec" onclick="catSheet()">+ Add category</button></div>`;
  h+=`<div class="sh">Fixed monthly expenses · ${mn}</div><div class="l">${p.fixed.length?p.fixed.map(f=>{const active=fixedOn(f,k),isPaid=!!(f.paid&&f.paid[k]);return `<div class="li" onclick="fixSheet(${f.id})" style="cursor:pointer;${active?"":"opacity:.5"}"><span><b>${esc(f.name)}</b><br><small>${esc(catName(f.cat))} · day ${f.day}${f.to&&f.to<ldate().slice(0,7)?" · ended":""}</small></span><span style="display:flex;gap:8px;align-items:center">${active?`<button class="pill ${isPaid?"paid-on":"paid-off"}" onclick="event.stopPropagation();toggleFixPaid(${f.id},'${k}')">${isPaid?"Paid ✓":"Mark paid"}</button>`:""}<b>${mh(+f.amount||0)}</b></span></div>`}).join(""):'<div class="li mu">None yet. Rent, internet, loans and so on.</div>'}</div><div class="mu" style="margin:6px 12px">Paid status resets automatically at the start of every new month.</div><div style="margin-top:10px"><button class="btn sec" onclick="fixSheet()">+ Add fixed expense</button></div>`;
  h+=`<div class="sh">Expenses · ${mn}</div><div class="l">${pm_.exp.length?pm_.exp.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||b.id-a.id).map(e=>{
   const whoTxt=e.split?`Split (${P[2*mc]} ${f(e.p0||0)} / ${P[2*mc+1]} ${f(e.p1||0)}) · paid by ${P[e.paidBy??e.by??2*mc]}`:"Couple expense";
