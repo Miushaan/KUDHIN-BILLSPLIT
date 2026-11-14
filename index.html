@@ -809,16 +809,18 @@ function pItemSheetHtml(){
 }
 function pExpPage(){
  const x=pset,mc=cpOf(ME),p0=2*mc,p1=2*mc+1,isSplit=x.mode=="split";
- const catSec=`<div class="sh">Category</div>${catChips(x.cat,"((c)=>{pset.cat=c;pset.newcat=\"\";perRender()})")}<div class="l" style="margin-top:8px"><div class="li"><span>New category</span><input placeholder="Type to create one" value="${esc(x.newcat||"")}" oninput="pset.newcat=this.value"></div></div>`;
+ const catRow=catSelect(x.cat,"setExpCat");
+ const newCatRow=x.cat==="new"||x.newcat?`<div class="li"><span>New category</span><input id="pncat" placeholder="e.g. Dining, Groceries" value="${esc(x.newcat||"")}" oninput="pset.newcat=this.value"></div>`:"";
  const payPick=`<div class="li col"><div class="mu">Who paid?</div><div class="cp-pick">${[p0,p1].map(i=>`<button class="nb ${x.paidBy===i?"on":""}" style="--c:${COL[mc]}" onclick="pset.paidBy=${i};perRender()">${P[i]}</button>`).join("")}</div></div>`;
  let body="";
  if(!isSplit){
   body=`<div class="sh">Details</div><div class="l">
    <div class="li"><span>Amount</span><input type="number" inputmode="decimal" step="any" placeholder="0" value="${esc(x.amount||"")}" oninput="pset.amount=this.value"></div>
+   ${catRow}${newCatRow}
    <div class="li"><span>Date</span><input type="date" value="${esc(x.date)}" oninput="pset.date=this.value"></div>
    <div class="li"><span>Note</span><input placeholder="Optional" value="${esc(x.note||"")}" oninput="pset.note=this.value"></div>
    ${payPick}
-  </div>${catSec}`;
+  </div>`;
  }else{
   const num=(k,l)=>`<div class="li"><span>${l}</span><input type="number" inputmode="decimal" step="any" value="${x[k]||""}" placeholder="0" oninput="pset.${k}=+this.value;pSplitPrev()"></div>`;
   const r=pSplitCalc(x),rc=+x.recTotal||0;
@@ -832,11 +834,11 @@ function pExpPage(){
    +(rc>0?(Math.abs(r.tot-rc)<=0.011?`<div class="li"><span>Receipt total</span><b class="pos">Matches ✓</b></div>`:`<div class="li"><span>Receipt total ${f(rc)}</span><b class="neg">${r.tot>rc?"+":"−"}${f(Math.abs(r.tot-rc))} difference</b></div>`):"");
   body=`<div class="sh">Details</div><div class="l">
    <div class="li"><span>Place / Note</span><input placeholder="e.g. Dinner date" value="${esc(x.note||"")}" oninput="pset.note=this.value"></div>
+   ${catRow}${newCatRow}
    <div class="li"><span>Date</span><input type="date" value="${esc(x.date)}" oninput="pset.date=this.value"></div>
    <div class="li"><span>Receipt total</span><input type="number" inputmode="decimal" step="any" placeholder="Optional check" value="${x.recTotal||""}" oninput="pset.recTotal=+this.value;pSplitPrev()"></div>
    ${payPick}
   </div>
-  ${catSec}
   <div class="sh">Charges</div><div class="l">${num("scAmt","Service charge")}${num("gstAmt","GST")}${num("other","Other charges")}</div>
   <div class="mu" style="margin:6px 12px">Split only between ${P[p0]} and ${P[p1]}.</div>
   <div class="sh">Items</div><div class="l">${x.items.length?x.items.map((it,k)=>`<div class="li" onclick="pItemSheet(${k})" style="cursor:pointer"><span>${esc(it.n||"Item")}${(it.q||1)>1?` <small>×${it.q}</small>`:""}<br><small>${it.w.length==2?"Both":it.w.map(i=>P[i]).join(", ")||"Nobody selected"}</small></span><span style="display:flex;gap:8px;align-items:center"><b>${mh(+it.p||0)}</b><span class="mu">›</span></span></div>`).join(""):'<div class="li mu">No items yet. Tap Add item below.</div>'}</div>
@@ -885,7 +887,18 @@ function perPage(){
   return `<div class="li" onclick="expSheet(${e.id})" style="cursor:pointer"><span><b>${esc(e.note||catName(e.cat))}</b>${e.split?'<span class="cp">split</span>':""}<br><small>${shortDate(e.date)} · ${esc(catName(e.cat))}${whoTxt?" · "+whoTxt:""}</small></span><b>${mh(+e.amount||0)}</b></div>`}).join(""):'<div class="li mu">No expenses this month.</div>'}</div>`;
  return h;
 }
-const catChips=(cur,fn)=>`<div class="chips"><button class="pill ${!cur?"solid":""}" onclick="${fn}(0)">None</button>${per().cats.map(c=>`<button class="pill ${cur==c.id?"solid":""}" onclick="${fn}(${c.id})">${esc(c.name)}</button>`).join("")}</div>`;
+function catSelect(cur,fn){
+ const opts=per().cats.map(c=>`<option value="${c.id}" ${cur==c.id?"selected":""}>${esc(c.name)}</option>`).join("");
+ return `<div class="li"><span>Category</span><select onchange="${fn}(this.value)"><option value="0" ${!cur||cur===0||cur==="0"?"selected":""}>Other</option>${opts}<option value="new" ${cur==="new"?"selected":""}>+ New category…</option></select></div>`;
+}
+function setExpCat(v){
+ if(v==="new"){pset.cat="new";pset.newcat="";perRender();setTimeout(()=>{const e=document.getElementById("pncat");if(e)e.focus()},50)}
+ else{pset.cat=+v||0;pset.newcat="";perRender()}
+}
+function setFixCat(v){
+ if(v==="new"){pset.cat="new";pset.newcat="";perRender();setTimeout(()=>{const e=document.getElementById("fncat");if(e)e.focus()},50)}
+ else{pset.cat=+v||0;pset.newcat="";perRender()}
+}
 function expSheet(id){
  const e=id?per().exp.find(x=>x.id==id):null,mc=cpOf(ME),p0=2*mc;
  pset={
@@ -910,7 +923,7 @@ function saveExp(){
   if(!(a>0))return alert("Total must be greater than 0.");
   spData={split:true,items:cl(pset.items),scAmt:+pset.scAmt||0,gstAmt:+pset.gstAmt||0,other:+pset.other||0,recTotal:+pset.recTotal||0,p0:r.t0,p1:r.t1};
  }
- const p=pcur(),dt=pset.date||today(),k=dt.slice(0,7),bef=tSpend(k);let cat=pset.cat;
+ const p=pcur(),dt=pset.date||today(),k=dt.slice(0,7),bef=tSpend(k);let cat=pset.cat==="new"?0:+pset.cat||0;
  const nc=(pset.newcat||"").trim();
  if(nc){let c=p.cats.find(x=>x.name.toLowerCase()==nc.toLowerCase());if(!c){c={id:pid(),name:nc,limit:0};p.cats.push(c);pput("cats",c)}cat=c.id}
  const e={id:pset.id||pid(),date:dt,cat:cat||0,amount:a,note:(pset.note||"").trim()||(isSplit?"Couple split":""),by:ME,paidBy:pset.paidBy,...spData},i=p.exp.findIndex(x=>x.id==e.id);
@@ -927,13 +940,15 @@ function saveCat(){
  if(i>=0)p.cats[i]=c;else p.cats.push(c);save();pput("cats",c);pset=null;perRender();
 }
 function delCat(){if(!confirm("Delete this category? Its expenses stay and show as Other."))return;const p=pcur();p.cats=p.cats.filter(x=>x.id!=pset.id);save();pdel("cats",pset.id);pset=null;perRender()}
-function fixSheet(id){const f=id?per().fixed.find(x=>x.id==id):null;pset={t:"fix",id:f?f.id:0,name:f?f.name:"",amount:f?String(f.amount):"",cat:f?f.cat||0:0,day:f?String(f.day):"1",from:f?f.from:ldate().slice(0,7),to:f?f.to||"":""};perRender()}
+function fixSheet(id){const f=id?per().fixed.find(x=>x.id==id):null;pset={t:"fix",id:f?f.id:0,name:f?f.name:"",amount:f?String(f.amount):"",cat:f?f.cat||0:0,newcat:"",day:f?String(f.day):"1",from:f?f.from:ldate().slice(0,7),to:f?f.to||"":""};perRender()}
 function saveFix(){
  const a=+pset.amount,d=Math.round(+pset.day);
  if(!(pset.name||"").trim())return alert("Give it a name, for example Rent.");if(!(a>0))return alert("Enter the monthly amount.");if(!(d>=1&&d<=31))return alert("Day of month must be 1 to 31.");
  if(pset.to&&pset.to<pset.from)return alert("The last month can't be before the first month.");
- const p=pcur(),k=ldate().slice(0,7),bef=tSpend(k);
- const f={id:pset.id||pid(),name:pset.name.trim(),amount:a,cat:pset.cat||0,day:d,from:pset.from||k,to:pset.to||""},i=p.fixed.findIndex(x=>x.id==f.id);
+ const p=pcur(),k=ldate().slice(0,7),bef=tSpend(k);let cat=pset.cat==="new"?0:+pset.cat||0;
+ const nc=(pset.newcat||"").trim();
+ if(nc){let c=p.cats.find(x=>x.name.toLowerCase()==nc.toLowerCase());if(!c){c={id:pid(),name:nc,limit:0};p.cats.push(c);pput("cats",c)}cat=c.id}
+ const f={id:pset.id||pid(),name:pset.name.trim(),amount:a,cat:cat||0,day:d,from:pset.from||k,to:pset.to||""},i=p.fixed.findIndex(x=>x.id==f.id);
  if(i>=0)p.fixed[i]=f;else p.fixed.push(f);save();pput("fixed",f);pset=null;perRender();
  const al=budCross(bef,tSpend(k),pbudget(),"personal budget");if(al.length)setTimeout(()=>alert("Budget warning\n"+al.join("\n")),200);
 }
@@ -948,7 +963,7 @@ function perSheet(){
  if(x.t=="bud")return wrap("Personal budget",`<div class="mu">${CP[cpOf(ME)]} · covers everything your couple spends in a month: shared bills, personal expenses and fixed expenses, for both partners. You get a warning at 80%. Set 0 to remove it.</div><div class="l" style="margin-top:12px">${inp("v","Limit per month","number","0")}</div><div class="row2"><button class="btn sec" ${close}>Cancel</button><button class="btn" onclick="pSaveBud()">Save</button></div>`);
  if(x.t=="sq")return wrap("Squad Budget",`<div class="mu">${CP[cpOf(ME)]} · compared with your couple's share of shared bills (the same amounts as the Monthly tab). You get a warning at 80%. Set 0 to remove it.</div><div class="l" style="margin-top:12px">${inp("v","Limit per month","number","0")}</div><div class="row2"><button class="btn sec" ${close}>Cancel</button><button class="btn" onclick="sqSaveBud()">Save</button></div>`);
  if(x.t=="cat")return wrap(x.id?"Edit category":"Add category",`<div class="l">${inp("name","Name","text","e.g. Groceries")}${inp("limit","Monthly limit","number","Optional")}</div><div class="row2">${x.id?'<button class="btn red" onclick="delCat()">Delete</button>':`<button class="btn sec" ${close}>Cancel</button>`}<button class="btn" onclick="saveCat()">Save</button></div>`);
- if(x.t=="fix")return wrap(x.id?"Edit fixed expense":"Add fixed expense",`<div class="l">${inp("name","Name","text","e.g. Rent")}${inp("amount","Amount per month","number","0")}${inp("day","Day of month","number","1")}${inp("from","First month","month")}${inp("to","Last month","month","Optional")}</div><div class="sh">Category</div>${catChips(x.cat,"((c)=>{pset.cat=c;perRender()})")}<div class="row2">${x.id?'<button class="btn red" onclick="delFix()">Delete</button>':`<button class="btn sec" ${close}>Cancel</button>`}<button class="btn" onclick="saveFix()">Save</button></div>`);
+ if(x.t=="fix")return wrap(x.id?"Edit fixed expense":"Add fixed expense",`<div class="l">${inp("name","Name","text","e.g. Rent")}${inp("amount","Amount per month","number","0")}${catSelect(x.cat,"setFixCat")}${x.cat==="new"||x.newcat?`<div class="li"><span>New category</span><input id="fncat" placeholder="e.g. Utilities" value="${esc(x.newcat||"")}" oninput="pset.newcat=this.value"></div>`:""}${inp("day","Day of month","number","1")}${inp("from","First month","month")}${inp("to","Last month","month","Optional")}</div><div class="row2">${x.id?'<button class="btn red" onclick="delFix()">Delete</button>':`<button class="btn sec" ${close}>Cancel</button>`}<button class="btn" onclick="saveFix()">Save</button></div>`);
  return "";
 }
 /* ---- gin rummy ---- */
