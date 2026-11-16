@@ -53,10 +53,8 @@ input,select{font:inherit;font-size:16px;color:var(--tx);background:transparent;
 .item{background:var(--card);border-radius:14px;padding:12px 14px;margin-bottom:10px}
 .item .t{display:flex;gap:8px;align-items:center}.item .t input{text-align:left}.item .t input.pr{text-align:right;max-width:100px;background:var(--bg);border-radius:10px;padding:9px 10px}
 .sp{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px;margin-top:10px}.sp label{font-size:12px;color:var(--mu)}.sp input{background:var(--bg);border-radius:10px;padding:8px 10px;text-align:left;margin-top:2px}
-.tabs{position:fixed;left:14px;right:14px;bottom:calc(10px + env(safe-area-inset-bottom,0px));max-width:528px;margin:0 auto;display:flex;align-items:center;gap:4px;background:linear-gradient(155deg,rgba(255,255,255,.88) 0%,rgba(255,255,255,.48) 22%,rgba(255,255,255,.22) 48%,rgba(255,255,255,.56) 76%,rgba(255,255,255,.78) 100%);-webkit-backdrop-filter:none;backdrop-filter:none;border:1px solid rgba(255,255,255,.82);border-radius:38px;box-shadow:0 13px 30px rgba(0,0,0,.17),inset 0 2px 3px rgba(255,255,255,.98),inset 0 -3px 7px rgba(110,150,190,.16),inset 1px 0 2px rgba(255,255,255,.8);padding:10px 6px;z-index:10;overflow:hidden;isolation:isolate}.tabs:before{content:"";position:absolute;inset:1px 2px 48%;border-radius:36px 36px 55% 55%;background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.16) 72%,transparent);pointer-events:none;z-index:0}.tabs:after{content:"";position:absolute;left:12%;right:12%;top:1px;height:2px;border-radius:50%;background:rgba(255,255,255,.98);filter:blur(1px);opacity:.95;pointer-events:none;z-index:0}
-.tabs button{position:relative;z-index:1;flex:1;background:none;border:0;border-radius:24px;color:var(--mu);font:inherit;font-size:11px;font-weight:600;padding:12px 2px;cursor:pointer;transition:background .2s ease,color .2s ease,transform .12s ease}.tabs button span{display:block;font-size:27px;line-height:1.25}.tabs button.on{color:var(--ac);background:var(--glass-pill)}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tabs{background:linear-gradient(155deg,rgba(110,125,150,.72),rgba(55,65,82,.62) 45%,rgba(30,38,52,.78));border-color:rgba(255,255,255,.28);box-shadow:0 13px 30px rgba(0,0,0,.42),inset 0 2px 3px rgba(255,255,255,.48),inset 0 -3px 7px rgba(0,0,0,.22)}}
-:root[data-theme="dark"] .tabs{background:linear-gradient(155deg,rgba(110,125,150,.72),rgba(55,65,82,.62) 45%,rgba(30,38,52,.78));border-color:rgba(255,255,255,.28);box-shadow:0 13px 30px rgba(0,0,0,.42),inset 0 2px 3px rgba(255,255,255,.48),inset 0 -3px 7px rgba(0,0,0,.22)}
+.tabs{position:fixed;left:10px;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:calc(100% - 20px);max-width:528px;box-sizing:border-box;margin:0 auto;display:flex;align-items:center;gap:6px;background:var(--glass-bg);-webkit-backdrop-filter:blur(28px) saturate(190%);backdrop-filter:blur(28px) saturate(190%);border:.5px solid var(--glass-bd);border-radius:38px;box-shadow:var(--glass-sh);padding:10px 6px;z-index:10}
+.tabs button{flex:1;background:none;border:0;border-radius:24px;color:var(--mu);font:inherit;font-size:11px;font-weight:600;padding:12px 2px;cursor:pointer;transition:background .2s ease,color .2s ease,transform .12s ease}.tabs button span{display:block;font-size:27px;line-height:1.25}.tabs button.on{color:var(--ac);background:var(--glass-pill)}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}.chip{background:var(--bg);border-radius:99px;padding:3px 10px;font-size:13px}
 .cp{background:var(--ac2);color:var(--ac);font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;margin-left:6px}
 .row2{display:flex;gap:8px;margin-top:10px}.row2>*{flex:1}
@@ -93,8 +91,8 @@ input,select,textarea{-webkit-user-select:text;user-select:text}
 .chat{display:flex;flex-direction:column;height:100%;max-width:560px;margin:0 auto}
 .ch-h{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top,0px)) 12px 8px;border-bottom:.5px solid var(--bd);background:var(--card)}
 .ch-m{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:4px;scrollbar-width:none;overscroll-behavior:contain}
-.ch-i{display:flex;gap:8px;margin:8px 12px calc(8px + env(safe-area-inset-bottom,0px));padding:6px 8px 6px 14px;background:var(--bg);border:1px solid var(--bd);border-radius:999px;align-items:center;box-shadow:0 3px 12px rgba(0,0,0,.08)}
-.ch-i input{background:var(--bg);border:0;border-radius:999px;padding:10px 4px;text-align:left;flex:1;min-width:0}
+.ch-i{display:flex;gap:8px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:.5px solid var(--bd);align-items:center}
+.ch-i input{background:var(--bg);border-radius:20px;padding:10px 14px;text-align:left;flex:1}
 .b{align-self:flex-start;max-width:78%;background:var(--card);border-radius:18px;padding:8px 12px;overflow-wrap:anywhere;white-space:pre-wrap;-webkit-user-select:text;user-select:text}.b small{display:block;font-size:10px;color:var(--mu);margin-top:2px}
 .b.me{align-self:flex-end;background:var(--ac);color:#fff}.b.me small{color:rgba(255,255,255,.75)}
 .cn{font-size:11px;color:var(--mu);margin:6px 6px 0}
@@ -143,7 +141,7 @@ button:active,.btn:active{opacity:.65}
 .win{background:var(--grn);color:#fff;border-radius:16px;padding:16px;text-align:center;margin:12px 0}.win small{display:block;font-weight:600;opacity:.9}.win b{display:block;font-size:26px;overflow-wrap:anywhere}
 .rank{display:inline-block;width:26px;color:var(--mu);font-weight:700}
 #gameov{z-index:5}
-#fab{display:none;position:fixed;top:calc(12px + env(safe-area-inset-top,0px));right:max(16px,calc((100vw - 560px)/2 + 16px));bottom:auto;width:52px;height:52px;border-radius:50%;background:var(--bg);color:var(--ac);border:1px solid var(--bd);align-items:center;justify-content:center;z-index:20;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.16)}
+#fab{display:none;position:absolute;right:16px;bottom:calc(88px + env(safe-area-inset-bottom,0px));width:56px;height:56px;border-radius:50%;background:var(--ac);color:#fff;align-items:center;justify-content:center;z-index:8;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25)}
 #fab .bg2{position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;font-style:normal;font-size:11px;font-weight:700;min-width:19px;height:19px;border-radius:10px;display:flex;align-items:center;justify-content:center;padding:0 5px}
 .fp{position:absolute;top:0;left:0;right:0;bottom:0;z-index:60;background:var(--bg);overflow:hidden}
 .fp .w{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
@@ -220,67 +218,23 @@ button:active,.btn:active{opacity:.65}
 .sq-act{display:flex;gap:8px;justify-content:center;min-height:38px}
 .sq-pan{margin:auto;width:100%;max-width:340px;text-align:center;display:flex;flex-direction:column;gap:12px;padding:16px}.sq-pan .seat{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:12px;background:rgba(0,0,0,.28);border-left:5px solid var(--c);font-weight:700}
 .sq-win{background:#ffd60a;color:#111;border-radius:14px;padding:12px;font-weight:800;font-size:18px}
-@keyframes sqpulse{50%{opacity:.65}}@keyframes sqdrop{from{transform:scale(2.2);opacity:0}to{transform:scale(1);opacity:1}}
-
-/* iOS 27-inspired Liquid Glass navigation pill */
-.tabs{
-  background:rgba(245,247,251,.58);
-  -webkit-backdrop-filter:blur(18px) saturate(185%);
-  backdrop-filter:blur(18px) saturate(185%);
-  border:1px solid rgba(219,219,219,.78);
-  border-radius:34px;
-  box-shadow:
-    0 10px 28px rgba(0,0,0,.13),
-    inset 0 .5px 0 rgba(255,255,255,.92),
-    inset 0 -1px 1px rgba(20,30,45,.12),
-    inset 0 8px 18px rgba(255,255,255,.10);
-  overflow:hidden;
-  isolation:isolate;
-}
-.tabs:before{
-  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:0;
-  background:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.06) 42%,rgba(20,30,45,.035));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.72),inset 0 -1px 0 rgba(35,45,60,.08);
-}
-.tabs:after{
-  content:"";position:absolute;left:18%;right:18%;top:1px;height:1px;border-radius:50%;
-  background:rgba(255,255,255,.92);filter:none;opacity:.8;pointer-events:none;z-index:0;
-}
-.tabs button{
-  z-index:1;border-radius:26px;color:var(--mu);
-  transition:background .22s ease,color .22s ease,transform .18s cubic-bezier(.2,.8,.2,1);
-}
-.tabs button:active{transform:scale(.94)}
-.tabs button.on{
-  color:var(--ac);
-  background:rgba(0,122,255,.13);
-  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.5),0 1px 4px rgba(0,0,0,.045);
-}
-@media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"]) .tabs{
-    background:rgba(38,40,47,.62);
-    border-color:rgba(166,166,166,.56);
-    box-shadow:0 12px 30px rgba(0,0,0,.42),inset 0 .5px 0 rgba(255,255,255,.28),inset 0 -1px 1px rgba(0,0,0,.34);
-  }
-  :root:not([data-theme="light"]) .tabs:before{
-    background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.025) 45%,rgba(0,0,0,.13));
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.20),inset 0 -1px 0 rgba(0,0,0,.22);
-  }
-  :root:not([data-theme="light"]) .tabs button.on{background:rgba(10,132,255,.25);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.16),0 1px 4px rgba(0,0,0,.18)}
-}
-:root[data-theme="dark"] .tabs{
-  background:rgba(38,40,47,.62);border-color:rgba(166,166,166,.56);
-  box-shadow:0 12px 30px rgba(0,0,0,.42),inset 0 .5px 0 rgba(255,255,255,.28),inset 0 -1px 1px rgba(0,0,0,.34);
-}
-:root[data-theme="dark"] .tabs:before{
-  background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.025) 45%,rgba(0,0,0,.13));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.20),inset 0 -1px 0 rgba(0,0,0,.22);
-}
-:root[data-theme="dark"] .tabs button.on{background:rgba(10,132,255,.25);box-shadow:inset 0 0 0 .5px rgba(255,255,255,.16),0 1px 4px rgba(0,0,0,.18)}
-@media (prefers-reduced-transparency:reduce){
-  .tabs{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(245,247,251,.94)}
-  :root[data-theme="dark"] .tabs{background:rgba(38,40,47,.96)}
-}
+@keyframes sqpulse{50%{opacity:.65}}@keyframes sqdrop{from{transform:translate(-50%,-50%) scale(2.2);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+/* Sequence Online refinements: preserve the board grid and tile sizing */
+.sqchip.g,.sqchip.b{width:78%;height:78%;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);border-radius:50%;box-sizing:border-box}
+.sq-hand{width:100%;gap:clamp(3px,1.4vw,8px);justify-content:space-between;padding:0 2px}
+.sq-k{flex:1 1 0;width:auto;min-width:0;max-width:76px;height:clamp(78px,12vh,96px);border-radius:9px}
+.sq-k .r{font-size:clamp(20px,5.8vw,27px)}
+.sq-k .s{font-size:clamp(23px,6.2vw,29px)}
+.sq-st{font-size:17px;min-height:24px}
+.sq-log{font-size:15px;min-height:24px;font-weight:700;color:#fff}
+.sq-last{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;background:rgba(0,0,0,.25);border-radius:10px;padding:7px 10px;font-size:16px;font-weight:800}
+.sq-last b{font-size:18px}
+.sq-last-card{display:inline-flex;align-items:center;justify-content:center;flex-direction:column;width:42px;height:56px;flex:0 0 42px;background:#fffdf5;color:#111;border:2px solid #d4cba9;border-radius:6px;box-shadow:0 2px 5px rgba(0,0,0,.35);line-height:1}
+.sq-last-card .r{font-size:17px;font-weight:900}.sq-last-card .s{font-size:19px;line-height:1.05}.sq-last-card .red{color:#c8102e}
+.sq-last-action{font-size:12px;font-weight:800;opacity:.9}
+.sq-act{flex-wrap:wrap}
+.sq-btn.end{background:#c8102e}
+@media(max-width:380px){.sq{gap:5px}.sq-k{height:76px}.sq-last{font-size:14px}.sq-last b{font-size:16px}}
 
 </style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div><div id="seqov"></div><div id="fab" onclick="openChat()"></div><div id="perov"></div>
 <script>
@@ -1230,8 +1184,8 @@ const cardRS=c=>({r:c.slice(0,-1),s:c.slice(-1)}),cardLbl=c=>cardRS(c).r+SQ_SUIT
 const mkDeck=()=>{const d=[];for(let k=0;k<2;k++)["S","H","D","C"].forEach(s=>SQ_RANKS.forEach(r=>d.push(r+s)));return d};
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const parseSeqs=x=>String(x||"").split(";").filter(Boolean).map(y=>y.split(",").map(Number)),fmtSeqs=a=>a.map(c=>c.join(",")).join(";");
-function gNorm(g){if(!g)return null;return{...g,bd:String(g.board||".".repeat(100)).split("").map(v=>v==="."?"":v),sq:{g:parseSeqs(g.sg),b:parseSeqs(g.sb)},botL:String(g.bots||"").split(",").filter(x=>x!=="").map(Number),logL:arrOf(g.log)}}
-const gSer=G=>({id:G.id,status:G.status,host:G.host,target:G.target,turn:G.turn,moveNo:G.moveNo,board:G.bd.map(v=>v||".").join(""),sg:fmtSeqs(G.sq.g),sb:fmtSeqs(G.sq.b),bots:G.botL.join(","),last:G.last||null,swapped:!!G.swapped,winner:G.winner||"",log:G.logL,at:Date.now(),created:G.created||0});
+function gNorm(g){if(!g)return null;return{...g,bd:String(g.board||".".repeat(100)).split("").map(v=>v==="."?"":v),sq:{g:parseSeqs(g.sg),b:parseSeqs(g.sb)},logL:arrOf(g.log)}}
+const gSer=G=>({id:G.id,status:G.status,host:G.host,target:G.target,turn:G.turn,moveNo:G.moveNo,board:G.bd.map(v=>v||".").join(""),sg:fmtSeqs(G.sq.g),sb:fmtSeqs(G.sq.b),bots:"",last:G.last||null,swapped:!!G.swapped,winner:G.winner||"",endedBy:G.endedBy||null,endReason:G.endReason||"",log:G.logL,at:Date.now(),created:G.created||0});
 const lockedSet=G=>new Set([...G.sq.g.flat(),...G.sq.b.flat()]);
 function legalCells(G,card,t){
  const o=t==="g"?"b":"g",res=[];
@@ -1251,12 +1205,12 @@ function findSeqs(G,ci,t){
  }
  return found;
 }
-function seqDeal(host,botList){
+function seqDeal(host){
  const deck=shuffle(mkDeck()),hands={};for(let p=0;p<6;p++)hands[p]=deck.splice(0,5);
- const G={id:Date.now(),status:"playing",host,target:3,turn:Math.floor(Math.random()*6),moveNo:0,bd:Array(100).fill(""),sq:{g:[],b:[]},botL:botList.slice(),last:null,swapped:false,winner:"",logL:[],created:Date.now()};
+ const G={id:Date.now(),status:"playing",host,target:3,turn:Math.floor(Math.random()*6),moveNo:0,bd:Array(100).fill(""),sq:{g:[],b:[]},last:null,swapped:false,winner:"",endedBy:null,endReason:"",logL:[],created:Date.now()};
  return{G,hands,deck,discard:[]};
 }
-const cloneG=G=>({...G,bd:G.bd.slice(),sq:{g:G.sq.g.map(a=>a.slice()),b:G.sq.b.map(a=>a.slice())},botL:G.botL.slice(),logL:G.logL.slice()});
+const cloneG=G=>({...G,bd:G.bd.slice(),sq:{g:G.sq.g.map(a=>a.slice()),b:G.sq.b.map(a=>a.slice())},logL:G.logL.slice()});
 function drawOne(deck,disc){let dk=deck.slice(),dc=disc.slice();if(!dk.length&&dc.length){dk=shuffle(dc);dc=[]}const c=dk.length?dk.pop():null;return{dk,dc,c}}
 function seqPlay(G,deck,disc,hand,p,ci,cell){
  const t=tmOf(p),card=hand[ci],G2=cloneG(G);let type="place",newS=[];
@@ -1276,33 +1230,6 @@ function seqSwapDead(G,deck,disc,hand,ci){
  return{G:G2,hand:h,deck:d.dk,discard:d.dc,newS:[]};
 }
 function seqPassTurn(G,deck,disc,hand){const G2=cloneG(G);G2.moveNo=G.moveNo+1;G2.turn=(G.turn+1)%6;G2.swapped=false;G2.last={p:G.turn,card:"",cell:-1,type:"pass",seqs:0};G2.logL=[...G.logL.slice(-4),`${P[G.turn]} passed`];return{G:G2,hand,deck,discard:disc,newS:[]}}
-/* ---- bot brain ---- */
-function scorePlace(G,cell,t){
- const o=t==="g"?"b":"g";let sc=0;
- for(const w of WIN[cell]){
-  let own=1,opp=0,oc=0,wn=0;
-  for(const i of w){if(i===cell)continue;if(BD[i]==="F"){own++;oc++}else if(G.bd[i]===t){own++;wn++}else if(G.bd[i]===o){opp++;oc++}}
-  if(!opp)sc+=[0,1,3,10,45,1000][own];
-  if(!wn&&oc>=2)sc+=oc>=4?420:oc===3?28:5;     // block the other team
- }
- return sc;
-}
-function scoreRemove(G,cell,t){
- const o=t==="g"?"b":"g";let sc=0;
- for(const w of WIN[cell]){let oc=0,wn=0;for(const i of w){if(BD[i]==="F")oc++;else if(G.bd[i]===o)oc++;else if(G.bd[i]===t)wn++}if(!wn)sc+=oc>=5?600:oc===4?120:oc===3?18:2}
- return sc;
-}
-function botMove(G,hand,p){
- const t=tmOf(p);
- if(!G.swapped){const di=hand.findIndex(c=>isDead(G,c));if(di>=0)return{act:"swap",ci:di}}
- let best=null;
- hand.forEach((card,ci)=>{legalCells(G,card,t).forEach(cell=>{
-  let sc=isRem(card)?scoreRemove(G,cell,t)-6:scorePlace(G,cell,t)-(isWild(card)?8:0);sc+=Math.random()*1.5;
-  if(!best||sc>best.sc)best={sc,ci,cell};
- })});
- if(best)return{act:"play",ci:best.ci,cell:best.cell};
- return{act:"pass"};
-}
 /* ---- sound (synthesised, no files) ---- */
 let AC=null,sndOn=(()=>{try{return localStorage.getItem("squadsnd")!=="0"}catch(e){return true}})();
 function actx(){try{if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(C)AC=new C()}if(AC&&AC.state==="suspended")AC.resume()}catch(e){}return AC}
@@ -1312,19 +1239,19 @@ const SND={click(){tone(1400,0,.04,"square",.05)},draw(){noise(0,.09,.2,3500,150
 const playSnd=n=>{if(sndOn){try{SND[n]()}catch(e){}}};
 const toggleSnd=()=>{sndOn=!sndOn;try{localStorage.setItem("squadsnd",sndOn?"1":"0")}catch(e){}if(sndOn)playSnd("click");seqRender()};
 /* ---- online game: state in Firebase, polled while the board is open ---- */
-let seqOpen=false,seqG=null,seqHand=[],seqLb={},seqSel=-1,seqTimer=null,seqBusy=false,seqSig="",seqBotT=null,seqWaitSince=0,seqLastTurn=-1;
+let seqOpen=false,seqG=null,seqHand=[],seqLb={},seqSel=-1,seqTimer=null,seqBusy=false,seqSig="",seqWaitSince=0,seqLastTurn=-1;
 const sput=async(path,v)=>{const r=await fetch(`${DBU}/${path}.json`,{method:"PUT",body:JSON.stringify(v)});if(!r.ok)throw new Error("write")};
 const sdel=path=>fetch(`${DBU}/${path}.json`,{method:"DELETE"});
 async function seqOpenGame(){actx();playSnd("click");seqOpen=true;seqSel=-1;seqSig="";seqov.style.display="block";seqRender();await seqFetch(true);clearInterval(seqTimer);seqTimer=setInterval(seqFetch,1500)}
-function seqClose(){seqOpen=false;clearInterval(seqTimer);clearTimeout(seqBotT);seqBotT=null;seqov.style.display="none";seqov.innerHTML=""}
+function seqClose(){seqOpen=false;clearInterval(seqTimer);seqov.style.display="none";seqov.innerHTML=""}
 async function seqFetch(force){
  if(!seqOpen||seqBusy)return;
  try{
   const[g,lb,h]=await Promise.all([fget("seq/game"),fget("seq/lobby"),ME===null?null:fget("seq/hands/"+ME)]);
-  const sig=JSON.stringify([g,lb,h]);if(!force&&sig===seqSig){seqBots();return}
+  const sig=JSON.stringify([g,lb,h]);if(!force&&sig===seqSig)return
   const old=seqG;seqG=gNorm(g);seqLb=lb||{};seqHand=arrOf(h);seqSig=sig;
   if(seqSel>=seqHand.length)seqSel=-1;
-  seqSounds(old,seqG);seqRender();seqBots();
+  seqSounds(old,seqG);seqRender();
  }catch(e){}
 }
 function seqSounds(o,G){
@@ -1335,15 +1262,16 @@ function seqSounds(o,G){
  else if(G.status==="playing"&&G.turn===ME&&(!o||o.turn!==ME||o.status!=="playing")){playSnd("turn")}
 }
 async function seqCreate(){
- try{seqBusy=true;await sdel("seq");const G={id:Date.now(),status:"lobby",host:ME,target:3,turn:0,moveNo:0,board:".".repeat(100),sg:"",sb:"",bots:"",swapped:false,winner:"",log:[],created:Date.now()};
+ try{seqBusy=true;await sdel("seq");const G={id:Date.now(),status:"lobby",host:ME,target:3,turn:0,moveNo:0,board:".".repeat(100),sg:"",sb:"",bots:"",swapped:false,winner:"",endedBy:null,endReason:"",log:[],created:Date.now()};
   await sput("seq/game",G);await sput("seq/lobby/"+ME,true)}catch(e){showNotice("Could not create the game. Check your connection.")}
  seqBusy=false;await seqFetch(true);
 }
 async function seqJoin(){try{await sput("seq/lobby/"+ME,true)}catch(e){}await seqFetch(true)}
 async function seqLeave(){try{await sdel("seq/lobby/"+ME)}catch(e){}await seqFetch(true)}
 async function seqStart(){
- const humans=Object.keys(seqLb||{}).map(Number);if(!humans.length)return showNotice("Join first.");
- const bots=[0,1,2,3,4,5].filter(p=>!humans.includes(p)),D=seqDeal(ME,bots);D.G.id=seqG?seqG.id:D.G.id;
+ const humans=Object.keys(seqLb||{}).map(Number);
+ if(humans.length!==6)return showNotice("All 6 players must join before the match can start. No bot players are available.");
+ const D=seqDeal(ME);D.G.id=seqG?seqG.id:D.G.id;
  try{seqBusy=true;
   for(let p=0;p<6;p++)await sput("seq/hands/"+p,D.hands[p]);
   await sput("seq/deck",D.deck);await sdel("seq/discard");await sput("seq/game",gSer(D.G))}catch(e){showNotice("Could not start. Check your connection.")}
@@ -1369,11 +1297,11 @@ async function seqAct(p,kind,ci,cell){
  seqBusy=false;
  if(r){seqG=r.G;if(p===ME)seqHand=r.hand;seqSel=-1;seqSig="";
   if(kind==="play"){playSnd(r.G.last.type==="remove"?"remove":"place");if(r.newS.length)setTimeout(()=>playSnd("seq"),350);if(r.G.status==="done")setTimeout(()=>playSnd("win"),600)}else if(kind==="swap")playSnd("draw");
-  seqRender();seqBots();
+  seqRender();
  }else{if(p===ME)playSnd("bad");await seqFetch(true)}
  return r;
 }
-const seqMyTurn=()=>!!(seqG&&seqG.status==="playing"&&seqG.turn===ME&&!seqG.botL.includes(ME));
+const seqMyTurn=()=>!!(seqG&&seqG.status==="playing"&&seqG.turn===ME);
 function seqPick(i){if(!seqG||seqG.status!=="playing")return;actx();seqSel=seqSel===i?-1:i;playSnd("click");seqRender()}
 function seqCell(i){
  if(!seqMyTurn()||seqSel<0)return;
@@ -1383,24 +1311,18 @@ function seqCell(i){
 }
 function seqSwapMine(){if(seqMyTurn()&&seqSel>=0&&isDead(seqG,seqHand[seqSel])&&!seqG.swapped)seqAct(ME,"swap",seqSel,-1)}
 async function seqPassMine(){if(seqMyTurn()&&await showConfirm("No move is possible. Pass your turn?","Pass turn","Pass"))seqAct(ME,"pass",0,-1)}
-async function seqTakeover(p){
- try{const f=gNorm(await fget("seq/game"));if(!f||f.status!=="playing")return;if(!f.botL.includes(p))f.botL.push(p);await sput("seq/game",gSer(f))}catch(e){}
- await seqFetch(true);
-}
-async function seqPlayMyself(){
- try{const f=gNorm(await fget("seq/game"));if(!f)return;f.botL=f.botL.filter(x=>x!==ME);await sput("seq/game",gSer(f))}catch(e){}
- await seqFetch(true);
-}
-/* bots: one phone (first human who is online) plays for the bots */
-function seqBots(){
- const G=seqG;if(!seqOpen||!G||G.status!=="playing"||!G.botL.includes(G.turn)||seqBusy||seqBotT)return;
- const humans=[0,1,2,3,4,5].filter(p=>!G.botL.includes(p)),runner=humans.filter(p=>p===ME||isOn(p))[0];
- if(runner!==ME&&!(humans.length===0&&ME===G.host))return;
- const mv=G.moveNo,turn=G.turn;
- seqBotT=setTimeout(async()=>{
-  seqBotT=null;if(!seqOpen||!seqG)return;if(seqG.moveNo!==mv||seqG.turn!==turn||seqBusy){seqBots();return}
-  try{const hand=arrOf(await fget("seq/hands/"+turn)),m=botMove(seqG,hand,turn);await seqAct(turn,m.act==="swap"?"swap":m.act==="play"?"play":"pass",m.ci||0,m.cell===undefined?-1:m.cell)}catch(e){}
- },1100);
+async function seqEndMatch(){
+ if(!seqG||seqG.status!=="playing")return;
+ if(!(await showConfirm("End this match now? The current score will be saved and no more cards can be played.","End match","End match",true)))return;
+ try{
+  const fresh=gNorm(await fget("seq/game"));
+  if(!fresh||fresh.status!=="playing")return showNotice("This match has already ended.");
+  fresh.status="ended";fresh.endedBy=ME;fresh.endReason=`Ended by ${P[ME]}`;fresh.moveNo=(fresh.moveNo||0)+1;
+  await sput("seq/game",gSer(fresh));
+  seqG=fresh;seqSel=-1;seqSig="";seqRender();
+  const n={id:fresh.id,game:"seqonline",date:ldate(),g:fresh.sq.g.length,b:fresh.sq.b.length,note:fresh.endReason,by:ME,rounds:[],status:"ended"};
+  S.nights=S.nights.filter(x=>x.id!==n.id).concat(n);save();await sput("nights/"+n.id,n);
+ }catch(e){showNotice("Could not end the match. Check your connection.")}
 }
 window.addEventListener("resize",()=>{if(seqOpen)seqRender()});
 /* ---- screens ---- */
@@ -1413,9 +1335,9 @@ function seqRender(){
 function seqLobbyHtml(G){
  const joined=Object.keys(seqLb||{}).map(Number);
  if(!G)return `<div class="sq-pan"><div style="font-size:42px">♠ ♥ ♦ ♣</div><div style="font-size:20px;font-weight:800">Sequence Online</div><div style="opacity:.85">Girls vs Boys · 6 players · first team to 3 sequences wins</div><button class="sq-btn big" onclick="seqCreate()">Create a game</button></div>`;
- const seat=p=>`<div class="seat" style="--c:${TEAMC[tmOf(p)]}"><span>${P[p]} <small style="opacity:.8">· ${tmOf(p)==="g"?"Girls":"Boys"}</small></span><span>${joined.includes(p)?"Joined":'<span style="opacity:.6">bot</span>'}</span></div>`;
+ const seat=p=>`<div class="seat" style="--c:${TEAMC[tmOf(p)]}"><span>${P[p]} <small style="opacity:.8">· ${tmOf(p)==="g"?"Girls":"Boys"}</small></span><span>${joined.includes(p)?"Joined":'<span style="opacity:.6">Waiting</span>'}</span></div>`;
  const me=joined.includes(ME);
- return `<div class="sq-pan"><div style="font-size:20px;font-weight:800">Game lobby</div><div style="opacity:.85;font-size:13px">Seats alternate Girls and Boys. Seats nobody joins are played by bots.</div>${[0,1,2,3,4,5].map(seat).join("")}<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${me?`<button class="sq-btn" onclick="seqLeave()">Leave seat</button>`:`<button class="sq-btn big" onclick="seqJoin()">Join as ${P[ME]}</button>`}${me?`<button class="sq-btn big" onclick="seqStart()">Start game</button>`:""}</div><div style="opacity:.7;font-size:12px">${joined.length} of 6 players joined${G.host!==undefined?" · host "+P[G.host]:""}</div></div>`;
+ return `<div class="sq-pan"><div style="font-size:20px;font-weight:800">Game lobby</div><div style="opacity:.85;font-size:13px">Seats alternate Girls and Boys. All six players must join to start.</div>${[0,1,2,3,4,5].map(seat).join("")}<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${me?`<button class="sq-btn" onclick="seqLeave()">Leave seat</button>`:`<button class="sq-btn big" onclick="seqJoin()">Join as ${P[ME]}</button>`}${me&&joined.length===6?`<button class="sq-btn big" onclick="seqStart()">Start game</button>`:""}</div><div style="opacity:.7;font-size:12px">${joined.length} of 6 players joined${G.host!==undefined?" · host "+P[G.host]:""}</div></div>`;
 }
 function seqBoardHtml(G){
  const W=window.innerWidth||390,H=window.innerHeight||760,cs=Math.max(24,Math.floor(Math.min((W-10)/10,(H-310)/10))),L=lockedSet(G),T=G.target;
@@ -1425,27 +1347,26 @@ function seqBoardHtml(G){
   const face=c==="F"?'<span class="fr">★</span>':`<span class="r ${isRed(c)?"red":""}">${cardRS(c).r}</span><span class="s ${isRed(c)?"red":""}">${SQ_SUIT[cardRS(c).s]}</span>`;
   return `<div class="sq-c ${hl.has(i)?"hl":""} ${last?"last":""} ${c==="F"&&L.has(i)?"gold":""}" onclick="seqCell(${i})">${face}${v?`<i class="sqchip ${v} ${L.has(i)?"lk":""} ${last&&G.last.type==="place"?"nw":""}"></i>`:""}</div>`;
  }).join("");
- const myT=seqMyTurn(),cur=G.turn,curBot=G.botL.includes(cur);
+ const myT=seqMyTurn(),cur=G.turn;
  let status;
  if(G.status==="done")status=`<div class="sq-win" style="background:${TEAMC[G.winner]};color:#fff">${G.winner==="g"?"Girls":"Boys"} win the match!</div>`;
+ else if(G.status==="ended")status=`<div class="sq-win">Match ended early · ${esc(G.endReason||"Ended by a player")}</div>`;
  else if(myT)status=`<div class="sq-st">Your turn · ${sel?(isRem(sel)?"tap an opponent chip to remove":isWild(sel)?"tap any empty space":"tap a green space"):"pick a card"}</div>`;
- else status=`<div class="sq-st">${P[cur]}${curBot?" (bot)":""} is playing…</div>`;
+ else status=`<div class="sq-st">${P[cur]} is playing…</div>`;
  const noMove=myT&&hand.length&&hand.every(c=>!legalCells(G,c,t).length&&(!isDead(G,c)||G.swapped));
  const dead=sel&&myT&&isDead(G,sel)&&!G.swapped;
- const stale=G.status==="playing"&&!myT&&!curBot&&G.at&&Date.now()-G.at>25000;
- const meBot=G.botL.includes(ME);
  let acts="";
- if(G.status==="done")acts=`<button class="sq-btn big" onclick="seqCreate()">New game</button>`;
+ if(G.status==="done"||G.status==="ended")acts=`<button class="sq-btn big" onclick="seqCreate()">New game</button>`;
  else{
   if(dead)acts+=`<button class="sq-btn red" onclick="seqSwapMine()">Swap dead card</button>`;
   if(noMove)acts+=`<button class="sq-btn" onclick="seqPassMine()">No moves · pass</button>`;
-  if(stale)acts+=`<button class="sq-btn" onclick="seqTakeover(${cur})">Bot plays for ${P[cur]}</button>`;
-  if(meBot)acts+=`<button class="sq-btn" onclick="seqPlayMyself()">Play my seat myself</button>`;
+  acts+=`<button class="sq-btn end" onclick="seqEndMatch()">End match</button>`;
  }
  const handHtml=hand.map((c,i)=>{const rs=cardRS(c),dd=isDead(G,c);return `<div class="sq-k ${i===seqSel?"sel":""} ${dd?"dead":""}" onclick="seqPick(${i})"><span class="r ${isRed(c)?"red":""}">${rs.r}</span><span class="s ${isRed(c)?"red":""}">${SQ_SUIT[rs.s]}</span>${isWild(c)?"<small>WILD</small>":isRem(c)?"<small>REMOVE</small>":""}${dd?'<span class="dd">DEAD</span>':""}</div>`}).join("");
  return `<div class="sq-sc"><span style="color:#ff8ec6">Girls ${G.sq.g.length}/${T}</span><span style="color:#7cc0ff">Boys ${G.sq.b.length}/${T}</span></div>
- <div class="sq-pl">${G.botL.length>=0?[0,1,2,3,4,5].map(p=>`<span class="sq-p ${p===cur&&G.status==="playing"?"on":""}" style="--c:${TEAMC[tmOf(p)]}">${P[p]}${G.botL.includes(p)?" ·bot":""}</span>`).join(""):""}</div>
- <div class="sq-bd" style="--cs:${cs}px">${cells}</div>${status}<div class="sq-log">${esc(G.logL[G.logL.length-1]||"")}</div>
+ <div class="sq-pl">${[0,1,2,3,4,5].map(p=>`<span class="sq-p ${p===cur&&G.status==="playing"?"on":""}" style="--c:${TEAMC[tmOf(p)]}">${P[p]}</span>`).join("")}</div>
+ <div class="sq-bd" style="--cs:${cs}px">${cells}</div>${status}
+ ${G.last?`<div class="sq-last"><span>Last played: <b>${esc(P[G.last.p]||"Player")}</b></span>${G.last.card?(()=>{const lr=cardRS(G.last.card);return `<span class="sq-last-card"><span class="r ${isRed(G.last.card)?"red":""}">${esc(lr.r)}</span><span class="s ${isRed(G.last.card)?"red":""}">${SQ_SUIT[lr.s]}</span></span>`})():""}<span class="sq-last-action">${G.last.type==="pass"?"Passed":G.last.type==="swap"?"Swapped dead card":G.last.type==="remove"?"Removed opponent chip":"Played card"}</span></div>`:`<div class="sq-log">Waiting for the first move</div>`}
  <div class="sq-hand">${handHtml}</div><div class="sq-act">${acts}</div>`;
 }
 /* ---- gin rummy ---- */
