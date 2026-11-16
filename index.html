@@ -198,7 +198,52 @@ button:active,.btn:active{opacity:.65}
 .gnr{font-size:12px;color:var(--mu);margin-top:2px;line-height:1.5;white-space:normal}
 .rxr{display:flex;gap:4px;flex-wrap:wrap;margin:3px 4px 0}.rxc{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:12px;padding:1px 8px;font-size:13px;cursor:pointer}.rxc.on{border-color:var(--ac);background:var(--ac2)}
 .rxp{display:flex;gap:2px;background:var(--card);border:.5px solid var(--bd);border-radius:22px;padding:4px 6px;margin:4px 0;box-shadow:0 4px 14px rgba(0,0,0,.18)}.rxp button{border:0;background:none;font-size:22px;padding:2px 5px;border-radius:10px;cursor:pointer}.rxp button.on{background:var(--ac2)}
-</style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div><div id="fab" onclick="openChat()"></div><div id="perov"></div>
+/* UI Polish */
+.l,.item,.tile,.gcard,.sk>div,.gcell{border:.5px solid var(--bd)}
+.sh{font-weight:700;letter-spacing:.45px;font-size:12px}
+.li{transition:background .15s ease,opacity .12s ease}
+.li:focus-within{background:var(--ac2)}
+input::placeholder{color:var(--mu);opacity:.7}
+.chip-btn{background:var(--bg);color:var(--tx);border:.5px solid var(--bd);border-radius:99px;padding:6px 12px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:transform .1s,background .15s}
+.chip-btn:active{transform:scale(.96);background:var(--ac2);color:var(--ac)}
+.chip-btn small{color:var(--mu);font-size:11.5px}
+.day-hdr{display:flex;justify-content:space-between;align-items:baseline;margin:18px 14px 6px}
+.day-hdr span:first-child{font-size:12.5px;font-weight:700;text-transform:uppercase;color:var(--mu);letter-spacing:.4px}
+.day-hdr span:last-child{font-size:13px;font-weight:700;color:var(--tx)}
+
+/* Swipe & Auto-Hide Navigation Enhancements */
+.tabs {
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease;
+}
+.tabs.nav-hidden {
+  transform: translateY(calc(100% + 28px + env(safe-area-inset-bottom, 0px)));
+  opacity: 0;
+  pointer-events: none;
+}
+#edge-back-pill {
+  position: fixed;
+  top: 50%;
+  left: -46px;
+  transform: translateY(-50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 0.5px solid var(--glass-bd);
+  box-shadow: var(--glass-sh);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ac);
+  font-size: 22px;
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 9999;
+  transition: left 0.12s ease-out;
+}
+</style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div><div id="fab" onclick="openChat()"></div><div id="perov"></div><div id="edge-back-pill">‹</div>
 <script>
 const P=["Appal","Uly","Miu","Raya","Aslan","Reesha"],CP=["Appal & Uly","Miu & Raya","Aslan & Reesha"],COL=["#ff9500","#af52de","#30b0c7"],GST=8;
 function sc2(n){const e=document.querySelector(".w");if(e)e.scrollTop=n}
@@ -863,7 +908,68 @@ function perRender(){
  perov.innerHTML=mode==="item"?pItemPageHtml():mode==="exp"?pExpPage():pset?perSheet():`<div class="w pw">${perPage()}</div><button class="fabx" onclick="expSheet()">+ Add expense</button>`;
  const nw=document.querySelector(".pw");if(nw)nw.scrollTop=mode==="page"?pY:mode==="exp"?pExpY:0;
  pMode=mode;
+ if(mode==="item")pItSug();
+ else if(mode==="exp"&&pset&&pset.mode==="split")pPlSug();
  fabUpd();
+}
+
+/* ---- Recently Used Places & Items for Personal Budget / Couple Split ---- */
+function pastPerPlaces(){
+ const seen={},o=[];
+ per().exp.forEach(e=>{
+  const n=(e.note||"").trim(),k=n.toLowerCase();
+  if(n&&n!=="Couple split"&&!seen[k]){seen[k]=1;o.push({n,cat:e.cat||0})}
+ });
+ S.bills.forEach(b=>{
+  const n=(b.title||"").trim(),k=n.toLowerCase();
+  if(n&&n!=="Untitled bill"&&!seen[k]){seen[k]=1;o.push({n,cat:0})}
+ });
+ return o;
+}
+function pastPerItems(){
+ const seen={},o=[];
+ per().exp.forEach(e=>{
+  arr(e.items).forEach(it=>{
+   const n=(it.n||"").trim(),k=n.toLowerCase();
+   if(n&&!seen[k]){seen[k]=1;o.push({n,p:+it.p||0})}
+  });
+ });
+ S.bills.forEach(b=>{
+  arr(b.items).forEach(it=>{
+   const n=(it.n||"").trim(),k=n.toLowerCase();
+   if(n&&!seen[k]){seen[k]=1;o.push({n,p:+it.p||0})}
+  });
+ });
+ return o;
+}
+let pplL=[],psugL=[];
+function pPlSug(){
+ const q=((pset&&pset.note)||"").trim().toLowerCase(),e=document.getElementById("ppls");if(!e)return;
+ pplL=q?pastPerPlaces().filter(x=>x.n.toLowerCase().includes(q)&&x.n.toLowerCase()!==q).sort((a,b)=>(b.n.toLowerCase().startsWith(q)?1:0)-(a.n.toLowerCase().startsWith(q)?1:0)).slice(0,25):[];
+ e.style.display=pplL.length?"block":"none";
+ e.innerHTML=pplL.map((x,i)=>`<div class="li" onclick="pickPerPlace(${i})" style="cursor:pointer;min-height:44px"><span>${esc(x.n)}</span>${x.cat?`<small>${esc(catName(x.cat))}</small>`:""}</div>`).join("");
+}
+function pickPerPlace(i){
+ const x=pplL[i];if(!x||!pset)return;
+ pset.note=x.n;if(x.cat&&!pset.cat)pset.cat=x.cat;perRender();
+}
+function pickRecentPerPlace(i){
+ const x=pastPerPlaces()[i];if(!x||!pset)return;
+ pset.note=x.n;if(x.cat&&!pset.cat)pset.cat=x.cat;perRender();
+}
+function pItSug(){
+ const q=((pset&&pset.it&&pset.it.n)||"").trim().toLowerCase(),e=document.getElementById("pits");if(!e)return;
+ psugL=q?pastPerItems().filter(x=>x.n.toLowerCase().includes(q)&&x.n.toLowerCase()!==q).sort((a,b)=>(b.n.toLowerCase().startsWith(q)?1:0)-(a.n.toLowerCase().startsWith(q)?1:0)).slice(0,25):[];
+ e.style.display=psugL.length?"block":"none";
+ e.innerHTML=psugL.map((x,i)=>`<div class="li" onclick="pickPerItem(${i})" style="cursor:pointer;min-height:44px"><span>${esc(x.n)}</span><span class="mu">${mh(x.p)}</span></div>`).join("");
+}
+function pickPerItem(i){
+ const x=psugL[i];if(!x||!pset||!pset.it)return;
+ pset.it.n=x.n;pset.it.pm="bill";pset.it.pr=String(x.p);pset.it.q=1;perRender();
+}
+function pickRecentPerItem(i){
+ const x=pastPerItems()[i];if(!x||!pset||!pset.it)return;
+ pset.it.n=x.n;pset.it.pm="bill";pset.it.pr=String(x.p);pset.it.q=1;perRender();
 }
 
 /* ---- Partner Spending Comparison & Couple Bill Split Maths ---- */
@@ -916,9 +1022,10 @@ function pSaveItem(next){
 }
 function pTgl(i){const w=pset.it.w,x=w.indexOf(i);x<0?w.push(i):w.splice(x,1);perRender()}
 function pItemPageHtml(){
- const s=pset.it,mc=cpOf(ME),p0=2*mc,p1=2*mc+1,unit=s.pm=="unit";
+ const s=pset.it,mc=cpOf(ME),p0=2*mc,p1=2*mc+1,unit=s.pm=="unit",rec=pastPerItems().slice(0,8);
  return `<div class="fp" style="z-index:65"><div class="w pw">${headB('style="margin-top:6px" onclick="pset.it=null;perRender()"','‹ Back',s.k<0?"Add item":"Edit item","Divided between "+P[p0]+" and "+P[p1]+" only")}
- <div class="l"><div class="li"><span>Item</span><input id="pisn" autocomplete="off" placeholder="e.g. Coffee &amp; cake" value="${esc(s.n)}" oninput="pset.it.n=this.value"></div></div>
+ <div style="position:relative"><div class="l vis"><div class="li"><span>Item</span><input id="pisn" autocomplete="off" placeholder="e.g. Coffee &amp; cake" value="${esc(s.n)}" oninput="pset.it.n=this.value;pItSug()"></div></div><div id="pits" class="dd"></div></div>
+ ${rec.length?`<div class="sh">Recently used items</div><div class="chips" style="margin-top:4px">${rec.map((x,i)=>`<button class="chip-btn" onclick="pickRecentPerItem(${i})">${esc(x.n)}${x.p>0?` <small>${f(x.p)}</small>`:""}</button>`).join("")}</div>`:""}
  <div class="sh">Price</div>${seg([["bill","Bill price"],["unit","Unit price"]],s.pm,"((v)=>{pset.it.pm=v;perRender()})")}
  <div class="l" style="margin-top:10px"><div class="li"><span>${unit?"Unit price":"Bill price"}</span><input type="number" inputmode="decimal" step="any" placeholder="0" value="${esc(s.pr)}" oninput="pset.it.pr=this.value;pItemTot()"></div>
  <div class="li"><span>Quantity</span><span class="step"><button class="pill" onclick="pset.it.q=Math.max(1,pset.it.q-1);perRender()">−</button><b>${s.q}</b><button class="pill" onclick="pset.it.q++;perRender()">+</button></span></div>
@@ -954,13 +1061,15 @@ function pExpPage(){
    +`<div class="li"><span><b>${P[p1]}</b><br><small>Items ${f(r.sub1)} + charges ${f(r.t1-r.sub1)}</small></span><b>${mh(r.t1)}</b></div>`
    +`<div class="li"><b>Total</b><b>${mh(r.tot)}</b></div>`
    +(rc>0?(Math.abs(r.tot-rc)<=0.011?`<div class="li"><span>Receipt total</span><b class="pos">Matches ✓</b></div>`:`<div class="li"><span>Receipt total ${f(rc)}</span><b class="neg">${r.tot>rc?"+":"−"}${f(Math.abs(r.tot-rc))} difference</b></div>`):"");
-  body=`<div class="sh">Details</div><div class="l">
-   <div class="li"><span>Place / Note</span><input placeholder="e.g. Dinner date" value="${esc(x.note||"")}" oninput="pset.note=this.value"></div>
+  const recPl=pastPerPlaces().slice(0,8);
+  body=`<div class="sh">Details</div><div class="l vis">
+   <div style="position:relative"><div class="li"><span>Place / Note</span><input autocomplete="off" placeholder="e.g. Dinner date" value="${esc(x.note||"")}" oninput="pset.note=this.value;pPlSug()"></div><div id="ppls" class="dd"></div></div>
    ${catRow}${newCatRow}
    <div class="li"><span>Date</span><input type="date" value="${esc(x.date)}" oninput="pset.date=this.value"></div>
    <div class="li"><span>Receipt total</span><input type="number" inputmode="decimal" step="any" placeholder="Optional check" value="${x.recTotal||""}" oninput="pset.recTotal=+this.value;pSplitPrev()"></div>
    ${payPick}
   </div>
+  ${recPl.length?`<div class="sh">Recently used places</div><div class="chips" style="margin-top:4px">${recPl.map((pl,i)=>`<button class="chip-btn" onclick="pickRecentPerPlace(${i})">${esc(pl.n)}</button>`).join("")}</div>`:""}
   <div class="sh">Charges</div><div class="l">${num("scAmt","Service charge")}${num("gstAmt","GST")}${num("other","Other charges")}</div>
   <div class="mu" style="margin:6px 12px">Split only between ${P[p0]} and ${P[p1]}.</div>
   <div class="sh">Items</div><div class="l">${x.items.length?x.items.map((it,k)=>`<div class="li" onclick="pItemSheet(${k})" style="cursor:pointer"><span>${esc(it.n||"Item")}${(it.q||1)>1?` <small>×${it.q}</small>`:""}<br><small>${it.w.length==2?"Both":it.w.map(i=>P[i]).join(", ")||"Nobody selected"}</small></span><span style="display:flex;gap:8px;align-items:center"><b>${mh(+it.p||0)}</b><span class="mu">›</span></span></div>`).join(""):'<div class="li mu">No items yet. Tap Add item below.</div>'}</div>
@@ -1005,9 +1114,25 @@ function perPage(){
  const totBud=sl+sum(p.cats.map(c=>+c.limit||0)),catSp=sp+sum(p.cats.map(c=>{const x=pm_.byCat[c.id]||{e:0,f:0};return x.e+x.f}))+other;
  h+=`<div class="sh">Categories</div><div class="l">${squadRow}${rowsC}${other>0?`<div class="li"><span><i class="od"></i>Other</span><span>${mh(other)}</span></div>`:""}</div><div class="l" style="margin-top:8px"><div class="li"><span>Total budgeted</span><b>${mh(totBud)}</b></div><div class="li"><span>Spent in these categories</span><span>${mh(catSp)}</span></div>${totBud>0?`<div class="li"><span>${catSp>totBud?"Over by":"Left"}</span><b class="${catSp>totBud?"neg":"pos"}">${mh(Math.abs(totBud-catSp))}</b></div>`:""}</div><div class="mu" style="margin:6px 12px">Squad Budget is your couple's share of shared bills, compared separately from your personal budget.</div><div style="margin-top:10px"><button class="btn sec" onclick="catSheet()">+ Add category</button></div>`;
  h+=`<div class="sh">Fixed monthly expenses · ${mn}</div><div class="l">${p.fixed.length?p.fixed.map(f=>{const active=fixedOn(f,k),isPaid=!!(f.paid&&f.paid[k]);return `<div class="li" onclick="fixSheet(${f.id})" style="cursor:pointer;${active?"":"opacity:.5"}"><span><b>${esc(f.name)}</b><br><small>${esc(catName(f.cat))} · day ${f.day}${f.to&&f.to<ldate().slice(0,7)?" · ended":""}</small></span><span style="display:flex;gap:8px;align-items:center">${active?`<button class="pill ${isPaid?"paid-on":"paid-off"}" onclick="event.stopPropagation();toggleFixPaid(${f.id},'${k}')">${isPaid?"Paid ✓":"Mark paid"}</button>`:""}<b>${mh(+f.amount||0)}</b></span></div>`}).join(""):'<div class="li mu">None yet. Rent, internet, loans and so on.</div>'}</div><div class="mu" style="margin:6px 12px">Paid status resets automatically at the start of every new month.</div><div style="margin-top:10px"><button class="btn sec" onclick="fixSheet()">+ Add fixed expense</button></div>`;
- h+=`<div class="sh">Expenses · ${mn}</div><div class="l">${pm_.exp.length?pm_.exp.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||b.id-a.id).map(e=>{
-  const whoTxt=e.split?`Split (${P[2*mc]} ${f(e.p0||0)} / ${P[2*mc+1]} ${f(e.p1||0)}) · paid by ${P[e.paidBy??e.by??2*mc]}`:"Couple expense";
-  return `<div class="li" onclick="expSheet(${e.id})" style="cursor:pointer"><span><b>${esc(e.note||catName(e.cat))}</b>${e.split?'<span class="cp">split</span>':""}<br><small>${shortDate(e.date)} · ${esc(catName(e.cat))} · ${whoTxt}</small></span><b>${mh(+e.amount||0)}</b></div>`}).join(""):'<div class="li mu">No expenses this month.</div>'}</div>`;
+ {
+  const byDay={};
+  pm_.exp.slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||b.id-a.id).forEach(e=>{
+   const d=e.date||"Unknown";(byDay[d]=byDay[d]||[]).push(e);
+  });
+  const dKeys=Object.keys(byDay).sort().reverse();
+  if(!dKeys.length){
+   h+=`<div class="sh">Expenses · ${mn}</div><div class="l"><div class="li mu">No expenses this month.</div></div>`;
+  }else{
+   h+=`<div class="sh">Expenses · ${mn}</div>`;
+   dKeys.forEach(d=>{
+    const list=byDay[d],dayTot=sum(list.map(e=>+e.amount||0));
+    h+=`<div class="day-hdr"><span>${dayLabel(d)}</span><span>${mh(dayTot)}</span></div><div class="l">${list.map(e=>{
+     const whoTxt=e.split?`Split (${P[2*mc]} ${f(e.p0||0)} / ${P[2*mc+1]} ${f(e.p1||0)}) · paid by ${P[e.paidBy??e.by??2*mc]}`:"Couple expense";
+     return `<div class="li" onclick="expSheet(${e.id})" style="cursor:pointer"><span><b>${esc(e.note||catName(e.cat))}</b>${e.split?'<span class="cp">split</span>':""}<br><small>${esc(catName(e.cat))} · ${whoTxt}</small></span><b>${mh(+e.amount||0)}</b></div>`;
+    }).join("")}</div>`;
+   });
+  }
+ }
  return h;
 }
 function catSelect(cur,fn){
@@ -1340,7 +1465,7 @@ function render(){
  if(tab=="new"){prev();plSug()}
  sc2(y);
 }
-function go(k){tab=k;ob=null;if(k=="game")openGame();else if(gameOpen)closeGame();render();sc2(0)}
+function go(k){tab=k;ob=null;const nv=document.getElementById("nav");if(nv)nv.classList.remove("nav-hidden");if(k=="game")openGame();else if(gameOpen)closeGame();render();sc2(0)}
 ["gesturestart","gesturechange","gestureend"].forEach(e=>document.addEventListener(e,ev=>ev.preventDefault()));
 document.addEventListener("touchmove",ev=>{if(ev.touches.length>1)ev.preventDefault()},{passive:false});
 if(window.visualViewport){const fit=()=>{document.documentElement.style.zoom=appZoom;document.body.style.height=(visualViewport.height/appZoom)+"px";document.body.style.width=(visualViewport.width/appZoom)+"px";document.body.style.bottom="auto";window.scrollTo(0,0)};visualViewport.addEventListener("resize",fit);visualViewport.addEventListener("scroll",()=>window.scrollTo(0,0));fit()}else{applyZoom(appZoom)}
@@ -1348,4 +1473,144 @@ resolveMe();render();pull();beat();window.addEventListener("load",()=>setTimeout
 document.addEventListener("visibilitychange",()=>{if(document.hidden){if(ME!==null)fetch(`${DBU}/presence/${ME}.json`,{method:"PUT",body:JSON.stringify({t:0}),keepalive:true}).catch(()=>{})}else{pull();beat()}});
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js" defer></script></body></html>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js" defer>
+/* ---- Swipe Navigation, Left-Edge Go Back & Auto-Hide Nav ---- */
+(function() {
+  const TAB_ORDER = ["dash", "new", "game", "mon", "acc"];
+  const EDGE_ZONE = 36;
+  const SWIPE_THRESHOLD = 65;
+
+  let lastScrollTop = 0;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let isEdgeSwipe = false;
+  let isHorizontalSwipe = null;
+  let ignoreTouch = false;
+
+  // Auto-hide bottom floating nav bar when scrolling down inside .w
+  document.addEventListener("scroll", (e) => {
+    const target = e.target;
+    if (!target || !target.classList || !target.classList.contains("w")) return;
+    // Only auto-hide on main tab views (not full-screen overlays)
+    if (target.closest(".fp, #gameov, #perov, #chatov")) return;
+
+    const navEl = document.getElementById("nav");
+    if (!navEl || !navEl.innerHTML) return;
+
+    const st = target.scrollTop;
+    if (st <= 24) {
+      navEl.classList.remove("nav-hidden");
+      lastScrollTop = st;
+      return;
+    }
+
+    if (Math.abs(st - lastScrollTop) < 12) return;
+
+    if (st > lastScrollTop && st > 60) {
+      navEl.classList.add("nav-hidden");
+    } else if (st < lastScrollTop) {
+      navEl.classList.remove("nav-hidden");
+    }
+    lastScrollTop = st;
+  }, true);
+
+  function triggerEdgeBack() {
+    if (dlg) { closeDlg(dlg.type === "alert" ? true : dlg.type === "confirm" ? false : null); return; }
+    if (chatOpen) { closeChat(); return; }
+    if (sheet) {
+      if (sheet.t === "item") closeItem();
+      else { sheet = null; render(); }
+      return;
+    }
+    if (perOpen) {
+      if (pset) {
+        if (pset.it) { pset.it = null; perRender(); }
+        else { pset = null; perRender(); }
+      } else {
+        closePer();
+      }
+      return;
+    }
+    if (gameOpen) {
+      if (gnset) { gnset = null; gameRender(); fabUpd(); return; }
+      if (gset) { gset = null; gameRender(); return; }
+      if (cset) { cset = null; gameRender(); return; }
+      if (gs) { gs = null; gameRender(); gTop(); return; }
+      if (gv.s === "match" || gv.s === "comp") { gv.s = "game"; gameRender(); return; }
+      if (gv.s === "game") { gHome(); return; }
+      go("dash");
+      return;
+    }
+    if (tab === "hist") {
+      if (ob) { ob = null; render(); sc2(0); }
+      else { go("dash"); }
+      return;
+    }
+    if (tab !== "dash") {
+      go("dash");
+    }
+  }
+
+  document.addEventListener("touchstart", (e) => {
+    if (e.touches.length > 1) { ignoreTouch = true; return; }
+    ignoreTouch = false;
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    isHorizontalSwipe = null;
+    isEdgeSwipe = touchStartX <= EDGE_ZONE;
+
+    // Ignore swipes starting inside horizontal scroll containers or range inputs
+    if (!isEdgeSwipe && e.target.closest(".ons, input[type='range'], [data-no-swipe]")) {
+      ignoreTouch = true;
+    }
+  }, { passive: true });
+
+  document.addEventListener("touchmove", (e) => {
+    if (ignoreTouch || e.touches.length > 1) return;
+    const dx = e.touches[0].clientX - touchStartX;
+    const dy = e.touches[0].clientY - touchStartY;
+
+    if (isHorizontalSwipe === null && (Math.abs(dx) > 12 || Math.abs(dy) > 12)) {
+      isHorizontalSwipe = Math.abs(dx) > Math.abs(dy) * 1.25;
+    }
+    if (!isHorizontalSwipe) return;
+
+    const pill = document.getElementById("edge-back-pill");
+    if (isEdgeSwipe && dx > 0 && pill) {
+      const pull = Math.min(dx * 0.45, 62);
+      pill.style.left = (pull - 46) + "px";
+    }
+  }, { passive: true });
+
+  document.addEventListener("touchend", (e) => {
+    const pill = document.getElementById("edge-back-pill");
+    if (pill) pill.style.left = "-46px";
+
+    if (ignoreTouch || !isHorizontalSwipe) return;
+    const dx = e.changedTouches[0].clientX - touchStartX;
+
+    // 1. Left-edge swipe -> Go back
+    if (isEdgeSwipe && dx > SWIPE_THRESHOLD) {
+      triggerEdgeBack();
+      return;
+    }
+
+    // 2. Standard horizontal swipe -> Switch between main tabs (only when no modal/overlay is blocking)
+    if (!isEdgeSwipe && Math.abs(dx) > SWIPE_THRESHOLD) {
+      if (ME === null || dlg || chatOpen || sheet || perOpen || (lg && lg.mode && lg.mode.startsWith("chg"))) return;
+      // In Games tab, allow swiping away only from Games home screen
+      if (gameOpen && (gv.s !== "home" || gs || gset || cset || gnset)) return;
+
+      const curTab = tab === "hist" ? "dash" : tab;
+      const idx = TAB_ORDER.indexOf(curTab);
+      if (idx < 0) return;
+
+      if (dx < 0 && idx < TAB_ORDER.length - 1) {
+        go(TAB_ORDER[idx + 1]);
+      } else if (dx > 0 && idx > 0) {
+        go(TAB_ORDER[idx - 1]);
+      }
+    }
+  }, { passive: true });
+})();
+</script></body></html>
