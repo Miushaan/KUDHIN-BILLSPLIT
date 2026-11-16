@@ -218,7 +218,24 @@ button:active,.btn:active{opacity:.65}
 .sq-act{display:flex;gap:8px;justify-content:center;min-height:38px}
 .sq-pan{margin:auto;width:100%;max-width:340px;text-align:center;display:flex;flex-direction:column;gap:12px;padding:16px}.sq-pan .seat{display:flex;justify-content:space-between;align-items:center;padding:9px 12px;border-radius:12px;background:rgba(0,0,0,.28);border-left:5px solid var(--c);font-weight:700}
 .sq-win{background:#ffd60a;color:#111;border-radius:14px;padding:12px;font-weight:800;font-size:18px}
-@keyframes sqpulse{50%{opacity:.65}}@keyframes sqdrop{from{transform:scale(2.2);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes sqpulse{50%{opacity:.65}}@keyframes sqdrop{from{transform:translate(-50%,-50%) scale(2.2);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+/* Sequence Online refinements: preserve the board grid and tile sizing */
+.sqchip.g,.sqchip.b{width:78%;height:78%;left:50%;top:50%;right:auto;bottom:auto;transform:translate(-50%,-50%);border-radius:50%;box-sizing:border-box}
+.sq-hand{width:100%;gap:clamp(3px,1.4vw,8px);justify-content:space-between;padding:0 2px}
+.sq-k{flex:1 1 0;width:auto;min-width:0;max-width:76px;height:clamp(78px,12vh,96px);border-radius:9px}
+.sq-k .r{font-size:clamp(20px,5.8vw,27px)}
+.sq-k .s{font-size:clamp(23px,6.2vw,29px)}
+.sq-st{font-size:17px;min-height:24px}
+.sq-log{font-size:15px;min-height:24px;font-weight:700;color:#fff}
+.sq-last{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;text-align:center;background:rgba(0,0,0,.25);border-radius:10px;padding:7px 10px;font-size:16px;font-weight:800}
+.sq-last b{font-size:18px}
+.sq-last-card{display:inline-flex;align-items:center;justify-content:center;flex-direction:column;width:42px;height:56px;flex:0 0 42px;background:#fffdf5;color:#111;border:2px solid #d4cba9;border-radius:6px;box-shadow:0 2px 5px rgba(0,0,0,.35);line-height:1}
+.sq-last-card .r{font-size:17px;font-weight:900}.sq-last-card .s{font-size:19px;line-height:1.05}.sq-last-card .red{color:#c8102e}
+.sq-last-action{font-size:12px;font-weight:800;opacity:.9}
+.sq-act{flex-wrap:wrap}
+.sq-btn.end{background:#c8102e}
+@media(max-width:380px){.sq{gap:5px}.sq-k{height:76px}.sq-last{font-size:14px}.sq-last b{font-size:16px}}
+
 </style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div><div id="seqov"></div><div id="fab" onclick="openChat()"></div><div id="perov"></div>
 <script>
 const P=["Appal","Uly","Miu","Raya","Aslan","Reesha"],CP=["Appal & Uly","Miu & Raya","Aslan & Reesha"],COL=["#ff9500","#af52de","#30b0c7"],GST=8;
@@ -1167,8 +1184,8 @@ const cardRS=c=>({r:c.slice(0,-1),s:c.slice(-1)}),cardLbl=c=>cardRS(c).r+SQ_SUIT
 const mkDeck=()=>{const d=[];for(let k=0;k<2;k++)["S","H","D","C"].forEach(s=>SQ_RANKS.forEach(r=>d.push(r+s)));return d};
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 const parseSeqs=x=>String(x||"").split(";").filter(Boolean).map(y=>y.split(",").map(Number)),fmtSeqs=a=>a.map(c=>c.join(",")).join(";");
-function gNorm(g){if(!g)return null;return{...g,bd:String(g.board||".".repeat(100)).split("").map(v=>v==="."?"":v),sq:{g:parseSeqs(g.sg),b:parseSeqs(g.sb)},botL:String(g.bots||"").split(",").filter(x=>x!=="").map(Number),logL:arrOf(g.log)}}
-const gSer=G=>({id:G.id,status:G.status,host:G.host,target:G.target,turn:G.turn,moveNo:G.moveNo,board:G.bd.map(v=>v||".").join(""),sg:fmtSeqs(G.sq.g),sb:fmtSeqs(G.sq.b),bots:G.botL.join(","),last:G.last||null,swapped:!!G.swapped,winner:G.winner||"",log:G.logL,at:Date.now(),created:G.created||0});
+function gNorm(g){if(!g)return null;return{...g,bd:String(g.board||".".repeat(100)).split("").map(v=>v==="."?"":v),sq:{g:parseSeqs(g.sg),b:parseSeqs(g.sb)},logL:arrOf(g.log)}}
+const gSer=G=>({id:G.id,status:G.status,host:G.host,target:G.target,turn:G.turn,moveNo:G.moveNo,board:G.bd.map(v=>v||".").join(""),sg:fmtSeqs(G.sq.g),sb:fmtSeqs(G.sq.b),bots:"",last:G.last||null,swapped:!!G.swapped,winner:G.winner||"",endedBy:G.endedBy||null,endReason:G.endReason||"",log:G.logL,at:Date.now(),created:G.created||0});
 const lockedSet=G=>new Set([...G.sq.g.flat(),...G.sq.b.flat()]);
 function legalCells(G,card,t){
  const o=t==="g"?"b":"g",res=[];
@@ -1188,12 +1205,12 @@ function findSeqs(G,ci,t){
  }
  return found;
 }
-function seqDeal(host,botList){
+function seqDeal(host){
  const deck=shuffle(mkDeck()),hands={};for(let p=0;p<6;p++)hands[p]=deck.splice(0,5);
- const G={id:Date.now(),status:"playing",host,target:3,turn:Math.floor(Math.random()*6),moveNo:0,bd:Array(100).fill(""),sq:{g:[],b:[]},botL:botList.slice(),last:null,swapped:false,winner:"",logL:[],created:Date.now()};
+ const G={id:Date.now(),status:"playing",host,target:3,turn:Math.floor(Math.random()*6),moveNo:0,bd:Array(100).fill(""),sq:{g:[],b:[]},last:null,swapped:false,winner:"",endedBy:null,endReason:"",logL:[],created:Date.now()};
  return{G,hands,deck,discard:[]};
 }
-const cloneG=G=>({...G,bd:G.bd.slice(),sq:{g:G.sq.g.map(a=>a.slice()),b:G.sq.b.map(a=>a.slice())},botL:G.botL.slice(),logL:G.logL.slice()});
+const cloneG=G=>({...G,bd:G.bd.slice(),sq:{g:G.sq.g.map(a=>a.slice()),b:G.sq.b.map(a=>a.slice())},logL:G.logL.slice()});
 function drawOne(deck,disc){let dk=deck.slice(),dc=disc.slice();if(!dk.length&&dc.length){dk=shuffle(dc);dc=[]}const c=dk.length?dk.pop():null;return{dk,dc,c}}
 function seqPlay(G,deck,disc,hand,p,ci,cell){
  const t=tmOf(p),card=hand[ci],G2=cloneG(G);let type="place",newS=[];
@@ -1213,33 +1230,6 @@ function seqSwapDead(G,deck,disc,hand,ci){
  return{G:G2,hand:h,deck:d.dk,discard:d.dc,newS:[]};
 }
 function seqPassTurn(G,deck,disc,hand){const G2=cloneG(G);G2.moveNo=G.moveNo+1;G2.turn=(G.turn+1)%6;G2.swapped=false;G2.last={p:G.turn,card:"",cell:-1,type:"pass",seqs:0};G2.logL=[...G.logL.slice(-4),`${P[G.turn]} passed`];return{G:G2,hand,deck,discard:disc,newS:[]}}
-/* ---- bot brain ---- */
-function scorePlace(G,cell,t){
- const o=t==="g"?"b":"g";let sc=0;
- for(const w of WIN[cell]){
-  let own=1,opp=0,oc=0,wn=0;
-  for(const i of w){if(i===cell)continue;if(BD[i]==="F"){own++;oc++}else if(G.bd[i]===t){own++;wn++}else if(G.bd[i]===o){opp++;oc++}}
-  if(!opp)sc+=[0,1,3,10,45,1000][own];
-  if(!wn&&oc>=2)sc+=oc>=4?420:oc===3?28:5;     // block the other team
- }
- return sc;
-}
-function scoreRemove(G,cell,t){
- const o=t==="g"?"b":"g";let sc=0;
- for(const w of WIN[cell]){let oc=0,wn=0;for(const i of w){if(BD[i]==="F")oc++;else if(G.bd[i]===o)oc++;else if(G.bd[i]===t)wn++}if(!wn)sc+=oc>=5?600:oc===4?120:oc===3?18:2}
- return sc;
-}
-function botMove(G,hand,p){
- const t=tmOf(p);
- if(!G.swapped){const di=hand.findIndex(c=>isDead(G,c));if(di>=0)return{act:"swap",ci:di}}
- let best=null;
- hand.forEach((card,ci)=>{legalCells(G,card,t).forEach(cell=>{
-  let sc=isRem(card)?scoreRemove(G,cell,t)-6:scorePlace(G,cell,t)-(isWild(card)?8:0);sc+=Math.random()*1.5;
-  if(!best||sc>best.sc)best={sc,ci,cell};
- })});
- if(best)return{act:"play",ci:best.ci,cell:best.cell};
- return{act:"pass"};
-}
 /* ---- sound (synthesised, no files) ---- */
 let AC=null,sndOn=(()=>{try{return localStorage.getItem("squadsnd")!=="0"}catch(e){return true}})();
 function actx(){try{if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(C)AC=new C()}if(AC&&AC.state==="suspended")AC.resume()}catch(e){}return AC}
@@ -1249,19 +1239,19 @@ const SND={click(){tone(1400,0,.04,"square",.05)},draw(){noise(0,.09,.2,3500,150
 const playSnd=n=>{if(sndOn){try{SND[n]()}catch(e){}}};
 const toggleSnd=()=>{sndOn=!sndOn;try{localStorage.setItem("squadsnd",sndOn?"1":"0")}catch(e){}if(sndOn)playSnd("click");seqRender()};
 /* ---- online game: state in Firebase, polled while the board is open ---- */
-let seqOpen=false,seqG=null,seqHand=[],seqLb={},seqSel=-1,seqTimer=null,seqBusy=false,seqSig="",seqBotT=null,seqWaitSince=0,seqLastTurn=-1;
+let seqOpen=false,seqG=null,seqHand=[],seqLb={},seqSel=-1,seqTimer=null,seqBusy=false,seqSig="",seqWaitSince=0,seqLastTurn=-1;
 const sput=async(path,v)=>{const r=await fetch(`${DBU}/${path}.json`,{method:"PUT",body:JSON.stringify(v)});if(!r.ok)throw new Error("write")};
 const sdel=path=>fetch(`${DBU}/${path}.json`,{method:"DELETE"});
 async function seqOpenGame(){actx();playSnd("click");seqOpen=true;seqSel=-1;seqSig="";seqov.style.display="block";seqRender();await seqFetch(true);clearInterval(seqTimer);seqTimer=setInterval(seqFetch,1500)}
-function seqClose(){seqOpen=false;clearInterval(seqTimer);clearTimeout(seqBotT);seqBotT=null;seqov.style.display="none";seqov.innerHTML=""}
+function seqClose(){seqOpen=false;clearInterval(seqTimer);seqov.style.display="none";seqov.innerHTML=""}
 async function seqFetch(force){
  if(!seqOpen||seqBusy)return;
  try{
   const[g,lb,h]=await Promise.all([fget("seq/game"),fget("seq/lobby"),ME===null?null:fget("seq/hands/"+ME)]);
-  const sig=JSON.stringify([g,lb,h]);if(!force&&sig===seqSig){seqBots();return}
+  const sig=JSON.stringify([g,lb,h]);if(!force&&sig===seqSig)return
   const old=seqG;seqG=gNorm(g);seqLb=lb||{};seqHand=arrOf(h);seqSig=sig;
   if(seqSel>=seqHand.length)seqSel=-1;
-  seqSounds(old,seqG);seqRender();seqBots();
+  seqSounds(old,seqG);seqRender();
  }catch(e){}
 }
 function seqSounds(o,G){
@@ -1272,15 +1262,16 @@ function seqSounds(o,G){
  else if(G.status==="playing"&&G.turn===ME&&(!o||o.turn!==ME||o.status!=="playing")){playSnd("turn")}
 }
 async function seqCreate(){
- try{seqBusy=true;await sdel("seq");const G={id:Date.now(),status:"lobby",host:ME,target:3,turn:0,moveNo:0,board:".".repeat(100),sg:"",sb:"",bots:"",swapped:false,winner:"",log:[],created:Date.now()};
+ try{seqBusy=true;await sdel("seq");const G={id:Date.now(),status:"lobby",host:ME,target:3,turn:0,moveNo:0,board:".".repeat(100),sg:"",sb:"",bots:"",swapped:false,winner:"",endedBy:null,endReason:"",log:[],created:Date.now()};
   await sput("seq/game",G);await sput("seq/lobby/"+ME,true)}catch(e){showNotice("Could not create the game. Check your connection.")}
  seqBusy=false;await seqFetch(true);
 }
 async function seqJoin(){try{await sput("seq/lobby/"+ME,true)}catch(e){}await seqFetch(true)}
 async function seqLeave(){try{await sdel("seq/lobby/"+ME)}catch(e){}await seqFetch(true)}
 async function seqStart(){
- const humans=Object.keys(seqLb||{}).map(Number);if(!humans.length)return showNotice("Join first.");
- const bots=[0,1,2,3,4,5].filter(p=>!humans.includes(p)),D=seqDeal(ME,bots);D.G.id=seqG?seqG.id:D.G.id;
+ const humans=Object.keys(seqLb||{}).map(Number);
+ if(humans.length!==6)return showNotice("All 6 players must join before the match can start. No bot players are available.");
+ const D=seqDeal(ME);D.G.id=seqG?seqG.id:D.G.id;
  try{seqBusy=true;
   for(let p=0;p<6;p++)await sput("seq/hands/"+p,D.hands[p]);
   await sput("seq/deck",D.deck);await sdel("seq/discard");await sput("seq/game",gSer(D.G))}catch(e){showNotice("Could not start. Check your connection.")}
@@ -1306,11 +1297,11 @@ async function seqAct(p,kind,ci,cell){
  seqBusy=false;
  if(r){seqG=r.G;if(p===ME)seqHand=r.hand;seqSel=-1;seqSig="";
   if(kind==="play"){playSnd(r.G.last.type==="remove"?"remove":"place");if(r.newS.length)setTimeout(()=>playSnd("seq"),350);if(r.G.status==="done")setTimeout(()=>playSnd("win"),600)}else if(kind==="swap")playSnd("draw");
-  seqRender();seqBots();
+  seqRender();
  }else{if(p===ME)playSnd("bad");await seqFetch(true)}
  return r;
 }
-const seqMyTurn=()=>!!(seqG&&seqG.status==="playing"&&seqG.turn===ME&&!seqG.botL.includes(ME));
+const seqMyTurn=()=>!!(seqG&&seqG.status==="playing"&&seqG.turn===ME);
 function seqPick(i){if(!seqG||seqG.status!=="playing")return;actx();seqSel=seqSel===i?-1:i;playSnd("click");seqRender()}
 function seqCell(i){
  if(!seqMyTurn()||seqSel<0)return;
@@ -1320,24 +1311,18 @@ function seqCell(i){
 }
 function seqSwapMine(){if(seqMyTurn()&&seqSel>=0&&isDead(seqG,seqHand[seqSel])&&!seqG.swapped)seqAct(ME,"swap",seqSel,-1)}
 async function seqPassMine(){if(seqMyTurn()&&await showConfirm("No move is possible. Pass your turn?","Pass turn","Pass"))seqAct(ME,"pass",0,-1)}
-async function seqTakeover(p){
- try{const f=gNorm(await fget("seq/game"));if(!f||f.status!=="playing")return;if(!f.botL.includes(p))f.botL.push(p);await sput("seq/game",gSer(f))}catch(e){}
- await seqFetch(true);
-}
-async function seqPlayMyself(){
- try{const f=gNorm(await fget("seq/game"));if(!f)return;f.botL=f.botL.filter(x=>x!==ME);await sput("seq/game",gSer(f))}catch(e){}
- await seqFetch(true);
-}
-/* bots: one phone (first human who is online) plays for the bots */
-function seqBots(){
- const G=seqG;if(!seqOpen||!G||G.status!=="playing"||!G.botL.includes(G.turn)||seqBusy||seqBotT)return;
- const humans=[0,1,2,3,4,5].filter(p=>!G.botL.includes(p)),runner=humans.filter(p=>p===ME||isOn(p))[0];
- if(runner!==ME&&!(humans.length===0&&ME===G.host))return;
- const mv=G.moveNo,turn=G.turn;
- seqBotT=setTimeout(async()=>{
-  seqBotT=null;if(!seqOpen||!seqG)return;if(seqG.moveNo!==mv||seqG.turn!==turn||seqBusy){seqBots();return}
-  try{const hand=arrOf(await fget("seq/hands/"+turn)),m=botMove(seqG,hand,turn);await seqAct(turn,m.act==="swap"?"swap":m.act==="play"?"play":"pass",m.ci||0,m.cell===undefined?-1:m.cell)}catch(e){}
- },1100);
+async function seqEndMatch(){
+ if(!seqG||seqG.status!=="playing")return;
+ if(!(await showConfirm("End this match now? The current score will be saved and no more cards can be played.","End match","End match",true)))return;
+ try{
+  const fresh=gNorm(await fget("seq/game"));
+  if(!fresh||fresh.status!=="playing")return showNotice("This match has already ended.");
+  fresh.status="ended";fresh.endedBy=ME;fresh.endReason=`Ended by ${P[ME]}`;fresh.moveNo=(fresh.moveNo||0)+1;
+  await sput("seq/game",gSer(fresh));
+  seqG=fresh;seqSel=-1;seqSig="";seqRender();
+  const n={id:fresh.id,game:"seqonline",date:ldate(),g:fresh.sq.g.length,b:fresh.sq.b.length,note:fresh.endReason,by:ME,rounds:[],status:"ended"};
+  S.nights=S.nights.filter(x=>x.id!==n.id).concat(n);save();await sput("nights/"+n.id,n);
+ }catch(e){showNotice("Could not end the match. Check your connection.")}
 }
 window.addEventListener("resize",()=>{if(seqOpen)seqRender()});
 /* ---- screens ---- */
@@ -1350,9 +1335,9 @@ function seqRender(){
 function seqLobbyHtml(G){
  const joined=Object.keys(seqLb||{}).map(Number);
  if(!G)return `<div class="sq-pan"><div style="font-size:42px">♠ ♥ ♦ ♣</div><div style="font-size:20px;font-weight:800">Sequence Online</div><div style="opacity:.85">Girls vs Boys · 6 players · first team to 3 sequences wins</div><button class="sq-btn big" onclick="seqCreate()">Create a game</button></div>`;
- const seat=p=>`<div class="seat" style="--c:${TEAMC[tmOf(p)]}"><span>${P[p]} <small style="opacity:.8">· ${tmOf(p)==="g"?"Girls":"Boys"}</small></span><span>${joined.includes(p)?"Joined":'<span style="opacity:.6">bot</span>'}</span></div>`;
+ const seat=p=>`<div class="seat" style="--c:${TEAMC[tmOf(p)]}"><span>${P[p]} <small style="opacity:.8">· ${tmOf(p)==="g"?"Girls":"Boys"}</small></span><span>${joined.includes(p)?"Joined":'<span style="opacity:.6">Waiting</span>'}</span></div>`;
  const me=joined.includes(ME);
- return `<div class="sq-pan"><div style="font-size:20px;font-weight:800">Game lobby</div><div style="opacity:.85;font-size:13px">Seats alternate Girls and Boys. Seats nobody joins are played by bots.</div>${[0,1,2,3,4,5].map(seat).join("")}<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${me?`<button class="sq-btn" onclick="seqLeave()">Leave seat</button>`:`<button class="sq-btn big" onclick="seqJoin()">Join as ${P[ME]}</button>`}${me?`<button class="sq-btn big" onclick="seqStart()">Start game</button>`:""}</div><div style="opacity:.7;font-size:12px">${joined.length} of 6 players joined${G.host!==undefined?" · host "+P[G.host]:""}</div></div>`;
+ return `<div class="sq-pan"><div style="font-size:20px;font-weight:800">Game lobby</div><div style="opacity:.85;font-size:13px">Seats alternate Girls and Boys. All six players must join to start.</div>${[0,1,2,3,4,5].map(seat).join("")}<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap">${me?`<button class="sq-btn" onclick="seqLeave()">Leave seat</button>`:`<button class="sq-btn big" onclick="seqJoin()">Join as ${P[ME]}</button>`}${me&&joined.length===6?`<button class="sq-btn big" onclick="seqStart()">Start game</button>`:""}</div><div style="opacity:.7;font-size:12px">${joined.length} of 6 players joined${G.host!==undefined?" · host "+P[G.host]:""}</div></div>`;
 }
 function seqBoardHtml(G){
  const W=window.innerWidth||390,H=window.innerHeight||760,cs=Math.max(24,Math.floor(Math.min((W-10)/10,(H-310)/10))),L=lockedSet(G),T=G.target;
@@ -1362,27 +1347,26 @@ function seqBoardHtml(G){
   const face=c==="F"?'<span class="fr">★</span>':`<span class="r ${isRed(c)?"red":""}">${cardRS(c).r}</span><span class="s ${isRed(c)?"red":""}">${SQ_SUIT[cardRS(c).s]}</span>`;
   return `<div class="sq-c ${hl.has(i)?"hl":""} ${last?"last":""} ${c==="F"&&L.has(i)?"gold":""}" onclick="seqCell(${i})">${face}${v?`<i class="sqchip ${v} ${L.has(i)?"lk":""} ${last&&G.last.type==="place"?"nw":""}"></i>`:""}</div>`;
  }).join("");
- const myT=seqMyTurn(),cur=G.turn,curBot=G.botL.includes(cur);
+ const myT=seqMyTurn(),cur=G.turn;
  let status;
  if(G.status==="done")status=`<div class="sq-win" style="background:${TEAMC[G.winner]};color:#fff">${G.winner==="g"?"Girls":"Boys"} win the match!</div>`;
+ else if(G.status==="ended")status=`<div class="sq-win">Match ended early · ${esc(G.endReason||"Ended by a player")}</div>`;
  else if(myT)status=`<div class="sq-st">Your turn · ${sel?(isRem(sel)?"tap an opponent chip to remove":isWild(sel)?"tap any empty space":"tap a green space"):"pick a card"}</div>`;
- else status=`<div class="sq-st">${P[cur]}${curBot?" (bot)":""} is playing…</div>`;
+ else status=`<div class="sq-st">${P[cur]} is playing…</div>`;
  const noMove=myT&&hand.length&&hand.every(c=>!legalCells(G,c,t).length&&(!isDead(G,c)||G.swapped));
  const dead=sel&&myT&&isDead(G,sel)&&!G.swapped;
- const stale=G.status==="playing"&&!myT&&!curBot&&G.at&&Date.now()-G.at>25000;
- const meBot=G.botL.includes(ME);
  let acts="";
- if(G.status==="done")acts=`<button class="sq-btn big" onclick="seqCreate()">New game</button>`;
+ if(G.status==="done"||G.status==="ended")acts=`<button class="sq-btn big" onclick="seqCreate()">New game</button>`;
  else{
   if(dead)acts+=`<button class="sq-btn red" onclick="seqSwapMine()">Swap dead card</button>`;
   if(noMove)acts+=`<button class="sq-btn" onclick="seqPassMine()">No moves · pass</button>`;
-  if(stale)acts+=`<button class="sq-btn" onclick="seqTakeover(${cur})">Bot plays for ${P[cur]}</button>`;
-  if(meBot)acts+=`<button class="sq-btn" onclick="seqPlayMyself()">Play my seat myself</button>`;
+  acts+=`<button class="sq-btn end" onclick="seqEndMatch()">End match</button>`;
  }
  const handHtml=hand.map((c,i)=>{const rs=cardRS(c),dd=isDead(G,c);return `<div class="sq-k ${i===seqSel?"sel":""} ${dd?"dead":""}" onclick="seqPick(${i})"><span class="r ${isRed(c)?"red":""}">${rs.r}</span><span class="s ${isRed(c)?"red":""}">${SQ_SUIT[rs.s]}</span>${isWild(c)?"<small>WILD</small>":isRem(c)?"<small>REMOVE</small>":""}${dd?'<span class="dd">DEAD</span>':""}</div>`}).join("");
  return `<div class="sq-sc"><span style="color:#ff8ec6">Girls ${G.sq.g.length}/${T}</span><span style="color:#7cc0ff">Boys ${G.sq.b.length}/${T}</span></div>
- <div class="sq-pl">${G.botL.length>=0?[0,1,2,3,4,5].map(p=>`<span class="sq-p ${p===cur&&G.status==="playing"?"on":""}" style="--c:${TEAMC[tmOf(p)]}">${P[p]}${G.botL.includes(p)?" ·bot":""}</span>`).join(""):""}</div>
- <div class="sq-bd" style="--cs:${cs}px">${cells}</div>${status}<div class="sq-log">${esc(G.logL[G.logL.length-1]||"")}</div>
+ <div class="sq-pl">${[0,1,2,3,4,5].map(p=>`<span class="sq-p ${p===cur&&G.status==="playing"?"on":""}" style="--c:${TEAMC[tmOf(p)]}">${P[p]}</span>`).join("")}</div>
+ <div class="sq-bd" style="--cs:${cs}px">${cells}</div>${status}
+ ${G.last?`<div class="sq-last"><span>Last played: <b>${esc(P[G.last.p]||"Player")}</b></span>${G.last.card?(()=>{const lr=cardRS(G.last.card);return `<span class="sq-last-card"><span class="r ${isRed(G.last.card)?"red":""}">${esc(lr.r)}</span><span class="s ${isRed(G.last.card)?"red":""}">${SQ_SUIT[lr.s]}</span></span>`})():""}<span class="sq-last-action">${G.last.type==="pass"?"Passed":G.last.type==="swap"?"Swapped dead card":G.last.type==="remove"?"Removed opponent chip":"Played card"}</span></div>`:`<div class="sq-log">Waiting for the first move</div>`}
  <div class="sq-hand">${handHtml}</div><div class="sq-act">${acts}</div>`;
 }
 /* ---- gin rummy ---- */
