@@ -1244,12 +1244,14 @@ const sput=async(path,v)=>{const r=await fetch(`${DBU}/${path}.json`,{method:"PU
 const sdel=path=>fetch(`${DBU}/${path}.json`,{method:"DELETE"});
 async function seqOpenGame(){actx();playSnd("click");seqOpen=true;seqSel=-1;seqSig="";seqov.style.display="block";seqRender();await seqFetch(true);clearInterval(seqTimer);seqTimer=setInterval(seqFetch,1500)}
 function seqClose(){seqOpen=false;clearInterval(seqTimer);seqov.style.display="none";seqov.innerHTML=""}
+/* Firebase returns objects with small integer keys as arrays with null holes ([null,null,true]); only truthy entries are real joins */
+const lbNorm=lb=>{const o={};if(lb)Object.entries(lb).forEach(([k,v])=>{if(v&&Number.isInteger(+k)&&+k>=0&&+k<6)o[k]=true});return o};
 async function seqFetch(force){
  if(!seqOpen||seqBusy)return;
  try{
   const[g,lb,h]=await Promise.all([fget("seq/game"),fget("seq/lobby"),ME===null?null:fget("seq/hands/"+ME)]);
   const sig=JSON.stringify([g,lb,h]);if(!force&&sig===seqSig){seqMaybeBot();return}
-  const old=seqG;seqG=gNorm(g);seqLb=lb||{};seqHand=arrOf(h);seqSig=sig;
+  const old=seqG;seqG=gNorm(g);seqLb=lbNorm(lb);seqHand=arrOf(h);seqSig=sig;
   if(seqSel>=seqHand.length)seqSel=-1;
   seqSounds(old,seqG);seqRender();seqMaybeBot();
  }catch(e){}
