@@ -324,6 +324,52 @@ input:focus,select:focus{color:var(--tx)}
 .swb{background:var(--bg);border:2px solid transparent;border-radius:16px;padding:12px 6px 8px;font:inherit;color:var(--tx);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px}
 .swb i{width:38px;height:38px;border-radius:50%;display:block;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .swb span{font-size:12px;font-weight:600}.swb.on{border-color:var(--ac);background:var(--ac2)}
+
+/* ---- Sequence Online: modern game UI ---- */
+#seqov{background:radial-gradient(120% 80% at 50% 0%,#1b7a5a 0%,#0d4a38 45%,#072a21 100%)}
+.sq{gap:8px;padding-left:8px;padding-right:8px}
+.sq-top{background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.14);border-radius:18px;padding:6px 8px;-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
+.sq-top b{font-weight:800;letter-spacing:1.4px;font-size:13px}
+.sq-btn{background:rgba(255,255,255,.14);border:.5px solid rgba(255,255,255,.18);border-radius:14px;font-weight:700}
+.sq-btn.big{background:linear-gradient(135deg,#22b573,#128a55);box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.sq-btn.red{background:linear-gradient(135deg,#ff4d6d,#c8102e)}
+.sq-btn.end{background:rgba(200,16,46,.85)}
+.sq-sc{gap:10px}
+.sq-sc span{flex:1;max-width:170px;text-align:center;border-radius:16px;padding:7px 10px;font-size:14px;color:#fff;box-shadow:0 6px 16px rgba(0,0,0,.25)}
+.sq-sc span i{display:block;font-style:normal;letter-spacing:3px;font-size:15px;margin-top:1px}
+.sq-sc .tg{background:linear-gradient(135deg,#ff4fa3,#d61f7a)}.sq-sc .tb{background:linear-gradient(135deg,#3b9bff,#1f5fd6)}
+.sq-pl{gap:5px}
+.sq-p{border-radius:12px;border-width:2px;background:rgba(0,0,0,.32);padding:5px 1px;font-size:11px;max-width:70px}
+.sq-p.on{box-shadow:0 0 0 3px color-mix(in srgb,var(--c) 40%,transparent),0 6px 16px rgba(0,0,0,.35);transform:translateY(-1px)}
+.sq-bd{background:linear-gradient(135deg,#5a3d22,#3a2514);padding:5px;gap:2px;border-radius:16px;box-shadow:0 14px 34px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.18)}
+.sq-c{border-radius:5px;background:linear-gradient(160deg,#fffdf6,#efe8d2);transition:filter .2s,transform .15s}
+.sq-c:active{transform:scale(.94)}
+.sq-c.gold{background:linear-gradient(160deg,#fff4c2,#ffd86b)}
+.sq-c.inseq{background:linear-gradient(160deg,#fff4c2,#ffe28a);box-shadow:inset 0 0 0 1.5px #e0a800}
+.sq-c.hl{outline:3px solid #2fd37a;outline-offset:-3px;border-radius:5px;background:linear-gradient(160deg,#eafff2,#c8f5db);box-shadow:0 0 14px rgba(47,211,122,.7);animation:sqpulse 1s infinite}
+.sq-c.last{box-shadow:inset 0 0 0 3px #ffd60a,0 0 10px rgba(255,214,10,.6)}
+.sq-bd.focus .sq-c:not(.hl):not(.pl):not(.gold){filter:brightness(.78) saturate(.7)}
+.sq-c.pl{outline:3px dashed #ff9f0a;outline-offset:-3px;background:linear-gradient(160deg,#fff3dc,#ffd9a0);filter:none;z-index:3;box-shadow:0 0 16px rgba(255,159,10,.85)}
+.sq-c.pl .sqchip{animation:plpulse 1s ease-in-out infinite}
+.plb{position:absolute;left:0;right:0;bottom:-1px;font-style:normal;font-size:calc(var(--cs)*.2);font-weight:900;text-align:center;color:#fff;background:#ff9f0a;border-radius:0 0 4px 4px;line-height:1.35;z-index:4;letter-spacing:.2px}
+@keyframes plpulse{50%{transform:translate(-50%,-50%) scale(1.14)}}
+.sqchip.g,.sqchip.b{box-shadow:0 2px 5px rgba(0,0,0,.55),inset 0 1.5px 2px rgba(255,255,255,.55)}
+.sqchip.lk{box-shadow:0 0 0 2px #ffd60a,0 0 8px #ffd60a,0 2px 5px rgba(0,0,0,.55)!important}
+.sq-st{background:rgba(255,255,255,.1);border:.5px solid rgba(255,255,255,.16);border-radius:99px;padding:6px 14px;font-size:15px;font-weight:800}
+.sq-info{text-align:center;font-size:13px;font-weight:700;background:rgba(255,159,10,.18);border:1px solid rgba(255,159,10,.5);color:#ffd9a0;border-radius:12px;padding:5px 10px}
+.sq-info b{color:#fff;font-size:15px}
+.sq-last{background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.14);border-radius:16px;padding:6px 10px;font-size:14px}
+.sq-last b{font-size:15px}
+.sq-last-card{width:34px;height:46px;flex-basis:34px;border-radius:7px}
+.sq-last-card .r{font-size:14px}.sq-last-card .s{font-size:16px}
+.sq-seqtag{background:linear-gradient(135deg,#ffd60a,#ff9f0a);color:#222;border-radius:99px;padding:2px 9px;font-size:12px;font-weight:900;animation:sqpulse 1s 3}
+.sq-k{background:linear-gradient(160deg,#fffdf6,#f1ead3);border:2px solid #e4dbbb;border-radius:12px;box-shadow:0 6px 14px rgba(0,0,0,.35)}
+.sq-k.sel{border-color:#2fd37a;transform:translateY(-12px) scale(1.04);box-shadow:0 10px 22px rgba(0,0,0,.5),0 0 0 3px rgba(47,211,122,.45)}
+.sq-k .pips{font-size:9px;letter-spacing:1px;color:#8a7a4a;margin-top:3px;font-weight:700;white-space:nowrap}
+.sq-k.dead{opacity:.5}
+.sq-win{border-radius:18px;box-shadow:0 10px 26px rgba(0,0,0,.35)}
+.sq-pan{background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.16);border-radius:26px;box-shadow:0 18px 44px rgba(0,0,0,.4);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.sq-pan .seat{border-radius:16px;background:rgba(0,0,0,.3)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div><div id="seqov"></div><div id="fab" onclick="openChat()"></div><div id="perov"></div>
 <script>
@@ -1267,6 +1313,7 @@ F AD KD QD 10D 9D 8D 7D 6D F`.split(/\s+/);
 const POS={};BD.forEach((c,i)=>{if(c!=="F")(POS[c]=POS[c]||[]).push(i)});
 const DIRS=[[0,1],[1,0],[1,1],[1,-1]];
 const WIN=BD.map((_,ci)=>{const out=[],r=Math.floor(ci/10),c=ci%10;for(const[dr,dc]of DIRS)for(let k=0;k<5;k++){const r0=r-dr*k,c0=c-dc*k,w=[];let ok=true;for(let j=0;j<5;j++){const rr=r0+dr*j,cc=c0+dc*j;if(rr<0||rr>9||cc<0||cc>9){ok=false;break}w.push(rr*10+cc)}if(ok)out.push(w)}return out});
+const ALLW=(()=>{const m=new Map();WIN.forEach(a=>a.forEach(w=>m.set(w.join(),w)));return[...m.values()]})();
 const tmOf=p=>p%2===1?"g":"b";            // Uly, Raya, Reesha = Girls · Appal, Miu, Aslan = Boys (seats alternate)
 const isWild=c=>c==="JC"||c==="JD",isRem=c=>c==="JS"||c==="JH";
 const cardRS=c=>({r:c.slice(0,-1),s:c.slice(-1)}),cardLbl=c=>cardRS(c).r+SQ_SUIT[cardRS(c).s],isRed=c=>"HD".includes(c.slice(-1));
@@ -1284,14 +1331,20 @@ function legalCells(G,card,t){
  return res;
 }
 const isDead=(G,c)=>!isWild(c)&&!isRem(c)&&!(POS[c]||[]).some(i=>!G.bd[i]);
-function findSeqs(G,ci,t){
- const own=i=>BD[i]==="F"||G.bd[i]===t,lk=new Set(G.sq[t].flat()),found=[];
- for(const w of WIN[ci]){
-  if(!w.every(own))continue;
-  if(w.filter(i=>lk.has(i)).length>1)continue;
-  const key=w.join(",");if(G.sq[t].some(s=>s.join(",")===key)||found.some(s=>s.join(",")===key))continue;
-  found.push(w);w.forEach(i=>lk.add(i));
- }
+function findSeqs(G,ci,t,all){
+ /* A line of 5 counts when every cell is the team's chip (or a free corner), it shares at most ONE cell with each existing
+    sequence, and no cell would end up in more than two sequences. "all" also re-checks every line on the board so that a
+    sequence is never missed. */
+ const own=i=>BD[i]==="F"||G.bd[i]===t,ex=G.sq[t].map(x=>new Set(x)),cnt={},found=[];
+ G.sq[t].forEach(x=>x.forEach(c=>cnt[c]=(cnt[c]||0)+1));
+ const tryW=w=>{
+  if(!w.every(own))return;
+  if(ex.some(e=>w.filter(c=>e.has(c)).length>1))return;
+  if(w.some(c=>(cnt[c]||0)>=2))return;
+  found.push(w);ex.push(new Set(w));w.forEach(c=>cnt[c]=(cnt[c]||0)+1);
+ };
+ WIN[ci].forEach(tryW);
+ if(all)ALLW.forEach(tryW);
  return found;
 }
 function seqDeal(host){
@@ -1303,7 +1356,7 @@ const cloneG=G=>({...G,bd:G.bd.slice(),sq:{g:G.sq.g.map(a=>a.slice()),b:G.sq.b.m
 function drawOne(deck,disc){let dk=deck.slice(),dc=disc.slice();if(!dk.length&&dc.length){dk=shuffle(dc);dc=[]}const c=dk.length?dk.pop():null;return{dk,dc,c}}
 function seqPlay(G,deck,disc,hand,p,ci,cell){
  const t=tmOf(p),card=hand[ci],G2=cloneG(G);let type="place",newS=[];
- if(isRem(card)){G2.bd[cell]="";type="remove"}else{G2.bd[cell]=t;newS=findSeqs(G2,cell,t);newS.forEach(x=>G2.sq[t].push(x))}
+ if(isRem(card)){G2.bd[cell]="";type="remove"}else{G2.bd[cell]=t;newS=findSeqs(G2,cell,t,true);newS.forEach(x=>G2.sq[t].push(x))}
  const h=hand.slice();h.splice(ci,1);
  const d=drawOne(deck,disc.concat(card));if(d.c)h.push(d.c);
  G2.last={p,card,cell,type,seqs:newS.length};G2.moveNo=G.moveNo+1;G2.swapped=false;
@@ -1476,10 +1529,11 @@ function seqLobbyHtml(G){
 function seqBoardHtml(G){
  const W=window.innerWidth||390,H=window.innerHeight||760,cs=Math.max(24,Math.floor(Math.min((W-10)/10,(H-310)/10))),L=lockedSet(G),T=G.target;
  const hand=seqHand,t=tmOf(ME),sel=seqSel>=0?hand[seqSel]:null,hl=new Set(sel&&seqMyTurn()?legalCells(G,sel,t):[]);
+ const normal=!!sel&&!isWild(sel)&&!isRem(sel),pl=new Set(normal?(POS[sel]||[]).filter(i=>G.bd[i]):[]);
  const cells=BD.map((c,i)=>{
   const v=G.bd[i],last=G.last&&G.last.cell===i&&G.last.type!=="swap"&&G.last.type!=="pass";
   const face=c==="F"?'<span class="fr">★</span>':`<span class="r ${isRed(c)?"red":""}">${cardRS(c).r}</span><span class="s ${isRed(c)?"red":""}">${SQ_SUIT[cardRS(c).s]}</span>`;
-  return `<div class="sq-c ${hl.has(i)?"hl":""} ${last?"last":""} ${c==="F"&&L.has(i)?"gold":""}" onclick="seqCell(${i})">${face}${v?`<i class="sqchip ${v} ${L.has(i)?"lk":""} ${last&&G.last.type==="place"?"nw":""}"></i>`:""}</div>`;
+  return `<div class="sq-c ${hl.has(i)?"hl":""} ${last?"last":""} ${c==="F"&&L.has(i)?"gold":""} ${pl.has(i)?"pl":""} ${L.has(i)&&c!=="F"?"inseq":""}" onclick="seqCell(${i})">${face}${pl.has(i)?'<em class="plb">PLAYED</em>':""}${v?`<i class="sqchip ${v} ${L.has(i)?"lk":""} ${last&&G.last.type==="place"?"nw":""}"></i>`:""}</div>`;
  }).join("");
  const myT=seqMyTurn(),cur=G.turn;
  let status;
@@ -1496,11 +1550,11 @@ function seqBoardHtml(G){
   if(noMove)acts+=`<button class="sq-btn" onclick="seqPassMine()">No moves · pass</button>`;
   acts+=`<button class="sq-btn end" onclick="seqEndMatch()">End match</button>`;
  }
- const handHtml=hand.map((c,i)=>{const rs=cardRS(c),dd=isDead(G,c);return `<div class="sq-k ${i===seqSel?"sel":""} ${dd?"dead":""}" onclick="seqPick(${i})"><span class="r ${isRed(c)?"red":""}">${rs.r}</span><span class="s ${isRed(c)?"red":""}">${SQ_SUIT[rs.s]}</span>${isWild(c)?"<small>WILD</small>":isRem(c)?"<small>REMOVE</small>":""}${dd?'<span class="dd">DEAD</span>':""}</div>`}).join("");
- return `<div class="sq-sc"><span style="color:#ff8ec6">Girls ${G.sq.g.length}/${T}</span><span style="color:#7cc0ff">Boys ${G.sq.b.length}/${T}</span></div>
+ const handHtml=hand.map((c,i)=>{const rs=cardRS(c),dd=isDead(G,c);return `<div class="sq-k ${i===seqSel?"sel":""} ${dd?"dead":""}" onclick="seqPick(${i})"><span class="r ${isRed(c)?"red":""}">${rs.r}</span><span class="s ${isRed(c)?"red":""}">${SQ_SUIT[rs.s]}</span>${isWild(c)?"<small>WILD</small>":isRem(c)?"<small>REMOVE</small>":`<span class="pips">${(POS[c]||[]).map(k=>G.bd[k]?"●":"○").join(" ")}</span>`}${dd?'<span class="dd">DEAD</span>':""}</div>`}).join("");
+ return `<div class="sq-sc"><span class="tg">Girls <i>${Array.from({length:T},(_,k)=>k<G.sq.g.length?"★":"☆").join("")}</i></span><span class="tb">Boys <i>${Array.from({length:T},(_,k)=>k<G.sq.b.length?"★":"☆").join("")}</i></span></div>
  <div class="sq-pl">${[0,1,2,3,4,5].map(p=>`<span class="sq-p ${p===cur&&G.status==="playing"?"on":""}" style="--c:${TEAMC[tmOf(p)]}">${P[p]}${(G.bots||[]).includes(p)?" · BOT":""}</span>`).join("")}</div>
- <div class="sq-bd" style="--cs:${cs}px">${cells}</div>${status}
- ${G.last?`<div class="sq-last"><span>Last played: <b>${esc(P[G.last.p]||"Player")}</b></span>${G.last.card?(()=>{const lr=cardRS(G.last.card);return `<span class="sq-last-card"><span class="r ${isRed(G.last.card)?"red":""}">${esc(lr.r)}</span><span class="s ${isRed(G.last.card)?"red":""}">${SQ_SUIT[lr.s]}</span></span>`})():""}<span class="sq-last-action">${G.last.type==="pass"?"Passed":G.last.type==="swap"?"Swapped dead card":G.last.type==="remove"?"Removed opponent chip":"Played card"}</span></div>`:`<div class="sq-log">Waiting for the first move</div>`}
+ <div class="sq-bd ${sel?"focus":""}" style="--cs:${cs}px">${cells}</div>${status}${normal?`<div class="sq-info"><b>${cardLbl(sel)}</b> · ${pl.size} of ${(POS[sel]||[]).length} spots already played${pl.size?" (marked on the board)":""}</div>`:""}
+ ${G.last?`<div class="sq-last"><span>Last played: <b>${esc(P[G.last.p]||"Player")}</b></span>${G.last.card?(()=>{const lr=cardRS(G.last.card);return `<span class="sq-last-card"><span class="r ${isRed(G.last.card)?"red":""}">${esc(lr.r)}</span><span class="s ${isRed(G.last.card)?"red":""}">${SQ_SUIT[lr.s]}</span></span>`})():""}<span class="sq-last-action">${G.last.seqs?'<span class="sq-seqtag">★ SEQUENCE!</span> ':""}${G.last.type==="pass"?"Passed":G.last.type==="swap"?"Swapped dead card":G.last.type==="remove"?"Removed opponent chip":"Played card"}</span></div>`:`<div class="sq-log">Waiting for the first move</div>`}
  <div class="sq-hand">${handHtml}</div><div class="sq-act">${acts}</div>`;
 }
 /* ---- gin rummy ---- */
