@@ -418,6 +418,27 @@ input:focus,select:focus{color:var(--tx)}
 .rxa{border-bottom:.5px solid var(--bd);padding-bottom:3px;margin-bottom:2px}
 .ch-h .pill.dl{color:var(--red)}
 .cimg.ph.ex{padding:28px 10px;opacity:.7}
+
+/* Analytics & Reports */
+.an-scope{display:flex;gap:9px;margin:12px 0 16px}.an-scope .btn{flex:1;min-height:42px;font-weight:700}
+
+.an-filters{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:12px;background:var(--card);border-radius:14px}
+.an-field{min-width:0}.an-field label{display:block;color:var(--mu);font-size:12px;margin:0 0 4px 2px}.an-field input,.an-field select{width:100%;text-align:left;background:var(--bg);border:1px solid var(--bd);border-radius:9px;padding:10px;font-size:14px;min-height:40px}
+.an-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}.an-kpi{background:var(--card);border-radius:12px;padding:13px}.an-kpi small{display:block;color:var(--mu);font-size:12px}.an-kpi b{display:block;font-size:21px;margin-top:4px;overflow-wrap:anywhere}
+.an-row{display:grid;grid-template-columns:minmax(76px,1fr) 2fr auto;gap:8px;align-items:center;padding:10px 14px;border-bottom:.5px solid var(--bd);font-size:13px}.an-row:last-child{border:0}.an-track{height:9px;background:var(--bg);border-radius:8px;overflow:hidden}.an-track i{display:block;height:100%;background:var(--ac);border-radius:8px;min-width:0}.an-muted{color:var(--mu);font-size:12px}.an-actions{display:flex;gap:8px;margin-top:10px}.an-actions>*{flex:1}.menu-link{display:flex;align-items:center;gap:12px;width:100%;padding:15px 16px;background:var(--card);border:0;border-bottom:.5px solid var(--bd);color:var(--tx);font:inherit;text-align:left;cursor:pointer}.menu-link:last-child{border:0}.menu-link .mi{width:36px;height:36px;border-radius:10px;background:var(--ac2);color:var(--ac);display:grid;place-items:center;font-size:20px;flex:none}.menu-link small{display:block;color:var(--mu);font-size:12px;margin-top:2px}.menu-link .arr{margin-left:auto;color:var(--mu);font-size:20px}
+
+.menu-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.menu-tile{min-width:0;min-height:142px;padding:16px 12px;border:1px solid var(--bd);border-radius:16px;background:var(--card);color:var(--tx);display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:7px;text-align:left;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.035)}
+.menu-tile:active{background:var(--ac2)}.menu-tile b{font-size:15px;line-height:1.2}.menu-tile small{font-size:12px;line-height:1.3;color:var(--mu)}
+.menu-icon{width:42px;height:42px;border-radius:13px;background:var(--ac2);color:var(--ac);display:grid;place-items:center;font-size:23px;font-weight:700;margin-bottom:2px}
+.an-kpis{grid-template-columns:repeat(2,minmax(0,1fr));width:100%;min-width:0;align-items:stretch}
+.an-kpi{min-width:0;max-width:100%;overflow:hidden;display:flex;flex-direction:column;justify-content:center;min-height:86px;padding:12px}
+.an-kpi small{line-height:1.25;overflow-wrap:anywhere}.an-kpi b{font-size:clamp(16px,4.8vw,21px);line-height:1.2;white-space:normal;overflow-wrap:anywhere;word-break:break-word}
+.an-row{grid-template-columns:minmax(0,1fr) minmax(54px,1.5fr) auto;min-width:0}.an-row>b{min-width:0;overflow-wrap:anywhere}.an-row>b:last-child{white-space:nowrap;font-size:12px}
+.an-scope{width:100%;min-width:0}.an-scope .btn{min-width:0;padding:12px 8px}
+.an-filters{width:100%;min-width:0;grid-template-columns:repeat(2,minmax(0,1fr))}.an-field input,.an-field select{min-width:0;box-sizing:border-box}
+@media(max-width:360px){.an-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.an-row{grid-template-columns:minmax(0,1fr) minmax(42px,1fr) auto;gap:6px}.an-row>b:last-child{font-size:11px}.an-kpi{padding:10px}.menu-tile{min-height:132px;padding:13px 10px}}
+
 </style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div><div id="seqov"></div><div id="fab" onclick="openChat()"></div><div id="perov"></div>
 <script>
 const P=["Appal","Uly","Miu","Raya","Aslan","Reesha"],CP=["Appal & Uly","Miu & Raya","Aslan & Reesha"],COL=["#ff9500","#af52de","#30b0c7"],GST=8;
@@ -966,7 +987,7 @@ function monthly(){
  const by={};S.bills.forEach(b=>{const k=(b.date||"").slice(0,7);if(!k)return;by[k]=by[k]||{t:P.map(()=>0),n:0};calc(b).forEach((x,i)=>by[k].t[i]+=x.tot);by[k].n++});
  const[y,mm]=mon.split("-").map(Number),keys=[5,4,3,2,1,0].map(n=>mkey(new Date(y,mm-1-n,1)));
  const tots=keys.map(k=>by[k]?sum(by[k].t):0),mx=Math.max(...tots,1),cur=by[mon]||{t:P.map(()=>0),n:0},T=sum(cur.t),pm=Math.max(...cur.t,1);
- let h=head("Monthly",`What everyone spent, month by month`);
+ let h=headB(` style="margin-top:6px" onclick="go('menu')"`,`‹ Menu`,"Monthly",`What everyone spent, month by month`);
  h+=`<div class="row2" style="align-items:center;margin:0 0 10px"><button class="pill" style="flex:none" onclick="shiftMon(-1)">‹</button><b style="text-align:center">${mname(mon)}</b><button class="pill" style="flex:none" onclick="shiftMon(1)">›</button></div>
  <div class="l"><div class="bars">${keys.map((k,i)=>`<button class="mb ${k==mon?"on":""}" onclick="mon='${k}';render()"><i style="height:${Math.max(3,tots[i]/mx*85)}%"></i>${mname(k,1)}</button>`).join("")}</div></div>
  <div class="sh">${mname(mon)} total</div><div class="l"><div class="li"><span>${cur.n} bill${cur.n==1?"":"s"}</span><b style="font-size:22px">${mh(T)}</b></div></div>`;
@@ -1786,11 +1807,105 @@ function applyTheme(){
 function setThemeMode(m){themeMode=m;try{localStorage.setItem("squadmode",m)}catch(e){}applyTheme();render()}
 function setThemeAccent(k){themeAcc=k;try{localStorage.setItem("squadaccent",k)}catch(e){}applyTheme();render()}
 applyTheme();try{const mq=matchMedia("(prefers-color-scheme: dark)");(mq.addEventListener?mq.addEventListener.bind(mq,"change"):mq.addListener.bind(mq))(applyTheme)}catch(e){}
+/* ---- Analytics & Reports ---- */
+let an={from:ldate(new Date(new Date().getFullYear(),new Date().getMonth(),1)),to:today(),scope:"squad",person:"all",source:"all",category:"all",trip:"all",group:"month",showExpenses:false};
+const anDate=(d)=>/^\d{4}-\d{2}-\d{2}$/.test(d||"");
+function anRows(){
+ const out=[],p=per(),mc=cpOf(ME);
+ S.bills.forEach(b=>{
+  if(!anDate(b.date))return;
+  calc(b).forEach((x,i)=>{if(x.tot>0.004)out.push({date:b.date,title:b.title||"Bill",amount:+x.tot||0,category:"Shared bills",source:"Shared bills",person:P[i],personId:i,trip:b.trip||"",kind:"Bill"})});
+ });
+ p.exp.forEach(e=>{
+  if(!anDate(e.date))return;
+  if(e.split){const p0=2*mc,p1=p0+1;[[p0,+e.p0||0],[p1,+e.p1||0]].forEach(([i,v])=>{if(v>0.004)out.push({date:e.date,title:e.note||catName(e.cat),amount:v,category:catName(e.cat),source:"Personal expenses",person:P[i],personId:i,trip:"",kind:"Split expense"})})}
+  else if((+e.amount||0)>0.004)out.push({date:e.date,title:e.note||catName(e.cat),amount:+e.amount||0,category:catName(e.cat),source:"Personal expenses",person:"Couple",personId:null,trip:"",kind:"General expense"});
+ });
+ p.fixed.forEach(fx=>{
+  if(!anDate(fx.from+"-01"))return;
+  const a=fx.from||"",b=fx.to||an.to;
+  // Include each month occurrence in the selected date range; fixed expenses are counted on their configured day.
+  let cur=new Date(Math.max(new Date(a+"-01T00:00:00").getTime(),new Date(an.from+"T00:00:00").getTime()));
+  cur=new Date(cur.getFullYear(),cur.getMonth(),1);
+  const end=new Date(an.to+"T00:00:00");let guard=0;
+  while(cur<=end&&guard++<240){const k=mkey(cur);if(fixedOn(fx,k)){const day=Math.min(new Date(cur.getFullYear(),cur.getMonth()+1,0).getDate(),Math.max(1,+fx.day||1)),ds=k+"-"+String(day).padStart(2,"0");if(ds>=an.from&&ds<=an.to&&(+fx.amount||0)>0.004)out.push({date:ds,title:fx.name||"Fixed expense",amount:+fx.amount||0,category:catName(fx.cat),source:"Fixed monthly",person:"Couple",personId:null,trip:"",kind:"Fixed expense"})}cur=new Date(cur.getFullYear(),cur.getMonth()+1,1)}
+ });
+ return out.filter(r=>r.date>=an.from&&r.date<=an.to&&
+  (an.scope==="squad"?r.source==="Shared bills":an.scope==="personal"?r.source==="Personal expenses"&&r.personId!==null:true)&&
+  (an.person==="all"||(r.personId!==null&&r.personId===+an.person))&&
+  (an.source==="all"||r.source===an.source)&&
+  (an.category==="all"||r.category===an.category)&&
+  (an.trip==="all"||r.trip===an.trip));
+}
+const anSum=a=>a.reduce((n,x)=>n+(+x.amount||0),0);
+function anBarRows(obj){const entries=Object.entries(obj).sort((a,b)=>b[1]-a[1]),mx=Math.max(1,...entries.map(x=>x[1]));return entries.length?entries.map(([k,v])=>`<div class="an-row"><b>${esc(k)}</b><div class="an-track"><i style="width:${Math.max(0,v/mx*100)}%"></i></div><b>${mh(v)}</b></div>`).join(""):'<div class="li mu">No data for this selection.</div>'}
+function anCoupleRows(){
+ const saved={...an};an.scope="all";an.person="all";an.source="all";an.category="all";an.trip="all";
+ const rows=anRows().filter(r=>r.personId===null);Object.assign(an,saved);return rows;
+}
+function anExport(){const rows=[["Date","Description","Type","Source","Category","Person","Trip","Amount (MVR)"],...anRows().sort((a,b)=>a.date.localeCompare(b.date)).map(r=>[r.date,r.title,r.kind,r.source,r.category,r.person,r.trip,r.amount.toFixed(2)])];const csv=rows.map(row=>row.map(v=>'"'+String(v??"").replace(/"/g,'""')+'"').join(",")).join("\r\n");const u=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=u;a.download=`squad-split-report-${an.from}-to-${an.to}.csv`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+function analyticsPage(){
+ const all=anRows(),coupleRows=anCoupleRows(),coupleTotal=anSum(coupleRows),total=anSum(all),shared=anSum(all.filter(r=>r.source==="Shared bills")),personal=anSum(all.filter(r=>r.source==="Personal expenses")),fixed=anSum(all.filter(r=>r.source==="Fixed monthly"));
+ const cats={},people={},months={},trips={},days={};all.forEach(r=>{cats[r.category]=(cats[r.category]||0)+r.amount;people[r.person]=(people[r.person]||0)+r.amount;const m=r.date.slice(0,7);months[m]=(months[m]||0)+r.amount;days[r.date]=(days[r.date]||0)+r.amount;if(r.trip)trips[r.trip]=(trips[r.trip]||0)+r.amount});
+ const sorted=all.slice().sort((a,b)=>b.amount-a.amount).slice(0,8),avg=Object.keys(days).length?total/Object.keys(days).length:0;
+ const ts=[...new Set(S.bills.map(b=>b.trip).filter(Boolean))].sort(),cs=[...new Set([...per().cats.map(c=>c.name),"Shared bills","Other"])].sort();
+ let h=headB(` style="margin-top:6px" onclick="go('menu')"`,`‹ Menu`,"Analytics & Reports",`${all.length} records · ${an.from} to ${an.to}`);
+ h+=`<div class="an-scope"><button class="btn ${an.scope==='squad'?'':'sec'}" onclick="an.scope='squad';an.person='all';an.source='all';an.trip='all';render()">Squad</button><button class="btn ${an.scope==='personal'?'':'sec'}" onclick="an.scope='personal';an.person='all';an.source='all';an.trip='all';render()">Personal</button></div>
+ <div class="sh">Report filters</div><div class="an-filters">
+ <div class="an-field"><label>From date</label><input type="date" value="${esc(an.from)}" max="${esc(an.to)}" onchange="an.from=this.value||an.from;render()"></div>
+ <div class="an-field"><label>To date</label><input type="date" value="${esc(an.to)}" min="${esc(an.from)}" onchange="an.to=this.value||an.to;render()"></div>
+ <div class="an-field"><label>Member</label><select onchange="an.person=this.value;render()"><option value="all" ${an.person==="all"?"selected":""}>All members</option>${P.map((n,i)=>`<option value="${i}" ${an.person==String(i)?"selected":""}>${n}</option>`).join("")}</select></div>
+ <div class="an-field"><label>Expense type</label><select onchange="an.source=this.value;render()">${[["all","All types"],["Shared bills","Shared bills"],["Personal expenses","Personal expenses"],["Fixed monthly","Fixed monthly"]].map(([v,l])=>`<option value="${v}" ${an.source===v?"selected":""}>${l}</option>`).join("")}</select></div>
+ <div class="an-field"><label>Category</label><select onchange="an.category=this.value;render()"><option value="all">All categories</option>${cs.map(c=>`<option value="${esc(c)}" ${an.category===c?"selected":""}>${esc(c)}</option>`).join("")}</select></div>
+ <div class="an-field"><label>Trip</label><select onchange="an.trip=this.value;render()"><option value="all">All trips</option>${ts.map(t=>`<option value="${esc(t)}" ${an.trip===t?"selected":""}>${esc(t)}</option>`).join("")}</select></div>
+ </div><div class="an-actions"><button class="btn sec" onclick="an={from:ldate(new Date(new Date().getFullYear(),new Date().getMonth(),1)),to:today(),scope:'squad',person:'all',source:'all',category:'all',trip:'all',group:'month',showExpenses:false};render()">Reset filters</button><button class="btn" onclick="anExport()">Export filtered CSV</button></div>`;
+ h+=`<div class="sh">Financial summary · ${an.scope==='squad'?'Squad':'Personal'}</div><div class="an-kpis"><div class="an-kpi"><small>Total spending</small><b>${mh(total)}</b></div><div class="an-kpi"><small>Records</small><b>${all.length}</b></div><div class="an-kpi"><small>${an.scope==='squad'?'Squad bills':'Personal expenses'}</small><b>${mh(total)}</b></div><div class="an-kpi"><small>Average per active day</small><b>${mh(avg)}</b></div></div>`;
+ h+=`<div class="sh">Spending by category</div><div class="l">${anBarRows(cats)}</div>`;
+ h+=`<div class="sh">Spending by member / group</div><div class="l">${anBarRows(people)}</div>`;
+ h+=`<div class="sh">Monthly trend</div><div class="l">${anBarRows(months)}</div>`;
+ if(Object.keys(trips).length)h+=`<div class="sh">Spending by trip</div><div class="l">${anBarRows(trips)}</div>`;
+ const expenseDays={};all.forEach(r=>(expenseDays[r.date]||(expenseDays[r.date]=[])).push(r));
+ const expenseDates=Object.keys(expenseDays).sort().reverse();
+ h+=`<div class="sh" style="display:flex;align-items:center;justify-content:space-between"><span>Expenses by date</span><small>${all.length} records · ${expenseDates.length} days</small></div>`;
+ h+=`<div class="l"><button class="btn sec" style="width:100%;margin:0" onclick="an.showExpenses=!an.showExpenses;render()">${an.showExpenses?'Show less':'Show more'}</button></div>`;
+ if(an.showExpenses){h+=expenseDates.length?expenseDates.map(d=>{const rows=expenseDays[d].slice().sort((a,b)=>b.amount-a.amount);return `<div class="mu" style="display:flex;justify-content:space-between;margin:12px 14px 6px;font-weight:600"><span>${esc(d)}</span><span>${mh(anSum(rows))}</span></div><div class="l">${rows.map(r=>`<div class="li"><span><b>${esc(r.title)}</b><br><small>${esc(r.category)} · ${esc(r.person)} · ${esc(r.kind)}</small></span><b>${mh(r.amount)}</b></div>`).join('')}</div>`}).join(''):'<div class="l"><div class="li mu">No expenses match these filters.</div></div>'}
+ // Compare the selected date window with the immediately preceding window, applying identical filters.
+ const fromD=new Date(an.from+"T00:00:00"),toD=new Date(an.to+"T00:00:00"),span=Math.max(1,Math.round((toD-fromD)/86400000)+1),prevTo=new Date(fromD.getTime()-86400000),prevFrom=new Date(prevTo.getTime()-(span-1)*86400000),savedFrom=an.from,savedTo=an.to;
+ an.from=ldate(prevFrom);an.to=ldate(prevTo);const prevTotal=anSum(anRows());an.from=savedFrom;an.to=savedTo;
+ const delta=total-prevTotal,pct=prevTotal>0?delta/prevTotal*100:null;
+ h+=`<div class="sh">Previous-period comparison</div><div class="l"><div class="li"><span>Previous period<br><small>${ldate(prevFrom)} to ${ldate(prevTo)}</small></span><b>${mh(prevTotal)}</b></div><div class="li"><span>Change</span><b class="${delta>0?"neg":"pos"}">${prevTotal>0?(delta>0?"+":delta<0?"−":"")+mh(Math.abs(delta))+` (${pct>0?"+":""}${pct.toFixed(1)}%)`:"No previous-period data"}</b></div></div>`;
+ const now=new Date(),curKey=mkey(now),daysInMonth=new Date(now.getFullYear(),now.getMonth()+1,0).getDate(),elapsed=now.getDate();
+ if(an.from===curKey+"-01"&&an.to===today()&&elapsed>0){const forecast=total/elapsed*daysInMonth;h+=`<div class="sh">End-of-month estimate</div><div class="l"><div class="li"><span>Projected spending<br><small>Based on average daily spending so far</small></span><b>${mh(forecast)}</b></div></div>`}
+ const vals=all.map(r=>r.amount).sort((a,b)=>a-b),median=vals.length?vals.length%2?vals[(vals.length-1)/2]:(vals[vals.length/2-1]+vals[vals.length/2])/2:0,threshold=median*2.5,unusual=all.filter(r=>vals.length>=4&&r.amount>threshold).sort((a,b)=>b.amount-a.amount).slice(0,8);
+ h+=`<div class="sh">Unusually high expenses</div><div class="l">${unusual.length?unusual.map(r=>`<div class="li"><span><b>${esc(r.title)}</b><br><small>${esc(r.date)} · ${esc(r.category)} · ${esc(r.person)}</small></span><b>${mh(r.amount)}</b></div>`).join(""):'<div class="li mu">No unusually high expenses detected in this selection. This check flags records above 2.5× the median expense and requires at least four records.</div>'}</div>`;
+ const daily=Object.entries(days).sort((a,b)=>b[1]-a[1]).slice(0,7);
+ h+=`<div class="sh">Highest spending days</div><div class="l">${daily.length?daily.map(([d,v])=>`<div class="li"><span>${esc(d)}</span><b>${mh(v)}</b></div>`).join(""):'<div class="li mu">No daily data.</div>'}</div>`;
+ const coupleDays={};coupleRows.forEach(r=>(coupleDays[r.date]||(coupleDays[r.date]=[])).push(r));
+ const coupleDates=Object.keys(coupleDays).sort().reverse();
+ h+=`<div class="sh" style="margin-top:24px">Couple details · independent summary</div><div class="an-kpis" style="margin-bottom:18px"><div class="an-kpi"><small>Couple total</small><b>${mh(coupleTotal)}</b></div><div class="an-kpi"><small>Records</small><b>${coupleRows.length}</b></div><div class="an-kpi"><small>General expenses</small><b>${mh(anSum(coupleRows.filter(r=>r.source==='Personal expenses')))}</b></div><div class="an-kpi"><small>Fixed monthly</small><b>${mh(anSum(coupleRows.filter(r=>r.source==='Fixed monthly')))}</b></div></div>
+ <div style="height:8px"></div>${coupleDates.length?coupleDates.map(d=>{const rows=coupleDays[d].slice().sort((a,b)=>b.amount-a.amount);return `<div class="mu" style="display:flex;justify-content:space-between;margin:12px 14px 6px;font-weight:600"><span>${esc(d)}</span><span>${mh(anSum(rows))}</span></div><div class="l">${rows.map(r=>`<div class="li"><span><b>${esc(r.title)}</b><br><small>${esc(r.category)} · ${esc(r.kind)}</small></span><b>${mh(r.amount)}</b></div>`).join('')}</div>`}).join(''):'<div class="l"><div class="li mu">No couple expenses in this date range.</div></div>'}
+ <div class="mu" style="margin:10px 4px 20px">Squad and Personal reports are controlled by the top selector. Couple details are shown separately and are not affected by the Squad/Personal, member, type, category or trip filters. The selected date range still applies. Amounts are shown in MVR.</div>`;
+ return h;
+}
+function menuPage(){
+ return head("Menu",`Choose a section · ${P[ME]}`)+
+ `<div class="menu-grid">
+  <button class="menu-tile" onclick="go('account')"><span class="menu-icon">♙</span><b>Account</b><small>Profile and connection details</small></button>
+  <button class="menu-tile" onclick="an.from=ldate(new Date(new Date().getFullYear(),new Date().getMonth(),1));an.to=today();go('analytics')"><span class="menu-icon">▥</span><b>Analytics &amp; Reports</b><small>Spending insights and filters</small></button>
+  <button class="menu-tile" onclick="go('mon')"><span class="menu-icon">▤</span><b>Squad monthly</b><small>Monthly squad spending and trends</small></button>
+  <button class="menu-tile" onclick="openPer()"><span class="menu-icon">◉</span><b>Personal Budget</b><small>Couple budget and personal expenses</small></button>
+  <button class="menu-tile" onclick="go('settings')"><span class="menu-icon">⚙</span><b>App Settings</b><small>Appearance, alerts and tools</small></button>
+ </div>`;
+}
 function account(){
  const t=lastSync?lastSync.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"}):"–";
+ return headB(` style="margin-top:6px" onclick="go('menu')"`,`‹ Menu`,"Account",`Signed in as ${P[ME]}`)+
+ `<div class="sh">Account details</div><div class="l"><div class="li"><span>Name</span><b>${P[ME]}</b></div><div class="li"><span>Couple</span><b>${CP[cpOf(ME)]}</b></div><div class="li"><span>Data connection</span><b>${live?"Live":"Offline"}</b></div><div class="li"><span>Last updated</span><b>${t}</b></div></div>`;
+}
+function appSettingsPage(){
  const pct=Math.round(appZoom*100);
- return head("Account",`Signed in as ${P[ME]}`)+`<div class="l"><div class="li"><span>Name</span><b>${P[ME]}</b></div><div class="li"><span>Couple</span><b>${CP[cpOf(ME)]}</b></div><div class="li"><span>Data</span><b>${live?"Live":"Offline"}</b></div><div class="li"><span>Last updated</span><b>${t}</b></div></div>
- <div class="sh">Appearance</div><div class="l">
+ return headB(` style="margin-top:6px" onclick="go('menu')"`,`‹ Menu`,"App Settings","Manage the app on this device")+
+ `<div class="sh">Appearance</div><div class="l">
   <div class="li col"><div class="mu" style="margin-bottom:6px">Mode</div>${seg([["auto","Auto"],["light","Light"],["dark","Dark"]],themeMode,"((v)=>setThemeMode(v))")}</div>
   <div class="li col"><div class="mu" style="margin-bottom:2px">Accent colour</div><div class="swg">${ACCENTS.map(a=>`<button class="swb ${themeAcc==a[0]?"on":""}" onclick="setThemeAccent('${a[0]}')"><i style="background:linear-gradient(135deg,${a[4]},${a[5]})"></i><span>${a[1]}</span></button>`).join("")}</div></div>
  </div><div class="mu" style="margin:6px 12px">Auto follows your phone's light or dark setting. Saved on this device.</div>
@@ -1908,8 +2023,8 @@ function render(){
  const y=(document.querySelector(".w")||{}).scrollTop||0;
  if(!ready){v.innerHTML=head("Squad Split","Loading…");nav.innerHTML="";ovl.innerHTML="";return}
  if(ME===null||lg&&lg.mode&&lg.mode.startsWith("chg")){v.innerHTML=loginScreen();nav.innerHTML="";ovl.innerHTML="";fabUpd();return}
- nav.innerHTML=[["dash",`<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>`,"Overview"],["new",`<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>`,"New Bill"],["game",`<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.1"/><circle cx="15.5" cy="15.5" r="1.1"/><circle cx="12" cy="12" r="1.1"/></svg>`,"Games"],["mon",`<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 20v-6M12 20V5M19 20v-9"/></svg>`,"Monthly"],["acc",`<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>`,"Account"]].map(([k,i,l])=>`<button class="${tab==k||(k=="dash"&&tab=="hist")?"on":""}" onclick="go('${k}')"><span>${i}</span>${l}${k=="dash"&&pendMe()?`<em class="bg">${pendMe()}</em>`:""}</button>`).join("");
- v.innerHTML=tab=="dash"?dash():tab=="new"?newBill():tab=="mon"?monthly():tab=="acc"?account():tab=="game"?"":hist();
+ nav.innerHTML=[["dash",`<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>`,"Overview"],["new",`<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>`,"New Bill"],["game",`<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.1"/><circle cx="15.5" cy="15.5" r="1.1"/><circle cx="12" cy="12" r="1.1"/></svg>`,"Games"],["menu",`<svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>`,"Menu"]].map(([k,i,l])=>`<button class="${tab==k||(k=="dash"&&tab=="hist")?"on":""}" onclick="go('${k}')"><span>${i}</span>${l}${k=="dash"&&pendMe()?`<em class="bg">${pendMe()}</em>`:""}</button>`).join("");
+ v.innerHTML=tab=="dash"?dash():tab=="new"?newBill():tab=="mon"?monthly():tab=="menu"?menuPage():tab=="account"?account():tab=="settings"?appSettingsPage():tab=="analytics"?analyticsPage():tab=="game"?"":hist();
  const fs=(document.querySelector(".fp .w")||{}).scrollTop||0;
  ovl.innerHTML=sheetHtml();
  const nf=document.querySelector(".fp .w");if(nf)nf.scrollTop=fs;
@@ -1996,3 +2111,12 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden){if(ME!==nu
 </script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" defer></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js" defer></script></body></html>
+/* iOS-style chat message bubbles */
+#chatov .b{font-size:16px;line-height:1.38;padding:11px 16px;border-radius:21px 21px 21px 7px;box-shadow:0 1px 2px rgba(0,0,0,.08);max-width:100%;min-width:42px}
+#chatov .b.me{border-radius:21px 21px 7px 21px;background:var(--grad);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+#chatov .b small{font-size:11px;line-height:1.2;margin-top:5px;opacity:.78}
+#chatov .mr{align-items:flex-end;gap:7px;margin:2px 0}
+#chatov .mr .mc{max-width:min(84%,440px);min-width:0}
+#chatov .mr.me .mc{max-width:min(84%,440px)}
+#chatov .b .cimg{border-radius:15px}
+#chatov .b .qt{border-radius:11px;padding:6px 9px;margin-bottom:7px}
