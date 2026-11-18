@@ -370,6 +370,33 @@ input:focus,select:focus{color:var(--tx)}
 .sq-win{border-radius:18px;box-shadow:0 10px 26px rgba(0,0,0,.35)}
 .sq-pan{background:rgba(255,255,255,.08);border:.5px solid rgba(255,255,255,.16);border-radius:26px;box-shadow:0 18px 44px rgba(0,0,0,.4);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
 .sq-pan .seat{border-radius:16px;background:rgba(0,0,0,.3)}
+.sq-st.mine{background:linear-gradient(135deg,#22b573,#128a55);border-color:rgba(255,255,255,.3);box-shadow:0 0 0 0 rgba(47,211,122,.6);animation:sqturn 1.6s infinite}
+@keyframes sqturn{70%{box-shadow:0 0 0 12px rgba(47,211,122,0)}100%{box-shadow:0 0 0 0 rgba(47,211,122,0)}}
+.sq-hist{background:rgba(255,255,255,.06);border:.5px solid rgba(255,255,255,.12);border-radius:12px;padding:5px 10px;font-size:12px}
+.sq-hist summary{cursor:pointer;font-weight:700;opacity:.85}.sq-hist div{padding:2px 0;opacity:.85}
+/* ---- v2 styles ---- */
+@keyframes tabin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.tabin{animation:tabin .3s cubic-bezier(.2,.8,.2,1)}
+.emp{display:flex;flex-direction:column;align-items:center;gap:4px;padding:26px 16px;text-align:center;color:var(--mu)}
+.emp svg{color:var(--ac);margin-bottom:6px}.emp b{color:var(--tx);font-size:16px}.emp span{font-size:13px}
+.hb{display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:center;margin:7px 0;font-size:14px}
+.hb>span{font-weight:600}.hbt{height:12px;background:var(--bg);border-radius:99px;overflow:hidden}.hbt i{display:block;height:100%;border-radius:99px;transition:width .5s}
+.hb b{font-size:13px;min-width:60px;text-align:right}
+.vb{display:flex;gap:8px;align-items:flex-end;height:170px}.vb>div{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;gap:4px}
+.vb b{font-size:10px;white-space:nowrap}.vb span{font-size:12px;color:var(--mu);font-weight:600}
+.vbt{width:100%;flex:1;display:flex;align-items:flex-end;background:var(--bg);border-radius:10px;overflow:hidden}.vbt i{display:block;width:100%;background:var(--grad);border-radius:10px;transition:height .5s}
+.swp{position:relative;overflow:hidden}.swp .swr{position:relative;background:var(--card);transition:transform .22s ease}
+.swd{position:absolute;right:0;top:0;bottom:0;width:92px;border:0;background:var(--red);color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.cty{min-height:0;padding:0 16px;font-size:12px;color:var(--mu);font-weight:600}.cty:not(:empty){padding:4px 16px}
+.dots3{display:inline-flex;gap:3px;vertical-align:middle}.dots3 i{width:5px;height:5px;border-radius:50%;background:var(--mu);animation:dt 1.2s infinite}.dots3 i:nth-child(2){animation-delay:.2s}.dots3 i:nth-child(3){animation-delay:.4s}
+@keyframes dt{0%,60%,100%{opacity:.3;transform:none}30%{opacity:1;transform:translateY(-3px)}}
+.rpb{display:flex;align-items:center;gap:10px;padding:8px 14px;background:var(--card);border-top:.5px solid var(--bd);border-left:4px solid var(--ac)}
+.rpb>div{flex:1;min-width:0;display:flex;flex-direction:column;font-size:12px}.rpb b{color:var(--ac)}.rpb span{color:var(--mu);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rpb button{border:0;background:var(--bg);color:var(--mu);border-radius:50%;width:28px;height:28px;font-size:14px;cursor:pointer}
+.qt{display:block;background:rgba(0,0,0,.12);border-left:3px solid currentColor;border-radius:8px;padding:4px 8px;margin-bottom:5px;font-size:12px;opacity:.85;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.qt b{display:block;font-size:11px}
+.cimg{display:block;max-width:220px;width:100%;border-radius:14px;margin-bottom:3px}.cimg.ph{background:rgba(0,0,0,.12);padding:40px 10px;text-align:center;font-size:12px}
+.imgv{position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center}.imgv img{max-width:100%;max-height:100%;object-fit:contain}
+.rxp button:first-child{font-size:13px;font-weight:700;padding:0 10px;width:auto}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div><div id="seqov"></div><div id="fab" onclick="openChat()"></div><div id="perov"></div>
 <script>
@@ -523,7 +550,7 @@ function markRead(){
 }
 function openChat(){
  chatOpen=true;chatov.style.display="block";fabUpd();
- chatov.innerHTML=`<div class="chat"><div class="ch-h"><button class="pill" onclick="closeChat()">‹ Back</button><div style="text-align:center;flex:1"><b>Group chat</b></div><span style="width:62px"></span></div><div class="ons" id="chon"></div><div class="ch-m" id="cm"></div><div class="ch-i"><input id="ci" autocomplete="off" placeholder="Message" enterkeyhint="send" onkeydown="if(event.key==='Enter')sendChat()"><button class="btn" style="width:auto;padding:10px 16px" onclick="sendChat()">Send</button></div></div>`;
+ chatov.innerHTML=`<div class="chat"><div class="ch-h"><button class="pill" onclick="closeChat()">‹ Back</button><div style="text-align:center;flex:1"><b>Group chat</b></div><span style="width:62px"></span></div><div class="ons" id="chon"></div><div class="ch-m" id="cm"></div><div class="cty" id="cty"></div><div id="crp"></div><div class="ch-i"><button class="pill" style="font-size:18px;padding:6px 12px" onclick="document.getElementById('cfile').click()">📷</button><input type="file" id="cfile" accept="image/*" hidden onchange="pickChatImg(this)"><input id="ci" autocomplete="off" placeholder="Message" oninput="onTyping()" enterkeyhint="send" onkeydown="if(event.key==='Enter')sendChat()"><button class="btn" style="width:auto;padding:10px 16px" onclick="sendChat()">Send</button></div></div>`;
  updateChat(true);pullChat();
 }
 function closeChat(){chatOpen=false;chatov.style.display="none";chatov.innerHTML="";fabUpd();render()}
@@ -536,9 +563,9 @@ function updateChat(force){
   const mine=x.from===ME,d=new Date(x.id-off),t=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"),nx=chatMsgs[k+1],lastRun=!nx||nx.from!==x.from;
   const av=lastRun?`<div class="pp" style="background:${COL[cpOf(x.from)]}">${P[x.from]}</div>`:'<div class="pp sp"></div>';
   const sn=seenAt[x.id]?`<div class="seen">Seen by ${seenAt[x.id].join(", ")}</div>`:"";
-  return `<div class="mr ${mine?"me":""}">${av}<div class="mc">${msgBubble(x,mine,t)}${rxRow(x.id)}${sn}</div></div>`}).join(""):'<div class="mu" style="text-align:center;margin-top:30px">No messages yet. Say hi!</div>';
+  return `<div class="mr ${mine?"me":""}">${av}<div class="mc">${msgBubble(x,mine,t)}${rxRow(x.id)}${sn}</div></div>`}).join(""):emptyS("chat","No messages yet","Say hi to the squad!");
  const o=document.getElementById("chon");if(o)o.innerHTML=P.map((p,i)=>`<span><i class="od ${isOn(i)||i===ME?"on":""}"></i>${p}</span>`).join("");
- if(near)m.scrollTop=m.scrollHeight;markRead();
+ if(near)m.scrollTop=m.scrollHeight;markRead();typUpd();if(m.querySelector('[data-ci]'))loadChatImgs();
 }
 const RX=["👍🏼","👎","❤️","🥱","🖕","🤦"];
 const fmtWhen=(d,t)=>{const day=new Date(d+"T00:00:00").toLocaleDateString([],{weekday:"short",day:"numeric",month:"short"});if(!t)return day;const[h,m]=t.split(":").map(Number),h12=h%12||12;return `${day} · ${h12}:${String(m).padStart(2,"0")} ${h>=12?"PM":"AM"}`};
@@ -546,11 +573,14 @@ function gnCard(x){
  const g=x.gn||{},rs=rsvpMap[x.id]||{},yes=P.filter((_,i)=>rs[i]==="yes"),no=P.filter((_,i)=>rs[i]==="no"),wait=P.filter((_,i)=>!rs[i]),me=rs[ME];
  return `<div class="gnh">Game night request</div><div class="gnt"><b>${esc(g.game||"Game")}</b></div><div>${esc(fmtWhen(g.date||ldate(),g.time))}</div>${g.note?`<div>${esc(g.note)}</div>`:""}<div class="gnbtn"><button class="yes ${me==="yes"?"on":""}" onclick="event.stopPropagation();gnRsvp(${x.id},'yes')">Accept</button><button class="no ${me==="no"?"on":""}" onclick="event.stopPropagation();gnRsvp(${x.id},'no')">Reject</button></div><div class="gnr"><b>Accepted</b> ${yes.length?yes.join(", "):"–"}<br><b>Rejected</b> ${no.length?no.join(", "):"–"}<br><b>Waiting</b> ${wait.length?wait.join(", "):"–"}</div>`;
 }
-function msgBubble(x,mine,t){const gn=x.kind==="gn";return `<div class="b ${mine?"me":""} ${gn?"gnb":""}" onclick="rxToggle(${x.id})">${gn?gnCard(x):esc(x.text)}<small>${t}</small></div>`}
+function msgBubble(x,mine,t){const gn=x.kind==="gn";
+ const q=x.re?`<div class="qt"><b>${esc(P[x.re.from]||"")}</b>${esc(x.re.text||"")}</div>`:"";
+ let body;if(gn)body=gnCard(x);else if(x.img){const u=chatImgs[x.id];body=(u?`<img class="cimg" src="${u}" onclick="event.stopPropagation();viewChatImg(${x.id})">`:`<div class="cimg ph" data-ci="${x.id}">Loading photo…</div>`)+(x.text&&x.text!=="📷 Photo"?`<div>${esc(x.text)}</div>`:"")}else body=esc(x.text);
+ return `<div class="b ${mine?"me":""} ${gn?"gnb":""}" onclick="rxToggle(${x.id})">${q}${body}<small>${t}</small></div>`}
 function rxRow(id){
  const m=reactMap[id]||{},cnt={};Object.values(m).forEach(e=>{cnt[e]=(cnt[e]||0)+1});
  const chips=Object.entries(cnt).map(([e,n])=>`<button class="rxc ${m[ME]===e?"on":""}" onclick="event.stopPropagation();rxSet(${id},'${e}')">${e} ${n}</button>`).join("");
- const pick=rxOpen===id?`<div class="rxp">${RX.map(e=>`<button class="${m[ME]===e?"on":""}" onclick="event.stopPropagation();rxSet(${id},'${e}')">${e}</button>`).join("")}</div>`:"";
+ const pick=rxOpen===id?`<div class="rxp"><button onclick="event.stopPropagation();setReply(${id})">↩ Reply</button>${RX.map(e=>`<button class="${m[ME]===e?"on":""}" onclick="event.stopPropagation();rxSet(${id},'${e}')">${e}</button>`).join("")}</div>`:"";
  return (chips?`<div class="rxr">${chips}</div>`:"")+pick;
 }
 function rxToggle(id){rxOpen=rxOpen===id?null:id;updateChat()}
@@ -591,7 +621,7 @@ async function gnSend(){
 }
 async function sendChat(){
  const e=document.getElementById("ci"),t=((e&&e.value)||"").trim();if(!t)return;e.value="";
- const id=snow(),msg={id,from:ME,text:t.slice(0,500)};pendingMsgs.push(msg);chatMsgs.push(msg);updateChat(true);
+ const id=snow(),msg={id,from:ME,text:t.slice(0,500)};if(replyTo){msg.re=replyTo;replyTo=null;crpUpd()}typingSent=0;fetch(`${DBU}/typing/${ME}.json`,{method:"PUT",body:"0"}).catch(()=>{});pendingMsgs.push(msg);chatMsgs.push(msg);updateChat(true);
  try{const r=await fetch(`${DBU}/chat/${id}.json`,{method:"PUT",body:JSON.stringify(msg)});if(!r.ok)throw 0;ping({id})}catch(x){showNotice("Message not sent. Check your connection.")}
  pendingMsgs=pendingMsgs.filter(p=>p.id!==id);if(e)e.focus();
 }
@@ -669,7 +699,7 @@ function dash(){
  {const day=new Date().getDate();per().fixed.filter(f=>fixedOn(f,mk)&&!(f.paid&&f.paid[mk])&&f.day>=day&&f.day-day<=3).forEach(f=>al.push({c:"#ff9500",h:`<b>${esc(f.name)}</b> ${f.day==day?"is due today":"is due in "+(f.day-day)+" day"+(f.day-day==1?"":"s")} · ${mh(+f.amount||0)}`,btn:`<button class="pill" onclick="openPer()">Open</button>`}))}
  {const open=chatMsgs.filter(m=>m.kind==="gn"&&m.from!==ME&&m.gn&&m.gn.date>=ldate()&&!(rsvpMap[m.id]&&rsvpMap[m.id][ME]));open.slice(-2).forEach(m=>al.push({c:"#af52de",h:`<b>Game night</b> · ${esc(m.gn.game)} · ${esc(fmtWhen(m.gn.date,m.gn.time))}<br><small>${P[m.from]} is waiting for your reply</small>`,btn:`<button class="pill" onclick="openChat()">Reply</button>`}))}
  if(unread()>0)al.push({c:"var(--ac)",h:`<b>${unread()}</b> unread chat message${unread()==1?"":"s"}`,btn:`<button class="pill" onclick="openChat()">Open</button>`});
- h+=`<div class="sh">Alerts</div><div class="l">${al.length?al.map(a=>`<div class="li" style="border-left:4px solid ${a.c}"><span>${a.h}</span>${a.btn||""}</div>`).join(""):'<div class="li mu">You are all caught up.</div>'}</div>`;
+ h+=`<div class="sh">Alerts</div><div class="l">${al.length?al.map(a=>`<div class="li" style="border-left:4px solid ${a.c}"><span>${a.h}</span>${a.btn||""}</div>`).join(""):emptyS("ok","All caught up","No alerts right now")}</div>`;
  h+=`<div class="row2" style="margin-top:12px"><div class="tile"><small>${CP[mc]} owe</small><b class="${owe>0.005?"neg":""}">${mh(owe)}</b></div><div class="tile"><small>${CP[mc]} are owed</small><b class="${got>0.005?"pos":""}">${mh(got)}</b></div></div>`;
  {const tc=k=>{const tot=tSpend(k),lim=pbudget(),st=budState(tot,lim);return `<div class="li col" onclick="openPer()" style="cursor:pointer"><div style="display:flex;justify-content:space-between;gap:8px"><b>Total spending</b><span>${mh(tot)}</span></div>${lim>0?`<div style="display:flex;justify-content:space-between;gap:8px;margin-top:4px"><span class="mu">Total budgeted</span><span>${mh(lim)}</span></div>`:""}${st?`<div class="pb"><i style="width:${Math.min(100,st.p*100)}%;background:${st.bar}"></i></div><small class="${st.c}" style="display:block;margin-top:6px">${Math.round(st.p*100)}% used · ${st.t}</small>`:""}</div>`};
   const bc=(title,spent,lim)=>{const st=budState(spent,lim);return `<div class="li col" onclick="openPer()" style="cursor:pointer"><div style="display:flex;justify-content:space-between;gap:8px"><b>${title}</b><span>${mh(spent)}${lim>0?` <span class="mu">/ ${mh(lim)}</span>`:""}</span></div>${st?`<div class="pb"><i style="width:${Math.min(100,st.p*100)}%;background:${st.bar}"></i></div><small class="${st.c}" style="display:block;margin-top:6px">${Math.round(st.p*100)}% used · ${st.t}</small>`:""}</div>`};
@@ -677,7 +707,8 @@ function dash(){
  h+=`<div class="l" style="margin-top:12px"><div class="li"><span>Trip</span><select onchange="trip=this.value;render()"><option>All</option>${trips.map(t=>`<option ${t==trip?"selected":""}>${esc(t)}</option>`).join("")}</select></div></div>`;
  let rows="";
  for(let a=0;a<3;a++)for(let b=0;b<3;b++)if(d[a][b]>0.005&&(a===mc||b===mc))rows+=`<div class="li"><span><b>${CP[a]}</b> owe <b>${CP[b]}</b><br><span class="neg">${mh(d[a][b])}</span>${pd[a][b]?` <small>· ${mh(pd[a][b])} awaiting confirmation</small>`:""}</span>${canC(a)&&rm[a][b]>0.005?`<button class="pill" onclick="openPay(${a},${b})">Pay</button>`:""}${canC(b)&&rm[a][b]>0.005?`<button class="pill" onclick="remind(${a},${b})">Remind</button>`:""}</div>`;
- h+=`<div class="sh">Who owes whom</div><div class="l">${rows||'<div class="li mu">Nothing owed to or by your couple</div>'}</div>`;
+ h+=`<div class="sh">Who owes whom</div><div class="l">${rows||emptyS("ok","All settled","Nothing owed to or by your couple")}</div>`;
+ h+=settleHtml(d)+spendCharts();
  if(mine.length)h+=`<div class="sh">Waiting for confirmation</div><div class="l">${mine.map(p=>payRow(p)).join("")}</div>`;
  h+=`<button class="btn" style="margin-top:14px;padding:18px;font-size:18px" onclick="go('hist')">Bills · ${S.bills.length}</button>`;
  {const st=budState(tSpend(mk),pbudget());h+=`<button class="btn sec" style="margin-top:10px;padding:18px;font-size:18px" onclick="openPer()">Personal budget${st?` · ${Math.round(st.p*100)}% used`:""}</button>`}
@@ -1402,6 +1433,7 @@ function seqSounds(o,G){
  if(!G||G.status==="lobby")return;
  const was=o?o.moveNo:-1;
  if(G.moveNo>was&&G.last&&G.last.p!==ME){playSnd(G.last.type==="remove"?"remove":G.last.type==="swap"?"draw":"place");if(G.last.seqs)setTimeout(()=>playSnd("seq"),350)}
+ if(G.status==="playing"&&G.turn===ME&&(!o||o.turn!==ME||o.moveNo!==G.moveNo)){try{navigator.vibrate&&navigator.vibrate([70,40,70])}catch(e){}}
  if(G.status==="done"&&(!o||o.status!=="done"))setTimeout(()=>playSnd("win"),500);
  else if(G.status==="playing"&&G.turn===ME&&(!o||o.turn!==ME||o.status!=="playing")){playSnd("turn")}
 }
@@ -1490,6 +1522,7 @@ async function seqMaybeBot(){
 const seqMyTurn=()=>!!(seqG&&seqG.status==="playing"&&seqG.turn===ME);
 function seqPick(i){if(!seqG||seqG.status!=="playing")return;actx();seqSel=seqSel===i?-1:i;playSnd("click");seqRender()}
 function seqCell(i){
+ if(seqG&&seqG.status==="playing"&&seqSel<0&&BD[i]!=="F"){const k=seqHand.indexOf(BD[i]);if(k>=0){seqPick(k);return}}
  if(!seqMyTurn()||seqSel<0)return;
  const card=seqHand[seqSel];if(!card)return;
  if(!legalCells(seqG,card,tmOf(ME)).includes(i)){playSnd("bad");return}
@@ -1539,7 +1572,7 @@ function seqBoardHtml(G){
  let status;
  if(G.status==="done")status=`<div class="sq-win" style="background:${TEAMC[G.winner]};color:#fff">${G.winner==="g"?"Girls":"Boys"} win the match!</div>`;
  else if(G.status==="ended")status=`<div class="sq-win">Match ended early · ${esc(G.endReason||"Ended by a player")}</div>`;
- else if(myT)status=`<div class="sq-st">Your turn · ${sel?(isRem(sel)?"tap an opponent chip to remove":isWild(sel)?"tap any empty space":"tap a green space"):"pick a card"}</div>`;
+ else if(myT)status=`<div class="sq-st mine">Your turn · ${sel?(isRem(sel)?"tap an opponent chip to remove":isWild(sel)?"tap any empty space":"tap a green space"):"pick a card"}</div>`;
  else status=`<div class="sq-st">${P[cur]} ${((G.bots||[]).includes(cur))?"(Bot) is thinking…":"is playing…"}</div>`;
  const noMove=myT&&hand.length&&hand.every(c=>!legalCells(G,c,t).length&&(!isDead(G,c)||G.swapped));
  const dead=sel&&myT&&isDead(G,sel)&&!G.swapped;
@@ -1555,7 +1588,7 @@ function seqBoardHtml(G){
  <div class="sq-pl">${[0,1,2,3,4,5].map(p=>`<span class="sq-p ${p===cur&&G.status==="playing"?"on":""}" style="--c:${TEAMC[tmOf(p)]}">${P[p]}${(G.bots||[]).includes(p)?" · BOT":""}</span>`).join("")}</div>
  <div class="sq-bd ${sel?"focus":""}" style="--cs:${cs}px">${cells}</div>${status}${normal?`<div class="sq-info"><b>${cardLbl(sel)}</b> · ${pl.size} of ${(POS[sel]||[]).length} spots already played${pl.size?" (marked on the board)":""}</div>`:""}
  ${G.last?`<div class="sq-last"><span>Last played: <b>${esc(P[G.last.p]||"Player")}</b></span>${G.last.card?(()=>{const lr=cardRS(G.last.card);return `<span class="sq-last-card"><span class="r ${isRed(G.last.card)?"red":""}">${esc(lr.r)}</span><span class="s ${isRed(G.last.card)?"red":""}">${SQ_SUIT[lr.s]}</span></span>`})():""}<span class="sq-last-action">${G.last.seqs?'<span class="sq-seqtag">★ SEQUENCE!</span> ':""}${G.last.type==="pass"?"Passed":G.last.type==="swap"?"Swapped dead card":G.last.type==="remove"?"Removed opponent chip":"Played card"}</span></div>`:`<div class="sq-log">Waiting for the first move</div>`}
- <div class="sq-hand">${handHtml}</div><div class="sq-act">${acts}</div>`;
+ ${G.logL&&G.logL.length>1?`<details class="sq-hist"><summary>Recent moves</summary>${G.logL.slice().reverse().map(x=>`<div>${esc(x)}</div>`).join("")}</details>`:""}<div class="sq-hand">${handHtml}</div><div class="sq-act">${acts}</div>`;
 }
 /* ---- gin rummy ---- */
 let gset=null,cset=null,ge=[];
@@ -1768,8 +1801,8 @@ function histBody(){
  if(!hq&&Object.keys(tt).length)h+=`<div class="sh">Trip totals</div><div class="l">${Object.entries(tt).map(([k,v])=>`<div class="li"><span>${esc(k)}</span><b>${mh(v)}</b></div>`).join("")}</div><div class="sh">Bills</div>`;
  const all=dues(true),days={};
  fbills().slice().sort((a,b)=>(b.date||"").localeCompare(a.date||"")||b.id-a.id).forEach(x=>{const d=x.date||"Unknown";(days[d]=days[d]||[]).push(x)});
- h+=Object.keys(days).sort().reverse().map(d=>`<div class="sh" style="display:flex;justify-content:space-between"><span>${dayLabel(d)}</span><span>${mh(sum(days[d].map(x=>sum(calc(x).map(y=>y.tot)))))}</span></div><div class="l">${days[d].map(x=>{const st=billStatus(x,all),T=sum(calc(x).map(y=>y.tot));return `<div class="li col" onclick="openB(${x.id})" style="cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div style="flex:1;min-width:0"><b>${esc(x.title)}</b>${x.trip?`<span class="cp">${esc(x.trip)}</span>`:""}<div class="mu">${shortDate(d)} · paid by ${P[x.payer]}</div></div><div style="text-align:right;flex:none"><b>${mh(T)}</b><br><span class="bd ${st.k}">${st.t}</span></div></div>${st.lines.map(l=>`<div class="mu" style="margin-top:4px">• ${esc(l)}</div>`).join("")}</div>`}).join("")}</div>`).join("");
- if(!fbills().length)h+='<div class="l"><div class="li mu">'+(hq?'No matching bills':'No bills yet')+'</div></div>';
+ h+=Object.keys(days).sort().reverse().map(d=>`<div class="sh" style="display:flex;justify-content:space-between"><span>${dayLabel(d)}</span><span>${mh(sum(days[d].map(x=>sum(calc(x).map(y=>y.tot)))))}</span></div><div class="l">${days[d].map(x=>{const st=billStatus(x,all),T=sum(calc(x).map(y=>y.tot));const dl=canAct(x.payer)||x.by===ME;return `<div class="swp" ${dl?`data-del="${x.id}"`:""}>${dl?`<button class="swd" onclick="delBill(${x.id})">Delete</button>`:""}<div class="li col swr" onclick="swOpen(event,${x.id})" style="cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px"><div style="flex:1;min-width:0"><b>${esc(x.title)}</b>${x.trip?`<span class="cp">${esc(x.trip)}</span>`:""}<div class="mu">${shortDate(d)} · paid by ${P[x.payer]}</div></div><div style="text-align:right;flex:none"><b>${mh(T)}</b><br><span class="bd ${st.k}">${st.t}</span></div></div>${st.lines.map(l=>`<div class="mu" style="margin-top:4px">• ${esc(l)}</div>`).join("")}</div></div>`}).join("")}</div>`).join("");
+ if(!fbills().length)h+=emptyS("bill",hq?"No matching bills":"No bills yet",hq?"Try a different search":"Add your first bill from the New tab");
  return h;
 }
 async function delBill(id){if(await showConfirm("Delete this bill?","Delete bill","Delete",true)){ob=null;S.bills=S.bills.filter(b=>b.id!=id);save();rd("bills",id);render()}}
@@ -1805,6 +1838,52 @@ async function key(k){
  try{localStorage.setItem("squadme",lg.i)}catch(e){}
  ME=lg.i;who=ME;D.payer=ME;lg=null;tab="dash";render();beat();pull(true);
 }
+/* ---- v2 additions: charts, settle-up, empty states, swipe-to-delete, chat extras ---- */
+let chartMode="person",swipedAt=0,typingMap={},typingSent=0,replyTo=null,chatImgs={},chatImgBusy={};
+const EMPTY={
+ ok:'<svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="32" cy="32" r="22" opacity=".35"/><path d="M21 33l8 8 15-17"/></svg>',
+ bill:'<svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8h32v48l-6-4-6 4-4-4-4 4-6-4-6 4z" opacity=".5"/><path d="M24 22h16M24 32h16M24 42h9"/></svg>',
+ chat:'<svg viewBox="0 0 64 64" width="64" height="64" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M54 30a20 20 0 0 1-29 17.8L10 52l3.4-11.5A20 20 0 1 1 54 30z" opacity=".5"/><path d="M24 30h16M24 38h9"/></svg>'};
+const emptyS=(k,t,sub)=>`<div class="emp">${EMPTY[k]}<b>${t}</b><span>${sub}</span></div>`;
+function spendCharts(){
+ const bills=fb();if(!bills.length)return"";let body="";
+ if(chartMode=="person"){const tot=P.map(()=>0);bills.forEach(b=>calc(b).forEach((c,i)=>tot[i]+=c.tot));const mx=Math.max(...tot,1);
+  body=tot.map((v,i)=>`<div class="hb"><span>${P[i]}</span><div class="hbt"><i style="width:${Math.max(2,v/mx*100)}%;background:${COL[cpOf(i)]}"></i></div><b>${mh(v)}</b></div>`).join("")}
+ else{const mm={};bills.forEach(b=>{const k=(b.date||"").slice(0,7);if(k)mm[k]=(mm[k]||0)+sum(calc(b).map(x=>x.tot))});const ks=Object.keys(mm).sort().slice(-6),mx=Math.max(...ks.map(k=>mm[k]),1);
+  body=`<div class="vb">${ks.map(k=>`<div><b>${mh(mm[k])}</b><div class="vbt"><i style="height:${Math.max(4,mm[k]/mx*100)}%"></i></div><span>${new Date(k+"-01T00:00:00").toLocaleDateString([],{month:"short"})}</span></div>`).join("")}</div>`}
+ return `<div class="sh">Spending</div><div class="l"><div class="li col">${seg([["person","By person"],["month","By month"]],chartMode,"((v)=>{chartMode=v;render()})")}<div style="margin-top:12px;width:100%">${body}</div></div></div>`;
+}
+function settleHtml(d){
+ const cr=[],db=[];[0,1,2].forEach(c=>{const v=r2(sum(d.map(r=>r[c]))-sum(d[c]));if(v>0.005)cr.push({c,v});else if(v<-0.005)db.push({c,v:-v})});
+ const out=[];let i=0,j=0;while(i<db.length&&j<cr.length){const x=Math.min(db[i].v,cr[j].v);out.push([db[i].c,cr[j].c,x]);db[i].v-=x;cr[j].v-=x;if(db[i].v<.005)i++;if(cr[j].v<.005)j++}
+ return `<div class="sh">Settle up</div><div class="l">${out.length?out.map(([a,b,x])=>`<div class="li"><span><b>${CP[a]}</b> → <b>${CP[b]}</b></span><b>${mh(x)}</b></div>`).join("")+'<div class="li mu" style="font-size:12px">The fewest payments that clear every balance between the three couples.</div>':emptyS("ok","Everyone is settled up","No payments needed right now")}</div>`;
+}
+function swOpen(ev,id){if(Date.now()-swipedAt<350)return;const r=ev.currentTarget;if(r.classList.contains("open")){r.classList.remove("open");r.style.transform="";return}openB(id)}
+(function(){let sx,sy,el=null,dx=0,lock=null;const MAX=92;
+ document.addEventListener("touchstart",e=>{const r=e.target.closest&&e.target.closest(".swp[data-del] .swr");
+  document.querySelectorAll(".swr.open").forEach(x=>{if(x!==r){x.classList.remove("open");x.style.transform=""}});
+  if(!r){el=null;return}el=r;sx=e.touches[0].clientX;sy=e.touches[0].clientY;dx=0;lock=null;el.style.transition="none"},{passive:true});
+ document.addEventListener("touchmove",e=>{if(!el)return;const x=e.touches[0].clientX-sx,y=e.touches[0].clientY-sy;if(lock===null&&(Math.abs(x)>8||Math.abs(y)>8))lock=Math.abs(x)>Math.abs(y);if(!lock)return;dx=Math.max(-MAX,Math.min(0,x+(el.classList.contains("open")?-MAX:0)));el.style.transform=`translateX(${dx}px)`},{passive:true});
+ document.addEventListener("touchend",()=>{if(!el)return;el.style.transition="";const o=lock&&dx<-MAX/2;el.classList.toggle("open",!!o);el.style.transform=o?`translateX(-${MAX}px)`:"";if(lock)swipedAt=Date.now();el=null});
+})();
+/* chat: typing, replies, photos */
+function onTyping(){const n=Date.now();if(n-typingSent<2500)return;typingSent=n;fetch(`${DBU}/typing/${ME}.json`,{method:"PUT",body:String(snow())}).catch(()=>{})}
+function typUpd(){const el=document.getElementById("cty");if(!el)return;const n=P.map((_,i)=>i).filter(i=>i!==ME&&typingMap&&typingMap[i]&&snow()-typingMap[i]<5000).map(i=>P[i]);el.innerHTML=n.length?`<span class="dots3"><i></i><i></i><i></i></span> ${n.join(", ")} ${n.length>1?"are":"is"} typing…`:""}
+async function pullTyping(){if(!chatOpen)return;try{typingMap=(await fget("typing"))||{};typUpd()}catch(e){}}
+setInterval(pullTyping,2500);
+function crpUpd(){const el=document.getElementById("crp");if(el)el.innerHTML=replyTo?`<div class="rpb"><div><b>Replying to ${esc(P[replyTo.from])}</b><span>${esc(replyTo.text)}</span></div><button onclick="replyTo=null;crpUpd()">✕</button></div>`:""}
+function setReply(id){const x=chatMsgs.find(m=>m.id==id);if(!x)return;replyTo={id,from:x.from,text:(x.img?"📷 Photo":(x.text||"")).slice(0,80)};rxOpen=null;updateChat();crpUpd();const i=document.getElementById("ci");if(i)i.focus()}
+function viewChatImg(id){if(!chatImgs[id])return;const d=document.createElement("div");d.className="imgv";d.innerHTML=`<img src="${chatImgs[id]}">`;d.onclick=()=>d.remove();document.body.appendChild(d)}
+function loadChatImgs(){document.querySelectorAll("[data-ci]").forEach(el=>{const id=el.dataset.ci;if(chatImgs[id]){updateChat();return}if(chatImgBusy[id])return;chatImgBusy[id]=1;fget("chatimg/"+id).then(x=>{if(x){chatImgs[id]=x;updateChat()}}).catch(()=>{chatImgBusy[id]=0})})}
+function pickChatImg(inp){
+ const file=inp.files[0];inp.value="";if(!file)return;const img=new Image(),url=URL.createObjectURL(file);
+ img.onload=async()=>{let w=900,q=.6,u;do{const k=Math.min(1,w/img.width),c=document.createElement("canvas");c.width=img.width*k;c.height=img.height*k;c.getContext("2d").drawImage(img,0,0,c.width,c.height);u=c.toDataURL("image/jpeg",q);w-=150;q-=.07}while(u.length>130000&&w>300);
+  const id=snow(),msg={id,from:ME,text:"📷 Photo",img:1};if(replyTo){msg.re=replyTo;replyTo=null;crpUpd()}
+  chatImgs[id]=u;pendingMsgs.push(msg);chatMsgs.push(msg);updateChat(true);
+  try{let r=await fetch(`${DBU}/chatimg/${id}.json`,{method:"PUT",body:JSON.stringify(u)});if(!r.ok)throw 0;r=await fetch(`${DBU}/chat/${id}.json`,{method:"PUT",body:JSON.stringify(msg)});if(!r.ok)throw 0;ping({id})}catch(x){showNotice("Photo not sent. Check your connection.")}
+  pendingMsgs=pendingMsgs.filter(p=>p.id!==id)};
+ img.onerror=()=>showNotice("Could not read that image.");img.src=url;
+}
 function render(){
  const y=(document.querySelector(".w")||{}).scrollTop||0;
  if(!ready){v.innerHTML=head("Squad Split","Loading…");nav.innerHTML="";ovl.innerHTML="";return}
@@ -1819,7 +1898,7 @@ function render(){
  if(tab=="new"){prev();plSug()}
  sc2(y);
 }
-function go(k){tab=k;ob=null;if(k=="game")openGame();else if(gameOpen)closeGame();render();sc2(0)}
+function go(k){tab=k;ob=null;if(k=="game")openGame();else if(gameOpen)closeGame();render();sc2(0);v.classList.remove("tabin");void v.offsetWidth;v.classList.add("tabin")}
 ["gesturestart","gesturechange","gestureend"].forEach(e=>document.addEventListener(e,ev=>ev.preventDefault()));
 document.addEventListener("touchmove",ev=>{if(ev.touches.length>1)ev.preventDefault()},{passive:false});
 if(window.visualViewport){const fit=()=>{document.documentElement.style.zoom=appZoom;document.body.style.height=(visualViewport.height/appZoom)+"px";document.body.style.width=(visualViewport.width/appZoom)+"px";document.body.style.bottom="auto";window.scrollTo(0,0)};visualViewport.addEventListener("resize",fit);visualViewport.addEventListener("scroll",()=>window.scrollTo(0,0));fit()}else{applyZoom(appZoom)}
