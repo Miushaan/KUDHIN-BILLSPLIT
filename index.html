@@ -398,6 +398,26 @@ input:focus,select:focus{color:var(--tx)}
 .imgv{position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.92);display:flex;align-items:center;justify-content:center}.imgv img{max-width:100%;max-height:100%;object-fit:contain}
 .rxp button:first-child{font-size:13px;font-weight:700;padding:0 10px;width:auto}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* v3: chat delete, swipe reply, online list, notes */
+.ch-m{overflow-x:hidden}
+.mr{position:relative;touch-action:pan-y}
+.mr.me .mc{max-width:86%}
+.swi{position:absolute;left:-38px;top:50%;width:30px;height:30px;border-radius:50%;background:var(--ac2);color:var(--ac);display:flex;align-items:center;justify-content:center;font-style:normal;font-weight:700;pointer-events:none;opacity:var(--sw,0);transform:translateY(-50%) scale(calc(.5 + var(--sw,0)*.5))}
+.mr.me .swi{left:auto;right:-38px}
+.ons{justify-content:space-between;gap:0;padding:12px 6px;overflow:hidden}
+.ons span{flex:1 1 0;min-width:0;flex-direction:column;justify-content:center;gap:5px;font-size:clamp(13px,3.9vw,16px);font-weight:600}
+.ons .od{width:13px;height:13px;margin:0}
+.ons b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.cnote{align-self:center;text-align:center;font-size:11.5px;color:var(--mu);padding:2px 10px 8px}
+.rxp{flex-direction:column;align-items:stretch;gap:2px}
+.rxa,.rxe{display:flex;gap:2px;justify-content:center}
+.rxe button:first-child{font-size:22px;font-weight:400;padding:2px 5px}
+.rxp .ra{font-size:13px;font-weight:700;padding:6px 12px;width:auto}
+.rxp .ra.dl{color:var(--red)}
+.rxa{border-bottom:.5px solid var(--bd);padding-bottom:3px;margin-bottom:2px}
+.ch-h .pill.dl{color:var(--red)}
+.cimg.ph.ex{padding:28px 10px;opacity:.7}
 </style></head><body><div class="w" id="v"></div><div class="tabs" id="nav"></div><div id="ovl"></div><div id="chatov"></div><div id="gameov"></div><div id="seqov"></div><div id="fab" onclick="openChat()"></div><div id="perov"></div>
 <script>
 const P=["Appal","Uly","Miu","Raya","Aslan","Reesha"],CP=["Appal & Uly","Miu & Raya","Aslan & Reesha"],COL=["#ff9500","#af52de","#30b0c7"],GST=8;
@@ -511,7 +531,7 @@ async function pull(force){
   const ch=JSON.stringify([nb,nc,m||{}])!==JSON.stringify([S.bills,S.cpays,memb])||JSON.stringify([nn,gm||{}])!==JSON.stringify([S.nights,S.games||{}])||JSON.stringify([gn,cn])!==JSON.stringify([S.gin,S.comps])||JSON.stringify(pn)!==JSON.stringify(S.per||null)||JSON.stringify(bg&&ME!==null?{[cpOf(ME)]:bg}:{})!==JSON.stringify(S.budgets||{});
   S.bills=nb;S.cpays=nc;S.nights=nn;S.games=gm||{};S.gin=gn;S.comps=cn;S.per=pn;S.budgets=bg&&ME!==null?{[cpOf(ME)]:bg}:{};memb=m||{};lastSync=new Date();save();
   pres=pr||{};const pc=setChat(cht,sn,rv,rc),on=P.map((_,i)=>isOn(i)?1:0).join(""),oc=on!==lastOn;lastOn=on;fabUpd();
-  const was=live;live=true;ready=true;
+  sweep();const was=live;live=true;ready=true;
   if(chatOpen&&(pc||oc))updateChat();if(ch||pc||oc||!was)uiRefresh();
  }catch(e){const was=live;live=false;ready=true;if(was||!ready)uiRefresh();else if(!document.getElementById("v").innerHTML)render()}
 }
@@ -525,7 +545,7 @@ const isOn=i=>pres[i]&&pres[i].t&&snow()-pres[i].t<45000;
 const snow=()=>Date.now()+off;
 let gnset=null,rsvpMap={},reactMap={},rxOpen=null;
 function setChat(c,sn,rv,rc){
- const sv=Object.values(c||{}).filter(x=>x&&x.text).sort((a,b)=>a.id-b.id);
+ const sv=Object.values(c||{}).filter(x=>x&&x.text&&!gone(x)).sort((a,b)=>a.id-b.id);
  const merged=[...sv,...pendingMsgs.filter(p=>!sv.some(x=>x.id===p.id))].sort((a,b)=>a.id-b.id);
  const sig=JSON.stringify([merged,sn||{},rv||{},rc||{}]),ch=sig!==chatSig;chatSig=sig;chatMsgs=merged;seenMap=sn||{};rsvpMap=rv||{};reactMap=rc||{};pendingMsgs.forEach(p=>{if(p.kind==="gn"){rsvpMap[p.id]=rsvpMap[p.id]||{};if(!rsvpMap[p.id][p.from])rsvpMap[p.id][p.from]="yes"}});return ch;
 }
@@ -550,21 +570,21 @@ function markRead(){
 }
 function openChat(){
  chatOpen=true;chatov.style.display="block";fabUpd();
- chatov.innerHTML=`<div class="chat"><div class="ch-h"><button class="pill" onclick="closeChat()">‹ Back</button><div style="text-align:center;flex:1"><b>Group chat</b></div><span style="width:62px"></span></div><div class="ons" id="chon"></div><div class="ch-m" id="cm"></div><div class="cty" id="cty"></div><div id="crp"></div><div class="ch-i"><button class="pill" style="font-size:18px;padding:6px 12px" onclick="document.getElementById('cfile').click()">📷</button><input type="file" id="cfile" accept="image/*" hidden onchange="pickChatImg(this)"><input id="ci" autocomplete="off" placeholder="Message" oninput="onTyping()" enterkeyhint="send" onkeydown="if(event.key==='Enter')sendChat()"><button class="btn" style="width:auto;padding:10px 16px" onclick="sendChat()">Send</button></div></div>`;
- updateChat(true);pullChat();
+ chatov.innerHTML=`<div class="chat"><div class="ch-h"><button class="pill" onclick="closeChat()">‹ Back</button><div style="text-align:center;flex:1"><b>Group chat</b></div><button class="pill dl" onclick="clearChat()">Clear</button></div><div class="ons" id="chon"></div><div class="ch-m" id="cm"></div><div class="cty" id="cty"></div><div id="crp"></div><div class="ch-i"><button class="pill" style="font-size:18px;padding:6px 12px" onclick="document.getElementById('cfile').click()">📷</button><input type="file" id="cfile" accept="image/*" hidden onchange="pickChatImg(this)"><input id="ci" autocomplete="off" placeholder="Message" oninput="onTyping()" enterkeyhint="send" onkeydown="if(event.key==='Enter')sendChat()"><button class="btn" style="width:auto;padding:10px 16px" onclick="sendChat()">Send</button></div></div>`;
+updateChat(true);pullChat();swipeInit();sweep();
 }
 function closeChat(){chatOpen=false;chatov.style.display="none";chatov.innerHTML="";fabUpd();render()}
 function updateChat(force){
- const m=document.getElementById("cm");if(!m||!chatOpen)return;
+ const m=document.getElementById("cm");if(!m||!chatOpen)return;if(swp&&!force)return;
  const near=force||m.scrollHeight-m.scrollTop-m.clientHeight<80;
  const seenAt={};
  [0,1,2,3,4,5].forEach(p=>{if(p===ME)return;const sd=seenMap[p]&&seenMap[p].id;if(!sd)return;let tgt=null;chatMsgs.forEach(x=>{if(x.from!==p&&x.id<=sd)tgt=x.id});if(tgt!==null)(seenAt[tgt]=seenAt[tgt]||[]).push(P[p])});
- m.innerHTML=chatMsgs.length?chatMsgs.map((x,k)=>{
+ m.innerHTML='<div class="cnote">Messages disappear after 5 days · photos after 2 days</div>'+(chatMsgs.length?chatMsgs.map((x,k)=>{
   const mine=x.from===ME,d=new Date(x.id-off),t=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"),nx=chatMsgs[k+1],lastRun=!nx||nx.from!==x.from;
-  const av=lastRun?`<div class="pp" style="background:${COL[cpOf(x.from)]}">${P[x.from]}</div>`:'<div class="pp sp"></div>';
+  const av=mine?"":(lastRun?`<div class="pp" style="background:${COL[cpOf(x.from)]}">${P[x.from]}</div>`:'<div class="pp sp"></div>');
   const sn=seenAt[x.id]?`<div class="seen">Seen by ${seenAt[x.id].join(", ")}</div>`:"";
-  return `<div class="mr ${mine?"me":""}">${av}<div class="mc">${msgBubble(x,mine,t)}${rxRow(x.id)}${sn}</div></div>`}).join(""):emptyS("chat","No messages yet","Say hi to the squad!");
- const o=document.getElementById("chon");if(o)o.innerHTML=P.map((p,i)=>`<span><i class="od ${isOn(i)||i===ME?"on":""}"></i>${p}</span>`).join("");
+  return `<div class="mr ${mine?"me":""}" data-id="${x.id}"><i class="swi">↩</i>${av}<div class="mc">${msgBubble(x,mine,t)}${rxRow(x.id)}${sn}</div></div>`}).join(""):emptyS("chat","No messages yet","Say hi to the squad!"));
+ const o=document.getElementById("chon");if(o)o.innerHTML=P.map((p,i)=>`<span><i class="od ${isOn(i)||i===ME?"on":""}"></i><b>${p}</b></span>`).join("");
  if(near)m.scrollTop=m.scrollHeight;markRead();typUpd();if(m.querySelector('[data-ci]'))loadChatImgs();
 }
 const RX=["👍🏼","👎","❤️","🥱","🖕","🤦"];
@@ -575,15 +595,15 @@ function gnCard(x){
 }
 function msgBubble(x,mine,t){const gn=x.kind==="gn";
  const q=x.re?`<div class="qt"><b>${esc(P[x.re.from]||"")}</b>${esc(x.re.text||"")}</div>`:"";
- let body;if(gn)body=gnCard(x);else if(x.img){const u=chatImgs[x.id];body=(u?`<img class="cimg" src="${u}" onclick="event.stopPropagation();viewChatImg(${x.id})">`:`<div class="cimg ph" data-ci="${x.id}">Loading photo…</div>`)+(x.text&&x.text!=="📷 Photo"?`<div>${esc(x.text)}</div>`:"")}else body=esc(x.text);
+ let body;if(gn)body=gnCard(x);else if(x.img){const u=chatImgs[x.id];body=(imgGone(x)?`<div class="cimg ph ex">📷 Photo expired</div>`:u?`<img class="cimg" src="${u}" onclick="event.stopPropagation();viewChatImg(${x.id})">`:`<div class="cimg ph" data-ci="${x.id}">Loading photo…</div>`)+(x.text&&x.text!=="📷 Photo"?`<div>${esc(x.text)}</div>`:"")}else body=esc(x.text);
  return `<div class="b ${mine?"me":""} ${gn?"gnb":""}" onclick="rxToggle(${x.id})">${q}${body}<small>${t}</small></div>`}
 function rxRow(id){
  const m=reactMap[id]||{},cnt={};Object.values(m).forEach(e=>{cnt[e]=(cnt[e]||0)+1});
  const chips=Object.entries(cnt).map(([e,n])=>`<button class="rxc ${m[ME]===e?"on":""}" onclick="event.stopPropagation();rxSet(${id},'${e}')">${e} ${n}</button>`).join("");
- const pick=rxOpen===id?`<div class="rxp"><button onclick="event.stopPropagation();setReply(${id})">↩ Reply</button>${RX.map(e=>`<button class="${m[ME]===e?"on":""}" onclick="event.stopPropagation();rxSet(${id},'${e}')">${e}</button>`).join("")}</div>`:"";
+ const pick=rxOpen===id?`<div class="rxp"><div class="rxa"><button class="ra" onclick="event.stopPropagation();setReply(${id})">↩ Reply</button><button class="ra dl" onclick="event.stopPropagation();delMsg(${id})">${delLbl(id)}</button></div><div class="rxe">${RX.map(e=>`<button class="${m[ME]===e?"on":""}" onclick="event.stopPropagation();rxSet(${id},'${e}')">${e}</button>`).join("")}</div></div>`:"";
  return (chips?`<div class="rxr">${chips}</div>`:"")+pick;
 }
-function rxToggle(id){rxOpen=rxOpen===id?null:id;updateChat()}
+function rxToggle(id){if(Date.now()-swpAt<400)return;rxOpen=rxOpen===id?null:id;updateChat()}
 function rxSet(id,e){
  const m=reactMap[id]=reactMap[id]||{};
  if(m[ME]===e){delete m[ME];wr("DELETE",`react/${id}/${ME}`)}else{m[ME]=e;wr("PUT",`react/${id}/${ME}`,e)}
@@ -1902,6 +1922,75 @@ function go(k){tab=k;ob=null;if(k=="game")openGame();else if(gameOpen)closeGame(
 ["gesturestart","gesturechange","gestureend"].forEach(e=>document.addEventListener(e,ev=>ev.preventDefault()));
 document.addEventListener("touchmove",ev=>{if(ev.touches.length>1)ev.preventDefault()},{passive:false});
 if(window.visualViewport){const fit=()=>{document.documentElement.style.zoom=appZoom;document.body.style.height=(visualViewport.height/appZoom)+"px";document.body.style.width=(visualViewport.width/appZoom)+"px";document.body.style.bottom="auto";window.scrollTo(0,0)};visualViewport.addEventListener("resize",fit);visualViewport.addEventListener("scroll",()=>window.scrollTo(0,0));fit()}else{applyZoom(appZoom)}
+/* ---- v3: delete chats, auto-expiry (messages 5 days, photos 2 days), swipe to reply ---- */
+const DAYMS=864e5,CHAT_TTL=5*DAYMS,IMG_TTL=2*DAYMS;
+let swp=null,swpAt=0,lastSweep=0,hid={},clearedAt=0,imgDone={};
+try{hid=JSON.parse(localStorage.getItem("squadhide")||"{}")||{}}catch(e){hid={}}
+try{clearedAt=+localStorage.getItem("squadclear")||0}catch(e){}
+const saveHid=()=>{try{const lim=Date.now()-CHAT_TTL-DAYMS;Object.keys(hid).forEach(k=>{if(+k<lim)delete hid[k]});localStorage.setItem("squadhide",JSON.stringify(hid))}catch(e){}};
+const gnLive=x=>x.kind==="gn"&&x.gn&&x.gn.date>=ldate();
+const chatExpired=x=>x.id<snow()-CHAT_TTL&&!gnLive(x);
+const imgGone=x=>!!x.img&&x.id<snow()-IMG_TTL;
+const gone=x=>!!hid[x.id]||x.id<=clearedAt||chatExpired(x);
+const delLbl=id=>{const x=chatMsgs.find(z=>z.id==id);return x&&x.from===ME?"🗑 Delete":"🗑 Delete for me"};
+async function wipeMsgs(ids,imgOnly){
+ if(!ids.length)return;
+ const o={};ids.forEach(id=>{o[`chatimg/${id}`]=null;if(!imgOnly){o[`chat/${id}`]=null;o[`react/${id}`]=null;o[`rsvp/${id}`]=null}});
+ try{const r=await fetch(`${DBU}/.json`,{method:"PATCH",body:JSON.stringify(o)});if(r.ok)return}catch(e){}
+ for(const p of Object.keys(o)){try{await fetch(`${DBU}/${p}.json`,{method:"DELETE"})}catch(e){}}
+}
+async function sweep(){
+ if(ME===null||Date.now()-lastSweep<600000)return;lastSweep=Date.now();
+ try{
+  const c2=Math.floor(snow()-IMG_TTL),c5=Math.floor(snow()-CHAT_TTL);
+  const old=(await fget("chat",`orderBy=%22%24key%22&endAt=%22${c2}%22&limitToLast=200`))||{};
+  const full=[],imgs=[];
+  Object.entries(old).forEach(([k,x])=>{if(!x)return;const id=+(x.id||k);if(id<c5&&!gnLive(x))full.push(id);else if(x.img&&!imgDone[id])imgs.push(id)});
+  await wipeMsgs(full);await wipeMsgs(imgs,true);
+  imgs.forEach(id=>imgDone[id]=1);
+  Object.keys(chatImgs).forEach(k=>{if(+k<c2)delete chatImgs[k]});
+  if(Object.keys(old).length>=200)lastSweep=Date.now()-540000;
+  if(full.length)pullChat();
+ }catch(e){}
+}
+async function delMsg(id){
+ const x=chatMsgs.find(m=>m.id==id);rxOpen=null;if(!x){updateChat();return}
+ if(x.from===ME){
+  if(!(await showConfirm("Delete this message for everyone?","Delete message","Delete",true))){updateChat();return}
+  hid[id]=1;saveHid();pendingMsgs=pendingMsgs.filter(p=>p.id!==id);chatMsgs=chatMsgs.filter(m=>m.id!=id);updateChat();
+  wipeMsgs([id]);
+ }else{hid[id]=1;saveHid();chatMsgs=chatMsgs.filter(m=>m.id!=id);updateChat()}
+}
+async function clearChat(){
+ if(!chatMsgs.length)return;
+ if(!(await showConfirm("Delete all messages from this chat on your phone? Other people keep their copy. To remove a message for everyone, tap your own message and choose Delete.","Clear chat","Clear",true)))return;
+ clearedAt=chatMsgs[chatMsgs.length-1].id;try{localStorage.setItem("squadclear",clearedAt)}catch(e){}
+ chatMsgs=[];updateChat(true);
+}
+function swipeInit(){
+ const m=document.getElementById("cm");if(!m)return;
+ m.addEventListener("pointerdown",e=>{
+  if(e.pointerType==="mouse")return;
+  const r=e.target.closest&&e.target.closest(".mr[data-id]");if(!r||e.target.closest("button,.rxp,.rxr,input"))return;
+  swp={r,id:r.dataset.id,x:e.clientX,y:e.clientY,s:r.classList.contains("me")?-1:1,lock:0,fired:false,pid:e.pointerId};
+ });
+ m.addEventListener("pointermove",e=>{
+  if(!swp||e.pointerId!==swp.pid)return;
+  const dx=(e.clientX-swp.x)*swp.s,dy=e.clientY-swp.y;
+  if(!swp.lock){
+   if(Math.abs(dy)>12&&Math.abs(dy)>dx){swp=null;return}
+   if(dx>12&&dx>Math.abs(dy)*1.4){swp.lock=1;swp.r.style.transition="none";try{m.setPointerCapture(e.pointerId)}catch(_){}}else return;
+  }
+  const d=Math.max(0,dx),eff=d>64?64+(d-64)*.25:d;
+  swp.r.style.transform=`translateX(${eff*swp.s}px)`;swp.r.style.setProperty("--sw",Math.min(1,eff/56));
+  const f=eff>=56;if(f&&!swp.fired&&navigator.vibrate)try{navigator.vibrate(10)}catch(_){}swp.fired=f;
+ });
+ const end=()=>{
+  if(!swp)return;const w=swp;swp=null;
+  if(w.lock){w.r.style.transition="transform .2s";w.r.style.transform="";w.r.style.setProperty("--sw",0);swpAt=Date.now();if(w.fired)setReply(w.id)}
+ };
+ m.addEventListener("pointerup",end);m.addEventListener("pointercancel",end);
+}
 resolveMe();render();pull();beat();window.addEventListener("load",()=>setTimeout(()=>{if(ME!==null&&notifOn())enableNotif(true)},1500));setInterval(pull,5000);setInterval(beat,20000);setInterval(()=>{if(chatOpen)pullChat()},2500);
 document.addEventListener("visibilitychange",()=>{if(document.hidden){if(ME!==null)fetch(`${DBU}/presence/${ME}.json`,{method:"PUT",body:JSON.stringify({t:0}),keepalive:true}).catch(()=>{})}else{pull();beat()}});
 </script>
